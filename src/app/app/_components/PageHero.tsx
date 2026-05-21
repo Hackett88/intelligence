@@ -101,16 +101,20 @@ export function PageHero({
                 fontFamily: "var(--font-serif), 'EB Garamond', serif",
                 fontSize: 26,
                 letterSpacing: "0.04em",
+                filter:
+                  "drop-shadow(0 0 5px rgba(239,216,154,.22)) drop-shadow(0 1px 0 rgba(0,0,0,.55))",
               }}
             >
               {title}
             </h1>
             <div className="mt-1.5 flex items-center gap-3">
               <span
-                className="font-sc tracking-[0.28em] text-manor-brassDim whitespace-nowrap"
+                className="font-sc tracking-[0.28em] text-manor-brassHi whitespace-nowrap"
                 style={{
                   fontFamily: "var(--font-sc), 'Cormorant SC', serif",
                   fontSize: 10,
+                  textShadow:
+                    "0 0 8px rgba(239,216,154,.5), 0 0 2px rgba(224,197,122,.7)",
                 }}
               >
                 〔{latin}〕
@@ -118,10 +122,11 @@ export function PageHero({
               <span className="brass-divider flex-1 max-w-[160px] opacity-60" />
               {tagline && (
                 <span
-                  className="ital-italic text-manor-ink/80 inline-flex items-center gap-1.5"
+                  className="ital-italic text-manor-ink/65 inline-flex items-center gap-1.5"
                   style={{
                     fontFamily: "var(--font-serif), 'EB Garamond', serif",
                     fontSize: 13,
+                    textShadow: "0 0 4px rgba(239,216,154,.18)",
                   }}
                 >
                   <span

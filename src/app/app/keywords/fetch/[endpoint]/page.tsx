@@ -109,21 +109,32 @@ export default async function SkillDetailPage({ params }: PageProps) {
               fontFamily: "var(--font-serif), 'EB Garamond', serif",
               fontSize: 26,
               letterSpacing: "0.04em",
+              filter:
+                "drop-shadow(0 0 5px rgba(239,216,154,.22)) drop-shadow(0 1px 0 rgba(0,0,0,.55))",
             }}
           >
             {meta.title}
           </h1>
           <span
-            className="font-sc tracking-[0.24em] text-manor-brassDim"
-            style={{ fontFamily: "var(--font-sc), 'Cormorant SC', serif", fontSize: 11 }}
+            className="font-sc tracking-[0.24em] text-manor-brassHi"
+            style={{
+              fontFamily: "var(--font-sc), 'Cormorant SC', serif",
+              fontSize: 11,
+              textShadow:
+                "0 0 8px rgba(239,216,154,.5), 0 0 2px rgba(224,197,122,.7)",
+            }}
           >
             〔OPUS · {slug.toUpperCase()}〕
           </span>
           <span className="brass-divider flex-1 max-w-[180px] opacity-60" />
         </div>
         <p
-          className="mt-1.5 text-manor-inkDim italic"
-          style={{ fontFamily: "var(--font-serif), 'EB Garamond', serif", fontSize: 12 }}
+          className="mt-1.5 text-manor-ink/65 italic"
+          style={{
+            fontFamily: "var(--font-serif), 'EB Garamond', serif",
+            fontSize: 12,
+            textShadow: "0 0 4px rgba(239,216,154,.18)",
+          }}
         >
           {meta.description}
         </p>

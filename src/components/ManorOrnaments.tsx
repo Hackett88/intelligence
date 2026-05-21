@@ -419,6 +419,92 @@ export function HudCap({ width = 30, height = 12 }: { width?: number; height?: n
   return <svg width={width} height={height} aria-hidden="true"><use href="#orn-hud-cap" /></svg>;
 }
 
+/** Animated emerald-segment medallion — the centerpiece of StatusBar.
+ * Same structure as the static #orn-medallion-glow symbol, but rendered
+ * inline so the outer 12-segment ring can rotate as a group and each
+ * segment can pulse its own brightness on an offset cycle, chasing
+ * light around the rim. The hex shield and center cube stay still. */
+export function AnimatedMedallion({ size = 62 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 80 80"
+      aria-hidden="true"
+      overflow="visible"
+      style={{
+        overflow: "visible",
+        filter:
+          "drop-shadow(0 0 18px rgba(80,220,120,.85)) drop-shadow(0 0 8px rgba(160,255,180,.6)) drop-shadow(0 0 4px rgba(239,216,154,.3)) drop-shadow(0 2px 4px rgba(0,0,0,.8))",
+      }}
+    >
+      <g transform="translate(40 40)">
+        {/* Soft emerald halo that breathes — sits behind everything */}
+        <circle
+          className="medallion-halo"
+          r="32"
+          fill="rgba(110, 230, 140, 0.32)"
+        />
+
+        {/* 12 emerald segments — rotates as a group, each segment pulses */}
+        <g className="medallion-segments">
+          {Array.from({ length: 12 }).map((_, i) => {
+            const a = ((i * 30 - 90) * Math.PI) / 180;
+            const x1 = Math.cos(a) * 30;
+            const y1 = Math.sin(a) * 30;
+            const x2 = Math.cos(a) * 36;
+            const y2 = Math.sin(a) * 36;
+            return (
+              <line
+                key={i}
+                className="medallion-seg"
+                x1={x1}
+                y1={y1}
+                x2={x2}
+                y2={y2}
+                stroke="#7BA67D"
+                strokeWidth="2.4"
+                strokeLinecap="round"
+                style={{ ["--seg-i" as string]: String(i) }}
+              />
+            );
+          })}
+        </g>
+
+        {/* Static brass ring + recessed well */}
+        <circle r="28" fill="none" stroke="url(#g-brass)" strokeWidth="1.2" />
+        <circle
+          r="26"
+          fill="url(#g-medallion)"
+          stroke="#D4B36F"
+          strokeOpacity="0.45"
+          strokeWidth="0.6"
+        />
+
+        {/* Brand logo at the center — wrapped in a "gold-core" group that
+            flashes with a pulsing gold drop-shadow. The PNG is an alpha
+            cutout so the gold mark drops onto the emerald well naturally. */}
+        <g className="medallion-gold-core">
+          <foreignObject x={-13} y={-13} width={26} height={26} style={{ overflow: "visible" }}>
+            <img
+              xmlns="http://www.w3.org/1999/xhtml"
+              src="/brand-logo.png"
+              alt=""
+              width={26}
+              height={26}
+              style={{
+                display: "block",
+                width: "100%",
+                height: "100%",
+              }}
+            />
+          </foreignObject>
+        </g>
+      </g>
+    </svg>
+  );
+}
+
 /** Themed circular medallion for SkillCard — heavy brass-rim, recessed center.
  * Three-layer build:
  *   1. Outer brass collar (gradient + bevel)
@@ -508,6 +594,10 @@ export function HexBadge({
   height = 88,
   tone = "ink",
   index = 0,
+  valueSize,
+  labelSize,
+  labelTrack,
+  subSize,
 }: {
   value: string | number;
   label: string;
@@ -518,6 +608,13 @@ export function HexBadge({
   tone?: "ink" | "brass" | "ember";
   /** Stagger index for mount animation when rendered in a trio (0-based). */
   index?: number;
+  /** Override the auto-computed value/label/sub font sizes. Useful for
+   *  compact hero-row badges where the default height-derived sizes are
+   *  too large or the label tracking pushes text outside the hex shape. */
+  valueSize?: number;
+  labelSize?: number;
+  labelTrack?: string;
+  subSize?: number;
 }) {
   // Hex corners (pointy-top), normalised to width=100, height=92
   const w = 100, h = 92;
@@ -583,7 +680,7 @@ export function HexBadge({
         <span
           className={`hex-badge-value ${valueColorCls} font-serif font-semibold tabnum num-breath`}
           style={{
-            fontSize: Math.round(height * 0.4),
+            fontSize: valueSize ?? Math.round(height * 0.4),
             fontFamily: "var(--font-serif), 'EB Garamond', serif",
             textShadow: valueShadow,
           }}
@@ -592,9 +689,10 @@ export function HexBadge({
         </span>
         {label && (
           <span
-            className="mt-1 font-sc text-manor-brassHi/85 tracking-[0.22em]"
+            className="mt-1 font-sc text-manor-brassHi/85"
             style={{
-              fontSize: Math.max(8, Math.round(height * 0.09)),
+              fontSize: labelSize ?? Math.max(8, Math.round(height * 0.09)),
+              letterSpacing: labelTrack ?? "0.22em",
               fontFamily: "var(--font-sc), 'Cormorant SC', serif",
             }}
           >
@@ -605,7 +703,7 @@ export function HexBadge({
           <span
             className="mt-0.5 text-manor-inkDim"
             style={{
-              fontSize: Math.max(7.5, Math.round(height * 0.075)),
+              fontSize: subSize ?? Math.max(7.5, Math.round(height * 0.075)),
               fontFamily: "var(--font-serif), 'EB Garamond', serif",
               letterSpacing: "0.05em",
             }}

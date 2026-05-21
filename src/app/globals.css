@@ -1196,14 +1196,24 @@
   100% { transform: translateX(360%); opacity: 0; }
 }
 
-/* Brass text gradient for hero titles */
+/* Brass text gradient for hero titles.
+   Ramp is biased toward the bright end so dense glyphs (CJK characters,
+   thick latin) don't fall into a dark mid-band. Internal text-shadow is
+   a soft warm glow rather than the old hard black 1px so the text reads
+   "lit" instead of "embossed and heavy". */
 .text-brass-gradient {
-  background: linear-gradient(180deg, #F8E6B0 0%, #D4B36F 55%, #9A8048 100%);
+  background: linear-gradient(180deg,
+    #FFF2C8 0%,
+    #F4DC95 35%,
+    #E2C275 70%,
+    #B89752 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
   color: transparent;
-  text-shadow: 0 1px 0 rgba(0, 0, 0, .4);
+  text-shadow:
+    0 0 6px rgba(255, 232, 168, 0.22),
+    0 0 1.5px rgba(239, 216, 154, 0.4);
 }
 
 /* Top-nav tab — pill with brass underline */
@@ -1724,4 +1734,111 @@ button:focus { outline: none; }
 }
 .thead-sticky-solid th {
   background-color: rgb(10, 24, 16);
+}
+
+/* StatusBar central medallion — slow rotating emerald-segment rim with
+   per-segment opacity pulse. The hex shield and brass rings stay still;
+   only the outer 12-segment ring rotates, while each segment breathes
+   its own brightness offset by --seg-i to chase light around the rim. */
+.medallion-segments {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: medallion-spin 16s linear infinite;
+}
+@keyframes medallion-spin {
+  to { transform: rotate(360deg); }
+}
+.medallion-seg {
+  animation: medallion-seg-pulse 2.6s ease-in-out infinite;
+  animation-delay: calc(var(--seg-i, 0) * -0.22s);
+  transform-origin: center;
+}
+@keyframes medallion-seg-pulse {
+  0%, 100% {
+    stroke: #4F8458;
+    stroke-opacity: 0.4;
+    filter: drop-shadow(0 0 0.5px rgba(123, 166, 125, 0.4));
+  }
+  50% {
+    stroke: #B8F5C2;
+    stroke-opacity: 1;
+    filter:
+      drop-shadow(0 0 6px rgba(120, 240, 150, 1))
+      drop-shadow(0 0 3px rgba(170, 255, 200, 0.95))
+      drop-shadow(0 0 1.5px rgba(220, 255, 230, 0.9));
+  }
+}
+/* Soft emerald halo behind the medallion — gentle breathing to suggest
+   the rim is throwing light onto the surrounding glass. */
+.medallion-halo {
+  animation: medallion-halo-breath 10s ease-in-out infinite;
+  transform-origin: center;
+}
+/* Halo breath — sleeps for 7s, flashes for 3s.
+   Active window: 0%-30% (= 0-3s within the 10s cycle).
+   Idle window:   30%-100% (= 3-10s) holds the dim baseline. */
+@keyframes medallion-halo-breath {
+  0%, 30%, 100% { opacity: 0.22; transform: scale(0.95); }
+  10%, 20%      { opacity: 0.95; transform: scale(1.08); }
+}
+/* Gold-core breath — the central hex shield + brass cube pulses
+   with a warm gold drop-shadow at a slightly faster, off-phase cadence
+   so it never locks in with the emerald halo. The result: a tiny brass
+   heart inside the medallion that catches light on its own rhythm. */
+.medallion-gold-core {
+  animation: medallion-gold-breath 10s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+/* Gold-core flash — paired with the halo on the same 10s cadence.
+   0-3s: ramp up → sustain peak → fall off.
+   3-10s: idle dim baseline. */
+@keyframes medallion-gold-breath {
+  0%, 30%, 100% {
+    filter:
+      drop-shadow(0 0 2px rgba(239,216,154,0.45))
+      drop-shadow(0 0 5px rgba(239,216,154,0.2));
+  }
+  10%, 20% {
+    filter:
+      drop-shadow(0 0 4px rgba(255,255,235,1))
+      drop-shadow(0 0 14px rgba(255,232,168,0.92))
+      drop-shadow(0 0 38px rgba(255,200,80,0.55));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .medallion-segments,
+  .medallion-seg,
+  .medallion-halo,
+  .medallion-gold-core {
+    animation: none !important;
+  }
+  .medallion-seg { stroke-opacity: 0.7; }
+}
+
+/* ─── Glass-flow scroll effect for data table rows ─────────────────────
+   Each row's visual state is bound to its position inside the scrolling
+   viewport via animation-timeline: view(). Rows leaving (top edge) and
+   entering (bottom edge) gradually blur, fade, and translate; the middle
+   ~76% of the row's scroll lifetime stays sharp at 100% opacity.
+   Combined with the sticky table header above, this gives the table a
+   "frosted-glass cabinet" feel: contents flow with weight, not a flat
+   list. Falls back gracefully to static rows on browsers without
+   scroll-driven animation support. */
+@keyframes glass-row-flow {
+  0%   { opacity: 0;   filter: blur(3px); transform: translateY(10px); }
+  4%   { opacity: 1;   filter: blur(0);    transform: translateY(0); }
+  80%  { opacity: 1;   filter: blur(0);    transform: translateY(0); }
+  100% { opacity: 0;   filter: blur(3px); transform: translateY(-10px); }
+}
+@supports (animation-timeline: view()) {
+  .glass-row {
+    animation: glass-row-flow linear both;
+    animation-timeline: view();
+    animation-range: cover 0% cover 100%;
+    will-change: filter, opacity, transform;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .glass-row { animation: none !important; }
 }

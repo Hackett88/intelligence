@@ -43,7 +43,7 @@ export function KeywordTable({ data, onRowClick }: KeywordTableProps) {
       header: "关键词",
       size: 240,
       cell: ({ getValue }) => (
-        <span className="font-medium text-manor-ink text-xs">
+        <span className="font-medium text-manor-ink text-sm">
           {getValue() as string}
         </span>
       ),
@@ -157,19 +157,12 @@ export function KeywordTable({ data, onRowClick }: KeywordTableProps) {
   });
 
   return (
-    <div className="overflow-x-auto">
-      <table className="min-w-max w-full border-collapse">
+    <table className="min-w-max w-full border-collapse">
         <thead>
           {table.getHeaderGroups().map((headerGroup) => (
             <tr
               key={headerGroup.id}
-              className="h-11 sticky top-0 z-10"
-              style={{
-                background:
-                  "linear-gradient(180deg, rgba(26,52,36,.97) 0%, rgba(10,24,16,.98) 100%)",
-                boxShadow:
-                  "inset 0 1px 0 rgba(224,197,122,.22), inset 0 -1px 0 rgba(0,0,0,.5), 0 1px 0 rgba(224,197,122,.55)",
-              }}
+              className="h-11"
             >
               {headerGroup.headers.map((header) => {
                 const sorted = header.column.getIsSorted();
@@ -178,8 +171,15 @@ export function KeywordTable({ data, onRowClick }: KeywordTableProps) {
                     key={header.id}
                     className="px-3 text-left text-[10.5px] font-semibold text-manor-brassHi uppercase tracking-[0.24em] whitespace-nowrap cursor-pointer select-none transition-all font-sc hover:text-[#F0DEA0]"
                     style={{
+                      position: "sticky",
+                      top: 0,
+                      zIndex: 10,
                       width: header.getSize(),
                       fontFamily: "var(--font-sc), 'Cormorant SC', serif",
+                      background:
+                        "linear-gradient(180deg, rgba(26,52,36,.97) 0%, rgba(10,24,16,.98) 100%)",
+                      boxShadow:
+                        "inset 0 1px 0 rgba(224,197,122,.55), inset 0 -1px 0 rgba(224,197,122,.4), 0 1px 0 rgba(224,197,122,.4), 0 -1px 0 rgba(224,197,122,.55)",
                       textShadow: sorted ? "0 0 8px rgba(224,197,122,.55)" : undefined,
                     }}
                     onClick={header.column.getToggleSortingHandler()}
@@ -232,7 +232,7 @@ export function KeywordTable({ data, onRowClick }: KeywordTableProps) {
             table.getRowModel().rows.map((row, idx) => (
               <tr
                 key={row.id}
-                className="h-9 cursor-pointer transition-colors hover:bg-[rgba(224,197,122,.08)]"
+                className="glass-row h-9 cursor-pointer transition-colors hover:bg-[rgba(224,197,122,.08)]"
                 style={{
                   borderBottom: "1px solid rgba(201,169,97,.1)",
                   background:
@@ -252,6 +252,5 @@ export function KeywordTable({ data, onRowClick }: KeywordTableProps) {
           )}
         </tbody>
       </table>
-    </div>
   );
 }

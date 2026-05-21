@@ -2,11 +2,13 @@
  * Bottom STATUS bar — opera-house HUD edition.
  * Each cartridge stacks: big value + Latin label + small Chinese sub.
  * Center holds an emerald-glow segment medallion; far right shows a
- * "powered by Al hasliifi" credit with an octogram crest.
+ * "powered by TangXiaoYu" credit with the brand logo.
  *
  * Round 04: cartridges mount with stagger, value digits pop in,
  * hover lights the well and drifts a brass sheen across.
  */
+
+import { AnimatedMedallion } from "@/components/ManorOrnaments";
 
 type Cart = { value: string; latin: string; sub: string };
 
@@ -108,17 +110,7 @@ export function StatusBar() {
             ◆ AUDI · VIDE · TACE ◆
           </span>
           <div className="relative brass-aura" style={{ width: 62, height: 62 }}>
-            <svg
-              width="62"
-              height="62"
-              aria-hidden="true"
-              style={{
-                filter:
-                  "drop-shadow(0 0 14px rgba(123,166,125,.7)) drop-shadow(0 0 6px rgba(239,216,154,.45)) drop-shadow(0 2px 4px rgba(0,0,0,.8))",
-              }}
-            >
-              <use href="#orn-medallion-glow" />
-            </svg>
+            <AnimatedMedallion size={62} />
             <span
               className="absolute -bottom-2 left-1/2 -translate-x-1/2 font-sc tracking-[0.32em] text-manor-brassDim leading-none whitespace-nowrap"
               style={{ fontFamily: sc, fontSize: 8 }}
@@ -149,13 +141,22 @@ export function StatusBar() {
             className="font-sc text-manor-brassHi tracking-[0.22em]"
             style={{ fontFamily: sc, fontSize: 9 }}
           >
-            AL HASLIIFI
+            TangXiaoYu
           </span>
         </div>
         <span className="brass-aura inline-flex items-center justify-center" style={{ width: 22, height: 22 }}>
-          <svg width="20" height="20" aria-hidden="true">
-            <use href="#orn-octogram" />
-          </svg>
+          {/* Brand logo — alpha-cutout PNG, gold drops directly with no
+              blend-mode trickery. */}
+          <img
+            src="/brand-logo.png"
+            alt=""
+            width={20}
+            height={20}
+            style={{
+              display: "block",
+              filter: "drop-shadow(0 0 4px rgba(239,216,154,0.45))",
+            }}
+          />
         </span>
       </div>
     </footer>

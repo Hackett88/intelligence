@@ -157,35 +157,243 @@ export function Sparkline({
 
   const gap = 1;
   const barW = Math.max(1, (width - gap * (n - 1)) / n);
-  const gradId = `spark-brass-${reactId}`;
+  const isLarge = height >= 40;
+  const gradId = `spark-glass-${reactId}`;
+  const sideId = `spark-side-${reactId}`;
+  const glowId = `spark-glow-${reactId}`;
+  const topPad = isLarge ? 3 : 0;
   return (
     <svg
       width={width}
       height={height}
       className="inline-block align-middle"
       aria-hidden
+      style={isLarge ? { overflow: "visible" } : undefined}
     >
       <defs>
+        {/* Brass column body — vertical ramp, bright top to deep base. */}
         <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%"   stopColor="#F0DEA0" />
-          <stop offset="55%"  stopColor="#D4B36F" />
-          <stop offset="100%" stopColor="#7A5F2E" />
+          <stop offset="40%"  stopColor="#C9A769" />
+          <stop offset="100%" stopColor="#5A4220" />
         </linearGradient>
+        {/* Vertical inner glow band — warm brass light pooling at the
+            upper section of each column. */}
+        <linearGradient id={glowId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stopColor="rgba(255,247,210,0.55)" />
+          <stop offset="100%" stopColor="rgba(255,247,210,0)" />
+        </linearGradient>
+        {/* Vignette on the column sides — very light edge darkening
+            for a faint hint of curvature without faux-3D drama. */}
+        <linearGradient id={sideId} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%"   stopColor="rgba(0,0,0,0.35)" />
+          <stop offset="50%"  stopColor="rgba(255,255,255,0)" />
+          <stop offset="100%" stopColor="rgba(0,0,0,0.4)" />
+        </linearGradient>
+
       </defs>
+
+      {/* Faint horizontal grid + bottom baseline, only on the large chart */}
+      {isLarge && (
+        <g>
+          <line x1="0" y1={height * 0.25} x2={width} y2={height * 0.25}
+                stroke="#D4B36F" strokeOpacity="0.16"
+                strokeDasharray="2 4" strokeWidth="0.4" />
+          <line x1="0" y1={height * 0.50} x2={width} y2={height * 0.50}
+                stroke="#D4B36F" strokeOpacity="0.16"
+                strokeDasharray="2 4" strokeWidth="0.4" />
+          <line x1="0" y1={height * 0.75} x2={width} y2={height * 0.75}
+                stroke="#D4B36F" strokeOpacity="0.16"
+                strokeDasharray="2 4" strokeWidth="0.4" />
+          <line x1="0" y1={height - 0.5} x2={width} y2={height - 0.5}
+                stroke="#D4B36F" strokeOpacity="0.55" strokeWidth="0.7" />
+        </g>
+      )}
+
       {data.map((v, i) => {
-        const h = Math.max(1, (v / max) * height);
+        const h = Math.max(1, (v / max) * (height - topPad));
         const x = i * (barW + gap);
         const y = height - h;
+        const isPeak = isLarge && v === max;
+        const cx = x + barW / 2;
+
+        // Small bars in the table sparkline stay simple
+        if (!isLarge) {
+          return (
+            <g key={i}>
+              <rect x={x} y={y} width={barW} height={h}
+                    fill={`url(#${gradId})`} rx={0.5} />
+              <rect x={x} y={y} width={barW} height={h}
+                    fill={`url(#${sideId})`} rx={0.5} />
+            </g>
+          );
+        }
+
+        // Top-quarter inner glow — emerald light pooling at the tip
+        const glowH = Math.min(Math.max(6, h * 0.28), h - 2);
+
         return (
-          <rect
+          <g
             key={i}
-            x={x}
-            y={y}
-            width={barW}
-            height={h}
-            fill={`url(#${gradId})`}
-            rx={0.5}
-          />
+            style={
+              isPeak
+                ? { filter: "drop-shadow(0 0 4px rgba(255,232,168,.6))" }
+                : undefined
+            }
+          >
+            {/* 1. Ground contact shadow — subtle pool at the base */}
+            <ellipse
+              cx={cx + 0.3} cy={height - 0.3}
+              rx={barW * 0.5} ry={1.5}
+              fill="rgba(0,0,0,0.5)"
+            />
+            {/* 2. Glass tube body — emerald gradient fill + 1px brass
+                   outline. This single stroked rect carries most of
+                   the "this is a column" reading. */}
+            <rect
+              x={x + 0.5} y={y + 0.5}
+              width={barW - 1} height={h - 1}
+              fill={`url(#${gradId})`}
+              stroke="url(#g-brass)"
+              strokeWidth="0.7"
+              vectorEffect="non-scaling-stroke"
+            />
+            {/* 3. Soft side vignette — barely-there edge darkening */}
+            <rect
+              x={x + 0.5} y={y + 0.5}
+              width={barW - 1} height={h - 1}
+              fill={`url(#${sideId})`}
+            />
+            {/* 3b. Column fluting — two bright reeds + two thin shadow
+                    grooves give the brass shaft a "polished organ pipe"
+                    reading. Same on every column for ensemble unity. */}
+            {h > 8 && (() => {
+              const reedOffset = barW * 0.18;
+              const fluteTop = y + 3.6;
+              const fluteBottom = y + h - 1.2;
+              return (
+                <g>
+                  {/* Outer shadow grooves (sit on the dark side of each reed) */}
+                  <line
+                    x1={cx - reedOffset - 1.1} y1={fluteTop}
+                    x2={cx - reedOffset - 1.1} y2={fluteBottom}
+                    stroke="rgba(0,0,0,0.42)" strokeWidth="0.5"
+                    vectorEffect="non-scaling-stroke"
+                  />
+                  <line
+                    x1={cx + reedOffset + 1.1} y1={fluteTop}
+                    x2={cx + reedOffset + 1.1} y2={fluteBottom}
+                    stroke="rgba(0,0,0,0.42)" strokeWidth="0.5"
+                    vectorEffect="non-scaling-stroke"
+                  />
+                  {/* Bright reeds */}
+                  <line
+                    x1={cx - reedOffset} y1={fluteTop}
+                    x2={cx - reedOffset} y2={fluteBottom}
+                    stroke="rgba(255,237,178,0.55)" strokeWidth="0.7"
+                    vectorEffect="non-scaling-stroke"
+                  />
+                  <line
+                    x1={cx + reedOffset} y1={fluteTop}
+                    x2={cx + reedOffset} y2={fluteBottom}
+                    stroke="rgba(255,237,178,0.55)" strokeWidth="0.7"
+                    vectorEffect="non-scaling-stroke"
+                  />
+                </g>
+              );
+            })()}
+            {/* 4. Inner warm glow at the upper section — the
+                   "light has settled here" effect. */}
+            <rect
+              x={x + 1.2} y={y + 1.2}
+              width={barW - 2.4} height={glowH}
+              fill={`url(#${glowId})`}
+            />
+            {/* 5. Brass cap — a thin bright line sealing the top of
+                   the glass tube. Provides the precise visual stop
+                   that says "this column ends here, polished". */}
+            <rect
+              x={x + 0.8} y={y + 0.4}
+              width={barW - 1.6} height={1.4}
+              fill="#EFD89A"
+            />
+            {/* 5b. Capital collar — a bright/dark double-line ring
+                   just below the cap. Anchors the fluting and gives
+                   each column a proper "柱头" termination. */}
+            {h > 10 && (
+              <g>
+                <line
+                  x1={x + 0.4} y1={y + 2.2}
+                  x2={x + barW - 0.4} y2={y + 2.2}
+                  stroke="rgba(255,237,178,0.9)" strokeWidth="0.5"
+                  vectorEffect="non-scaling-stroke"
+                />
+                <line
+                  x1={x + 0.4} y1={y + 2.95}
+                  x2={x + barW - 0.4} y2={y + 2.95}
+                  stroke="rgba(0,0,0,0.55)" strokeWidth="0.4"
+                  vectorEffect="non-scaling-stroke"
+                />
+              </g>
+            )}
+            {/* 6. Mongolian auspicious inscription — one per column,
+                   each a different classical wish-word. Twelve total
+                   to mirror the twelve months of trend data, engraved
+                   into the protruding upper section of every brass
+                   column. Black ink on brass with a faint gold halo
+                   = classic "黑金" seal aesthetic. */}
+            {h > 22 && (() => {
+              const MONGOLIAN_WORDS = [
+                "ᠠᠮᠤᠷ",  /* amur · 平安 */
+                "ᠮᠡᠨᠳᠦ", /* mendu · 安康 */
+                "ᠦᠯᠵᠡᠢ", /* öljei · 吉祥 */
+                "ᠬᠡᠰᠢᠭ", /* keshig · 福泽 */
+                "ᠪᠠᠶᠠᠨ", /* bayan · 富贵 */
+                "ᠪᠠᠶᠠᠷ", /* bayar · 喜庆 */
+                "ᠪᠤᠶᠠᠨ", /* buyan · 德善 */
+                "ᠵᠢᠷᠭᠠᠯ",/* jirgal · 安乐 */
+                "ᠠᠵᠠ",   /* aja · 鸿运 */
+                "ᠠᠯᠳᠠᠷ", /* aldar · 荣耀 */
+                "ᠡᠩᠬᠡ",  /* engke · 太平 */
+                "ᠡᠷᠡᠭᠦᠯ",/* eregül · 康健 */
+              ];
+              const word = MONGOLIAN_WORDS[i % MONGOLIAN_WORDS.length];
+              return (
+                <foreignObject
+                  x={x}
+                  y={y + 4}
+                  width={barW}
+                  height={h - 5}
+                  style={{ overflow: "hidden" }}
+                >
+                  <div
+                    xmlns="http://www.w3.org/1999/xhtml"
+                    style={{
+                      writingMode: "vertical-lr",
+                      width: "100%",
+                      height: "100%",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontFamily:
+                        '"Mongolian Baiti", "Noto Sans Mongolian", "Noto Serif Mongolian", serif',
+                      fontSize: 11,
+                      fontWeight: 700,
+                      color: "#0A0703",
+                      textShadow:
+                        "0 0 1.6px rgba(239,216,154,0.9), 0 0 0.5px rgba(255,237,178,0.7)",
+                      lineHeight: 1,
+                      letterSpacing: "-1.5px",
+                      userSelect: "none",
+                      overflow: "hidden",
+                    }}
+                  >
+                    {word}
+                  </div>
+                </foreignObject>
+              );
+            })()}
+          </g>
         );
       })}
     </svg>

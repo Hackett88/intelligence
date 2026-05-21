@@ -238,7 +238,7 @@ function SerpFeaturesRow({
 function Field({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-1">
-      <span className="text-[10px] text-manor-inkFaint uppercase tracking-wider leading-none">{label}</span>
+      <span className="text-[10px] text-manor-inkDim uppercase tracking-wider leading-none">{label}</span>
       <div className="text-manor-ink text-sm font-medium leading-snug break-all">
         {value === null || value === undefined || value === "" ? <span className="text-manor-inkGhost font-normal">—</span> : value}
       </div>
@@ -492,7 +492,7 @@ export function DetailDrawer({ keyword, onClose }: DetailDrawerProps) {
           <Field label="CPC ($)" value={keyword.cpc != null ? `$${keyword.cpc.toFixed(2)}` : null} />
           <div className="col-span-2">
             <div className="flex flex-col gap-1.5">
-              <span className="text-[10px] text-manor-inkFaint uppercase tracking-wider">关键词难度 KD</span>
+              <span className="text-[10px] text-manor-inkDim uppercase tracking-wider">关键词难度 KD</span>
               <KdBar kd={keyword.keywordDifficulty} />
             </div>
           </div>

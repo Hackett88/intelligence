@@ -73,7 +73,7 @@ function MultiSelect({
       >
         <span className="truncate flex items-center gap-1.5 min-w-0">
           {selected.length === 0 ? (
-            <span className="text-manor-inkDim">{placeholder}</span>
+            <span className="text-manor-ink/75">{placeholder}</span>
           ) : selected.length === 1 ? (
             showFlagOnTrigger && selected[0].flag ? (
               <>

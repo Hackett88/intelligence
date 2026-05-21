@@ -152,19 +152,30 @@ export function KeywordsClient({ initialData, stats }: KeywordsClientProps) {
                 fontFamily: "var(--font-serif), 'EB Garamond', serif",
                 fontSize: 22,
                 letterSpacing: "0.04em",
+                filter:
+                  "drop-shadow(0 0 5px rgba(239,216,154,.22)) drop-shadow(0 1px 0 rgba(0,0,0,.55))",
               }}
             >
               关键词库
             </h1>
             <span
-              className="font-sc tracking-[0.24em] text-manor-brassDim"
-              style={{ fontFamily: "var(--font-sc), 'Cormorant SC', serif", fontSize: 10 }}
+              className="font-sc tracking-[0.24em] text-manor-brassHi"
+              style={{
+                fontFamily: "var(--font-sc), 'Cormorant SC', serif",
+                fontSize: 10,
+                textShadow:
+                  "0 0 8px rgba(239,216,154,.5), 0 0 2px rgba(224,197,122,.7)",
+              }}
             >
               〔ARCHIVUM · VERBORUM〕
             </span>
             <span
-              className="text-manor-inkDim italic"
-              style={{ fontFamily: "var(--font-serif), 'EB Garamond', serif", fontSize: 11 }}
+              className="text-manor-ink/65 italic"
+              style={{
+                fontFamily: "var(--font-serif), 'EB Garamond', serif",
+                fontSize: 11,
+                textShadow: "0 0 4px rgba(239,216,154,.18)",
+              }}
             >
               候选词池 · 来源 keywords_pool
             </span>

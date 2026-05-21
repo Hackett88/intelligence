@@ -29,19 +29,30 @@ export default async function KeywordFetchPage() {
               fontFamily: serif,
               fontSize: 22,
               letterSpacing: "0.04em",
+              filter:
+                "drop-shadow(0 0 5px rgba(239,216,154,.22)) drop-shadow(0 1px 0 rgba(0,0,0,.55))",
             }}
           >
             关键词功能库
           </h1>
           <span
-            className="font-sc tracking-[0.24em] text-manor-brassDim shrink-0"
-            style={{ fontFamily: sc, fontSize: 10 }}
+            className="font-sc tracking-[0.24em] text-manor-brassHi shrink-0"
+            style={{
+              fontFamily: sc,
+              fontSize: 10,
+              textShadow:
+                "0 0 8px rgba(239,216,154,.5), 0 0 2px rgba(224,197,122,.7)",
+            }}
           >
             〔INSTRUMENTA VERBORUM〕
           </span>
           <span
-            className="ital-italic text-manor-inkDim min-w-0 truncate inline-flex items-center gap-1.5"
-            style={{ fontFamily: serif, fontSize: 11 }}
+            className="ital-italic text-manor-ink/65 min-w-0 truncate inline-flex items-center gap-1.5"
+            style={{
+              fontFamily: serif,
+              fontSize: 11,
+              textShadow: "0 0 4px rgba(239,216,154,.18)",
+            }}
           >
             <span
               aria-hidden="true"
@@ -54,14 +65,17 @@ export default async function KeywordFetchPage() {
                 boxShadow: "0 0 4px rgba(239,216,154,.6)",
               }}
             />
-            Eight instruments for the unwearying weighing &amp; gathering of words.
+            Ten instruments for the unwearying weighing &amp; gathering of words.
           </span>
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
-          <HexBadge value="8" label="INSTRUMENTA" sub="工具总数" tone="ink"   width={56} height={52} index={0} />
-          <HexBadge value="7" label="EXPEDITA"    sub="已配置"   tone="brass" width={56} height={52} index={1} />
-          <HexBadge value="1" label="VECTIS"      sub="维护中"   tone="ember" width={56} height={52} index={2} />
+          <HexBadge value="10" label="INSTRUMENTA" sub="工具总数" tone="ink"   width={82} height={76} index={0}
+            valueSize={20} labelSize={7.5} labelTrack="0.14em" subSize={7.5} />
+          <HexBadge value="10" label="EXPEDITA"    sub="已配置"   tone="brass" width={82} height={76} index={1}
+            valueSize={20} labelSize={7.5} labelTrack="0.14em" subSize={7.5} />
+          <HexBadge value="0"  label="VECTIS"      sub="维护中"   tone="ember" width={82} height={76} index={2}
+            valueSize={20} labelSize={7.5} labelTrack="0.14em" subSize={7.5} />
         </div>
       </div>
       <FetchTabs />

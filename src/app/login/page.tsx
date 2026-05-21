@@ -29,7 +29,7 @@ export default function LoginPage() {
     if (result?.error) {
       setError("用户名或密码错误");
     } else {
-      router.push("/app");
+      router.push("/app/keywords/fetch");
     }
   }
 

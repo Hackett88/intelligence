@@ -25,9 +25,19 @@ export default async function AppLayout({
         {/* Brand block — eight-point star crest + Anno year */}
         <div className="flex items-center gap-3 shrink-0 whitespace-nowrap">
           <span className="brand-crest brass-aura" style={{ width: 32, height: 32 }}>
-            <svg width="30" height="30" aria-hidden="true">
-              <use href="#orn-octogram" />
-            </svg>
+            {/* Brand logo — alpha-cutout PNG, gold drops directly into the
+                header without needing a blend mode. */}
+            <img
+              src="/brand-logo.png"
+              alt=""
+              width={30}
+              height={30}
+              style={{
+                display: "block",
+                filter:
+                  "drop-shadow(0 0 6px rgba(239,216,154,0.6)) drop-shadow(0 0 12px rgba(239,216,154,0.25))",
+              }}
+            />
           </span>
           <div className="flex flex-col leading-none">
             <span
@@ -56,7 +66,7 @@ export default async function AppLayout({
         </div>
 
         {/* Brass underline */}
-        <div className="absolute -bottom-px left-0 right-0 brass-divider opacity-80" />
+        <div className="absolute -bottom-px left-0 right-0 brass-divider opacity-15" />
       </header>
 
       {/* Left HUD rail */}
