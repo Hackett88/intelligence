@@ -487,7 +487,7 @@ export function AnimatedMedallion({ size = 62 }: { size?: number }) {
         <g className="medallion-gold-core">
           <foreignObject x={-13} y={-13} width={26} height={26} style={{ overflow: "visible" }}>
             <img
-              xmlns="http://www.w3.org/1999/xhtml"
+              {...({ xmlns: "http://www.w3.org/1999/xhtml" } as any)}
               src="/brand-logo.png"
               alt=""
               width={26}

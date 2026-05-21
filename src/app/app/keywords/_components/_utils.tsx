@@ -367,7 +367,7 @@ export function Sparkline({
                   style={{ overflow: "hidden" }}
                 >
                   <div
-                    xmlns="http://www.w3.org/1999/xhtml"
+                    {...({ xmlns: "http://www.w3.org/1999/xhtml" } as any)}
                     style={{
                       writingMode: "vertical-lr",
                       width: "100%",

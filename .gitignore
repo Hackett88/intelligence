@@ -50,3 +50,8 @@ drizzle/
 # temp & logs
 temp/
 *.log
+
+# local debug artifacts (root-level screenshots / scratch folders)
+/*.png
+.screens/
+.claude/
