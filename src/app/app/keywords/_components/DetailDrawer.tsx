@@ -208,11 +208,21 @@ function SerpFeaturesRow({
     }
   }
 
+  // Empty + rate-limited 是最容易被误以为"按钮坏了"的场景 ——
+  // 既要文案说清「上次查过、本月用完」，也要给 tooltip 解释为什么按钮锁着。
+  const emptyAfterMonthlyQuery = !hasCodes && usedThisMonth;
+
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex items-start gap-2">
         <div className="flex-1 min-w-0">
-          <SerpFeatureChips codes={codes} />
+          {emptyAfterMonthlyQuery ? (
+            <span className="text-manor-inkDim text-[11px] leading-tight">
+              本月已查询 · 未返回 SERP 特征
+            </span>
+          ) : (
+            <SerpFeatureChips codes={codes} />
+          )}
         </div>
         {showButton && (
           <button
@@ -221,9 +231,9 @@ function SerpFeaturesRow({
             disabled={buttonDisabled}
             title={
               loading
-                ? undefined
+                ? "正在查询…"
                 : usedThisMonth
-                  ? undefined
+                  ? "本月已查询过，下月起可再触发"
                   : "实时查询 SERP 特征"
             }
             className={[
@@ -232,7 +242,9 @@ function SerpFeaturesRow({
                 ? "border-manor-line text-manor-inkGhost cursor-not-allowed bg-manor-bg"
                 : "border-manor-line2 text-manor-inkDim hover:border-manor-brass hover:text-manor-brassHi cursor-pointer bg-manor-bg2",
             ].join(" ")}
-            aria-label="实时查询 SERP 特征"
+            aria-label={
+              usedThisMonth ? "本月已查询过，下月起可再触发" : "实时查询 SERP 特征"
+            }
           >
             {loading ? <Loader2 size={12} className="animate-spin" /> : <Search size={12} />}
           </button>
