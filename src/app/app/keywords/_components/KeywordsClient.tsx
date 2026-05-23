@@ -29,8 +29,14 @@ const DEFAULT_FILTERS: FilterState = {
   market: [],
   intent: [],
   questionType: [],
+  behaviorIntent: [],
+  pagePlanningIntent: [],
+  layerLevel: [],
   protectedOnly: false,
 };
+
+// layer_level Chinese values have an inherent order; sort by it instead of alphabetically
+const LAYER_LEVEL_ORDER = ["一级核心", "二级独立", "三级变体", "四级兜底"];
 
 const PAGE_SIZE_OPTIONS = [20, 50, 100];
 
@@ -66,14 +72,27 @@ export function KeywordsClient({ initialData, stats }: KeywordsClientProps) {
   const [currentPage, setCurrentPage] = useState(1);
 
   // Derive filter options dynamically from data
-  const { marketOptions, intentOptions, questionTypeOptions } = useMemo(() => {
+  const {
+    marketOptions,
+    intentOptions,
+    questionTypeOptions,
+    behaviorIntentOptions,
+    pagePlanningIntentOptions,
+    layerLevelOptions,
+  } = useMemo(() => {
     const markets = new Set<string>();
     const intents = new Set<string>();
     const qTypes = new Set<string>();
+    const behaviors = new Set<string>();
+    const pagePlans = new Set<string>();
+    const layers = new Set<string>();
     initialData.forEach((kw) => {
       if (kw.market) markets.add(kw.market);
       if (kw.intent) intents.add(kw.intent);
       if (kw.questionType) qTypes.add(kw.questionType);
+      if (kw.behaviorIntent) behaviors.add(kw.behaviorIntent);
+      if (kw.pagePlanningIntent) pagePlans.add(kw.pagePlanningIntent);
+      if (kw.layerLevel) layers.add(kw.layerLevel);
     });
     return {
       marketOptions: [...markets].sort().map((m) => ({
@@ -83,6 +102,18 @@ export function KeywordsClient({ initialData, stats }: KeywordsClientProps) {
       })),
       intentOptions: [...intents].sort().map((i) => ({ value: i, label: intentLabel(i) ?? i })),
       questionTypeOptions: [...qTypes].sort().map((q) => ({ value: q, label: q })),
+      behaviorIntentOptions: [...behaviors].sort().map((b) => ({ value: b, label: b })),
+      pagePlanningIntentOptions: [...pagePlans].sort().map((p) => ({ value: p, label: p })),
+      layerLevelOptions: [...layers]
+        .sort((a, b) => {
+          const ia = LAYER_LEVEL_ORDER.indexOf(a);
+          const ib = LAYER_LEVEL_ORDER.indexOf(b);
+          if (ia === -1 && ib === -1) return a.localeCompare(b);
+          if (ia === -1) return 1;
+          if (ib === -1) return -1;
+          return ia - ib;
+        })
+        .map((l) => ({ value: l, label: l })),
     };
   }, [initialData]);
 
@@ -90,11 +121,16 @@ export function KeywordsClient({ initialData, stats }: KeywordsClientProps) {
     return initialData.filter((kw) => {
       if (filters.search) {
         const q = filters.search.toLowerCase();
-        if (!kw.keyword.toLowerCase().includes(q)) return false;
+        const hitKeyword = kw.keyword.toLowerCase().includes(q);
+        const hitCluster = (kw.clusterId ?? "").toLowerCase().includes(q);
+        if (!hitKeyword && !hitCluster) return false;
       }
       if (filters.market.length > 0 && !filters.market.includes(kw.market ?? "")) return false;
       if (filters.intent.length > 0 && !filters.intent.includes(kw.intent ?? "")) return false;
       if (filters.questionType.length > 0 && !filters.questionType.includes(kw.questionType ?? "")) return false;
+      if (filters.behaviorIntent.length > 0 && !filters.behaviorIntent.includes(kw.behaviorIntent ?? "")) return false;
+      if (filters.pagePlanningIntent.length > 0 && !filters.pagePlanningIntent.includes(kw.pagePlanningIntent ?? "")) return false;
+      if (filters.layerLevel.length > 0 && !filters.layerLevel.includes(kw.layerLevel ?? "")) return false;
       if (filters.protectedOnly && kw.protected !== true) return false;
       return true;
     });
@@ -211,6 +247,9 @@ export function KeywordsClient({ initialData, stats }: KeywordsClientProps) {
             marketOptions={marketOptions}
             intentOptions={intentOptions}
             questionTypeOptions={questionTypeOptions}
+            behaviorIntentOptions={behaviorIntentOptions}
+            pagePlanningIntentOptions={pagePlanningIntentOptions}
+            layerLevelOptions={layerLevelOptions}
           />
         </div>
 

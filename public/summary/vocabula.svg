@@ -1,0 +1,42 @@
+<svg viewBox="0 0 100 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#F8DE9A"/>
+      <stop offset="50%" stop-color="#B9893B"/>
+      <stop offset="100%" stop-color="#76551F"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFE8A6" stop-opacity="0.7"/>
+      <stop offset="100%" stop-color="#062016" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <ellipse cx="50" cy="40" rx="40" ry="22" fill="url(#glow)" opacity="0.55"/>
+  <!-- 4 stacked tomes representing a vocabulary library -->
+  <g stroke="url(#g)" stroke-width="1.4" fill="rgba(10,33,23,.45)" opacity="0.88">
+    <rect x="16" y="14" width="68" height="11" rx="1.2"/>
+    <rect x="13" y="28" width="74" height="11" rx="1.2"/>
+    <rect x="18" y="42" width="64" height="11" rx="1.2"/>
+    <rect x="14" y="56" width="72" height="11" rx="1.2"/>
+  </g>
+  <!-- Brass binding-strip embellishments -->
+  <g stroke="url(#g)" stroke-width="0.7" opacity="0.7">
+    <line x1="26" y1="14" x2="26" y2="25"/>
+    <line x1="74" y1="14" x2="74" y2="25"/>
+    <line x1="22" y1="28" x2="22" y2="39"/>
+    <line x1="78" y1="28" x2="78" y2="39"/>
+    <line x1="28" y1="42" x2="28" y2="53"/>
+    <line x1="72" y1="42" x2="72" y2="53"/>
+    <line x1="24" y1="56" x2="24" y2="67"/>
+    <line x1="76" y1="56" x2="76" y2="67"/>
+  </g>
+  <!-- Word-entry dots on each spine -->
+  <g fill="#E4CB87" opacity="0.75">
+    <circle cx="38" cy="19.5" r="0.9"/><circle cx="46" cy="19.5" r="0.9"/><circle cx="54" cy="19.5" r="0.9"/><circle cx="62" cy="19.5" r="0.9"/>
+    <circle cx="36" cy="33.5" r="0.9"/><circle cx="44" cy="33.5" r="0.9"/><circle cx="52" cy="33.5" r="0.9"/><circle cx="60" cy="33.5" r="0.9"/><circle cx="68" cy="33.5" r="0.9"/>
+    <circle cx="40" cy="47.5" r="0.9"/><circle cx="48" cy="47.5" r="0.9"/><circle cx="56" cy="47.5" r="0.9"/><circle cx="64" cy="47.5" r="0.9"/>
+    <circle cx="38" cy="61.5" r="0.9"/><circle cx="46" cy="61.5" r="0.9"/><circle cx="54" cy="61.5" r="0.9"/><circle cx="62" cy="61.5" r="0.9"/><circle cx="70" cy="61.5" r="0.9"/>
+  </g>
+  <!-- Diamond stamp anchor -->
+  <path d="M50 8 L54 12 L50 16 L46 12 Z" fill="url(#g)" opacity="0.85"/>
+  <path d="M50 72 L52 74 L50 76 L48 74 Z" fill="url(#g)" opacity="0.7"/>
+</svg>

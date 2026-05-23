@@ -5,7 +5,17 @@ import { Loader2, Search, X } from "lucide-react";
 import type { Keyword } from "@/db/schema";
 import { SerpFeatureChips } from "../fetch/_components/SerpFeatureChips";
 import { appendHistory } from "@/lib/query-history";
-import { bpLabel, csLabel, formatIntent, parseTrends, Sparkline } from "./_utils";
+import {
+  bpLabel,
+  csLabel,
+  formatIntent,
+  formatBehaviorIntent,
+  formatPagePlanningIntent,
+  formatLayerLevel,
+  formatClusterId,
+  parseTrends,
+  Sparkline,
+} from "./_utils";
 
 interface DetailDrawerProps {
   keyword: Keyword | null;
@@ -252,6 +262,7 @@ const SECTION_LATIN: Record<string, string> = {
   "基本信息": "CARTA · PRINCIPALIS",
   "量化指标": "METRICA · VERBI",
   "评分": "AESTIMATIO",
+  "意图与分层": "INTENTIO · STRATUM",
   "12 月趋势": "ANNUS · TRENDORUM",
   "SERP 特征": "SIGNA · IN SERP",
   "来源链路": "ORIGO · NEXUS",
@@ -492,7 +503,7 @@ export function DetailDrawer({ keyword, onClose }: DetailDrawerProps) {
           <Field label="CPC ($)" value={keyword.cpc != null ? `$${keyword.cpc.toFixed(2)}` : null} />
           <div className="col-span-2">
             <div className="flex flex-col gap-1.5">
-              <span className="text-[10px] text-manor-inkDim uppercase tracking-wider">关键词难度 KD</span>
+              <span className="text-[10px] text-manor-inkDim uppercase tracking-wider">竞争难度</span>
               <KdBar kd={keyword.keywordDifficulty} />
             </div>
           </div>
@@ -504,6 +515,14 @@ export function DetailDrawer({ keyword, onClose }: DetailDrawerProps) {
         <Section title="评分">
           <Field label="BP 业务价值" value={<ScorePills value={keyword.bp} kind="bp" />} />
           <Field label="CS 商业信号" value={<ScorePills value={keyword.cs} kind="cs" />} />
+        </Section>
+
+        {/* 区块3b - 意图与分层（来源 keywords_pool 4 字段：behavior_intent / page_planning_intent / layer_level / cluster_id） */}
+        <Section title="意图与分层">
+          <Field label="行为意图" value={formatBehaviorIntent(keyword.behaviorIntent)} />
+          <Field label="页面规划意图" value={formatPagePlanningIntent(keyword.pagePlanningIntent)} />
+          <Field label="分层" value={formatLayerLevel(keyword.layerLevel)} />
+          <Field label="词群编号" value={formatClusterId(keyword.clusterId)} />
         </Section>
 
         {/* 区块4 - 趋势 */}

@@ -9,15 +9,17 @@ const BP_LABELS: Record<number, string> = {
   0: "无关联",
 };
 
+// CS labels intentionally avoid overlap with INTENT translations
+// ("商业型/信息型" already used by Intent column) per Sean's 2026-05-22 directive.
 const CS_LABELS: Record<number, string> = {
-  3: "商业型",
+  3: "转化型",
   2: "混合型",
-  1: "信息型",
+  1: "探索型",
   0: "无商业信号",
 };
 
 const SCORE_COLOR: Record<number, string> = {
-  3: "bg-manor-bg3 text-manor-brassHi border-manor-sageDim/60",
+  3: "bg-manor-bg3 text-manor-brassHi border-manor-brass/60",
   2: "bg-manor-bg3 text-manor-brassHi border-manor-line2",
   1: "bg-manor-brassDim/15 text-manor-brassHi border-manor-brassDim/50",
   0: "bg-manor-bg text-manor-inkDim border-manor-line",
@@ -32,11 +34,11 @@ const INTENT_LABELS: Record<string, string> = {
 };
 
 const INTENT_COLOR: Record<string, string> = {
-  informational: "bg-manor-bg3 text-manor-sage border-manor-line2",
+  informational: "bg-manor-bg3 text-manor-inkDim border-manor-inkFaint/40",
   commercial: "bg-manor-bg3 text-manor-brassHi border-manor-line2",
   mixed: "bg-manor-bg3 text-manor-brassHi border-manor-line2",
   navigational: "bg-manor-brassDim/15 text-manor-brassHi border-manor-brassDim/50",
-  transactional: "bg-manor-bg3 text-manor-brassHi border-manor-sageDim/60",
+  transactional: "bg-manor-bg3 text-manor-brassHi border-manor-brass/60",
 };
 
 export function bpLabel(value: number | null | undefined): string | null {
@@ -57,7 +59,6 @@ export function formatBP(value: number | null | undefined): React.ReactNode {
   const cls = SCORE_COLOR[value] ?? SCORE_COLOR[0];
   return (
     <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs border ${cls}`}>
-      <span className="font-semibold mr-1">{value}</span>
       {label}
     </span>
   );
@@ -71,7 +72,6 @@ export function formatCS(value: number | null | undefined): React.ReactNode {
   const cls = SCORE_COLOR[value] ?? SCORE_COLOR[0];
   return (
     <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs border ${cls}`}>
-      <span className="font-semibold mr-1">{value}</span>
       {label}
     </span>
   );
@@ -100,6 +100,70 @@ export function formatIntent(value: string | null | undefined): React.ReactNode 
   return (
     <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs border ${cls}`}>
       {labels.join(" / ")}
+    </span>
+  );
+}
+
+// Values for behavior_intent / page_planning_intent / layer_level arrive already
+// localized (Chinese) from N8N keywords_pool — staging is semantic per
+// 数据字段与展示规范.md §1, so no en→zh map needed here. Just badge colors
+// per known value + a neutral fallback for any new value.
+
+const BEHAVIOR_INTENT_COLOR: Record<string, string> = {
+  "了解型":     "bg-manor-bg3 text-manor-inkDim border-manor-inkFaint/40",
+  "行动型":     "bg-manor-bg3 text-manor-brassHi border-manor-brassDim/50",
+  "混合型":     "bg-manor-bg3 text-manor-brassDim border-manor-line2",
+  "官网导航":   "bg-manor-bg3 text-manor-inkDim border-manor-line",
+  "对比型":     "bg-manor-bg3 text-manor-amber border-manor-amberDim/50",
+  "线下到访":   "bg-manor-bg3 text-manor-oxbloodHi border-manor-oxbloodDim/50",
+};
+
+const PAGE_PLANNING_INTENT_COLOR: Record<string, string> = {
+  "知识深度页": "bg-manor-bg3 text-manor-inkDim border-manor-inkFaint/40",
+  "品类聚合页": "bg-manor-bg3 text-manor-brassHi border-manor-brassDim/50",
+  "工具生态页": "bg-manor-bg3 text-manor-gold border-manor-goldDim/50",
+  "场景使用页": "bg-manor-bg3 text-manor-amber border-manor-amberDim/50",
+  "品牌主页":   "bg-manor-brassDim/15 text-manor-brassHi border-manor-brassHi/60",
+  "产品详情页": "bg-manor-bg3 text-manor-inkDim border-manor-inkFaint/40",
+  "门店页":     "bg-manor-bg3 text-manor-oxbloodHi border-manor-oxbloodDim/50",
+};
+
+const LAYER_LEVEL_COLOR: Record<string, string> = {
+  "一级核心": "bg-manor-brassDim/15 text-manor-brassHi border-manor-brassHi/60",
+  "二级独立": "bg-manor-bg3 text-manor-brassDim border-manor-brassDim/40",
+  "三级变体": "bg-manor-bg3 text-manor-inkDim border-manor-line2",
+  "四级兜底": "bg-manor-bg3 text-manor-inkFaint border-manor-line",
+};
+
+const NEUTRAL_BADGE = "bg-manor-bg text-manor-inkDim border-manor-line";
+
+function badge(value: string | null | undefined, colorMap: Record<string, string>): React.ReactNode {
+  if (value == null || value === "") return <span className="text-manor-inkGhost">—</span>;
+  const cls = colorMap[value] ?? NEUTRAL_BADGE;
+  return (
+    <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs border ${cls}`}>
+      {value}
+    </span>
+  );
+}
+
+export function formatBehaviorIntent(value: string | null | undefined): React.ReactNode {
+  return badge(value, BEHAVIOR_INTENT_COLOR);
+}
+
+export function formatPagePlanningIntent(value: string | null | undefined): React.ReactNode {
+  return badge(value, PAGE_PLANNING_INTENT_COLOR);
+}
+
+export function formatLayerLevel(value: string | null | undefined): React.ReactNode {
+  return badge(value, LAYER_LEVEL_COLOR);
+}
+
+export function formatClusterId(value: string | null | undefined): React.ReactNode {
+  if (value == null || value === "") return <span className="text-manor-inkGhost">—</span>;
+  return (
+    <span className="text-xs text-manor-inkDim font-mono tabular-nums" title={value}>
+      {value}
     </span>
   );
 }

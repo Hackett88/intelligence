@@ -10,7 +10,15 @@ import {
 } from "@tanstack/react-table";
 import { useState } from "react";
 import type { Keyword } from "@/db/schema";
-import { formatBP, formatCS, formatIntent, parseTrends, Sparkline } from "./_utils";
+import {
+  formatBP,
+  formatCS,
+  formatBehaviorIntent,
+  formatPagePlanningIntent,
+  formatLayerLevel,
+  parseTrends,
+  Sparkline,
+} from "./_utils";
 
 function kdCell(kd: number | null) {
   if (kd === null || kd === undefined) return <span className="text-manor-inkGhost">—</span>;
@@ -73,8 +81,8 @@ export function KeywordTable({ data, onRowClick }: KeywordTableProps) {
     },
     {
       accessorKey: "keywordDifficulty",
-      header: "KD",
-      size: 64,
+      header: "竞争难度",
+      size: 88,
       cell: ({ getValue }) => kdCell(getValue() as number | null),
     },
     {
@@ -103,10 +111,22 @@ export function KeywordTable({ data, onRowClick }: KeywordTableProps) {
       cell: ({ getValue }) => formatCS(getValue() as number | null),
     },
     {
-      accessorKey: "intent",
-      header: "意图",
+      accessorKey: "behaviorIntent",
+      header: "行为意图",
+      size: 112,
+      cell: ({ getValue }) => formatBehaviorIntent(getValue() as string | null),
+    },
+    {
+      accessorKey: "pagePlanningIntent",
+      header: "页面规划意图",
+      size: 128,
+      cell: ({ getValue }) => formatPagePlanningIntent(getValue() as string | null),
+    },
+    {
+      accessorKey: "layerLevel",
+      header: "分层",
       size: 96,
-      cell: ({ getValue }) => formatIntent(getValue() as string | null),
+      cell: ({ getValue }) => formatLayerLevel(getValue() as string | null),
     },
     {
       accessorKey: "trends",
@@ -117,22 +137,6 @@ export function KeywordTable({ data, onRowClick }: KeywordTableProps) {
         const data = parseTrends(getValue() as string | null);
         if (!data) return <span className="text-manor-inkGhost text-xs">—</span>;
         return <Sparkline data={data} width={100} height={24} variant="bar" />;
-      },
-    },
-    {
-      accessorKey: "protected",
-      header: "保护",
-      size: 56,
-      cell: ({ getValue }) => {
-        const v = getValue() as boolean | null;
-        if (v === true) {
-          return (
-            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs border bg-manor-bg3 text-manor-brassHi border-manor-line2">
-              是
-            </span>
-          );
-        }
-        return <span className="text-manor-inkGhost text-xs">—</span>;
       },
     },
     {

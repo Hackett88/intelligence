@@ -1,0 +1,51 @@
+<svg viewBox="0 0 100 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#F8DE9A"/>
+      <stop offset="50%" stop-color="#B9893B"/>
+      <stop offset="100%" stop-color="#76551F"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFE8A6" stop-opacity="0.75"/>
+      <stop offset="100%" stop-color="#1a0e04" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="dial" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="rgba(48,38,16,.65)"/>
+      <stop offset="100%" stop-color="rgba(14,8,2,.92)"/>
+    </radialGradient>
+  </defs>
+  <ellipse cx="50" cy="42" rx="38" ry="22" fill="url(#glow)" opacity="0.65"/>
+  <!-- Pocket-watch case with sync arrows orbiting -->
+  <g transform="translate(50 40)">
+    <!-- Outer sync arrows -->
+    <path d="M-22 -2 A22 22 0 0 1 18 -16 L20 -19 L24 -16 L20 -13" stroke="url(#g)" stroke-width="1.1" fill="none" stroke-linecap="round" opacity="0.78"/>
+    <path d="M22 2 A22 22 0 0 1 -18 16 L-20 19 L-24 16 L-20 13" stroke="url(#g)" stroke-width="1.1" fill="none" stroke-linecap="round" opacity="0.78"/>
+    <!-- Pocket-watch crown -->
+    <rect x="-3" y="-25" width="6" height="3" rx="1" fill="url(#g)" opacity="0.85"/>
+    <!-- Watch case -->
+    <circle r="18" fill="url(#dial)" stroke="url(#g)" stroke-width="1.6" opacity="0.95"/>
+    <circle r="15" stroke="#D6B46C" stroke-width="0.4" fill="none" opacity="0.55"/>
+    <!-- Hour markers (12 / 3 / 6 / 9) -->
+    <line x1="0" y1="-15" x2="0" y2="-12" stroke="url(#g)" stroke-width="1.1" stroke-linecap="round"/>
+    <line x1="15" y1="0" x2="12" y2="0" stroke="url(#g)" stroke-width="1.1" stroke-linecap="round"/>
+    <line x1="0" y1="15" x2="0" y2="12" stroke="url(#g)" stroke-width="1.1" stroke-linecap="round"/>
+    <line x1="-15" y1="0" x2="-12" y2="0" stroke="url(#g)" stroke-width="1.1" stroke-linecap="round"/>
+    <!-- Minor markers -->
+    <g stroke="#D6B46C" stroke-width="0.5" stroke-linecap="round" opacity="0.5">
+      <line x1="7.5" y1="-13" x2="6.5" y2="-11"/>
+      <line x1="13" y1="-7.5" x2="11" y2="-6.5"/>
+      <line x1="13" y1="7.5" x2="11" y2="6.5"/>
+      <line x1="7.5" y1="13" x2="6.5" y2="11"/>
+      <line x1="-7.5" y1="13" x2="-6.5" y2="11"/>
+      <line x1="-13" y1="7.5" x2="-11" y2="6.5"/>
+      <line x1="-13" y1="-7.5" x2="-11" y2="-6.5"/>
+      <line x1="-7.5" y1="-13" x2="-6.5" y2="-11"/>
+    </g>
+    <!-- Hands -->
+    <line x1="0" y1="0" x2="0" y2="-10" stroke="url(#g)" stroke-width="1.4" stroke-linecap="round"/>
+    <line x1="0" y1="0" x2="8" y2="4" stroke="url(#g)" stroke-width="1" stroke-linecap="round" opacity="0.85"/>
+    <circle r="1.6" fill="#FFE3A0"/>
+  </g>
+  <!-- Brass underline -->
+  <line x1="20" y1="72" x2="80" y2="72" stroke="url(#g)" stroke-width="0.5" opacity="0.5"/>
+</svg>

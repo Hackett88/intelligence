@@ -14,6 +14,9 @@ export interface FilterState {
   market: string[];
   intent: string[];
   questionType: string[];
+  behaviorIntent: string[];
+  pagePlanningIntent: string[];
+  layerLevel: string[];
   protectedOnly: boolean;
 }
 
@@ -23,6 +26,9 @@ interface FilterBarProps {
   marketOptions: Option[];
   intentOptions: Option[];
   questionTypeOptions: Option[];
+  behaviorIntentOptions: Option[];
+  pagePlanningIntentOptions: Option[];
+  layerLevelOptions: Option[];
 }
 
 type Option = { value: string; label: string; flag?: string };
@@ -136,7 +142,16 @@ function MultiSelect({
   );
 }
 
-export function FilterBar({ filters, onFilterChange, marketOptions, intentOptions, questionTypeOptions }: FilterBarProps) {
+export function FilterBar({
+  filters,
+  onFilterChange,
+  marketOptions,
+  intentOptions,
+  questionTypeOptions,
+  behaviorIntentOptions,
+  pagePlanningIntentOptions,
+  layerLevelOptions,
+}: FilterBarProps) {
   const update = (key: keyof FilterState, value: string[] | boolean) => {
     onFilterChange({ ...filters, [key]: value } as FilterState);
   };
@@ -147,6 +162,9 @@ export function FilterBar({ filters, onFilterChange, marketOptions, intentOption
       market: [],
       intent: [],
       questionType: [],
+      behaviorIntent: [],
+      pagePlanningIntent: [],
+      layerLevel: [],
       protectedOnly: false,
     });
   };
@@ -156,6 +174,9 @@ export function FilterBar({ filters, onFilterChange, marketOptions, intentOption
     filters.market.length > 0 ||
     filters.intent.length > 0 ||
     filters.questionType.length > 0 ||
+    filters.behaviorIntent.length > 0 ||
+    filters.pagePlanningIntent.length > 0 ||
+    filters.layerLevel.length > 0 ||
     filters.protectedOnly;
 
   return (
@@ -209,6 +230,27 @@ export function FilterBar({ filters, onFilterChange, marketOptions, intentOption
         options={questionTypeOptions}
         onChange={(v) => update("questionType", v)}
         width="w-32"
+      />
+      <MultiSelect
+        placeholder="行为意图"
+        values={filters.behaviorIntent}
+        options={behaviorIntentOptions}
+        onChange={(v) => update("behaviorIntent", v)}
+        width="w-32"
+      />
+      <MultiSelect
+        placeholder="页面规划"
+        values={filters.pagePlanningIntent}
+        options={pagePlanningIntentOptions}
+        onChange={(v) => update("pagePlanningIntent", v)}
+        width="w-32"
+      />
+      <MultiSelect
+        placeholder="分层"
+        values={filters.layerLevel}
+        options={layerLevelOptions}
+        onChange={(v) => update("layerLevel", v)}
+        width="w-28"
       />
 
       <label

@@ -1137,6 +1137,30 @@
   to { transform: rotate(360deg); }
 }
 
+/* Compass-needle calibration spin — pairs with <AnimatedCompass/>.
+   Plays once when the needle <g> mounts (and re-mounts every 15 s via a
+   React key bump in the component). Sweep two full turns over the first
+   ~55% of the cycle, then settle with a small overshoot wobble so the
+   needle "snaps to north" like a real instrument finding its bearing.
+   Geometry stays at 0deg long-term — both turns land back on the original
+   orientation, so the pivot dot and graticule never look misaligned. */
+.compass-needle {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: compass-needle-spin 1.7s cubic-bezier(.22,.61,.36,1) both;
+}
+@keyframes compass-needle-spin {
+  0%   { transform: rotate(0deg); }
+  55%  { transform: rotate(720deg); }
+  72%  { transform: rotate(706deg); }
+  84%  { transform: rotate(724deg); }
+  94%  { transform: rotate(718deg); }
+  100% { transform: rotate(720deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .compass-needle { animation: none !important; }
+}
+
 /* Hex badge — six-sided clip + brass rim (the right-top stat trio) */
 .hex-badge {
   position: relative;

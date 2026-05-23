@@ -34,6 +34,12 @@ export const keywords = pgTable("keywords", {
   protected:         boolean("protected"),
   questionType:      text("question_type"),
 
+  // Intent / layer / cluster (mirrors 4 new keywords_pool columns; migrations 0007 + 0008)
+  behaviorIntent:      text("behavior_intent"),
+  pagePlanningIntent:  text("page_planning_intent"),
+  layerLevel:          text("layer_level"),
+  clusterId:           text("cluster_id"),
+
   // Timestamps
   createdAt:         timestamp("created_at").defaultNow(),
   lastManualW03At:   timestamp("last_manual_w03_at", { withTimezone: true }),

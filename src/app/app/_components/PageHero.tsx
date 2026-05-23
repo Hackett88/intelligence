@@ -4,6 +4,7 @@
  * keyword-fetch hero — circular medallion + giant brass title + Latin sub + flourish.
  */
 import { BaroqueCorners } from "@/components/ManorOrnaments";
+import { AnimatedCompass } from "@/components/AnimatedCompass";
 
 type Props = {
   /** ID of an <symbol> registered by <ManorOrnaments/>. Defaults to compass. */
@@ -70,17 +71,27 @@ export function PageHero({
             className="medallion-ring relative flex items-center justify-center shrink-0"
             style={{ width: 64, height: 64, borderRadius: 9999 }}
           >
-            <svg
-              width="40"
-              height="40"
-              aria-hidden="true"
-              style={{
-                filter:
-                  "drop-shadow(0 1px 0 rgba(0,0,0,.6)) drop-shadow(0 0 8px rgba(224,197,122,.5))",
-              }}
-            >
-              <use href={`#${medallion}`} />
-            </svg>
+            {medallion === "orn-compass" ? (
+              <AnimatedCompass
+                size={40}
+                style={{
+                  filter:
+                    "drop-shadow(0 1px 0 rgba(0,0,0,.6)) drop-shadow(0 0 8px rgba(224,197,122,.5))",
+                }}
+              />
+            ) : (
+              <svg
+                width="40"
+                height="40"
+                aria-hidden="true"
+                style={{
+                  filter:
+                    "drop-shadow(0 1px 0 rgba(0,0,0,.6)) drop-shadow(0 0 8px rgba(224,197,122,.5))",
+                }}
+              >
+                <use href={`#${medallion}`} />
+              </svg>
+            )}
           </div>
 
           <div className="flex-1 min-w-0">
@@ -188,10 +199,12 @@ export function PageEmpty({
 
         <div className="brass-aura mx-auto mb-5 inline-flex items-center justify-center"
              style={{ width: 80, height: 80, borderRadius: 9999 }}>
-          <svg width="72" height="72" className="opacity-80" aria-hidden="true"
-               style={{ filter: "drop-shadow(0 0 8px rgba(224,197,122,.5))" }}>
-            <use href="#orn-compass" />
-          </svg>
+          <AnimatedCompass
+            size={72}
+            bearing={37}
+            className="opacity-80"
+            style={{ filter: "drop-shadow(0 0 8px rgba(224,197,122,.5))" }}
+          />
         </div>
 
         <p

@@ -11,12 +11,12 @@ type Stats = {
 };
 
 const cards = [
-  { label: "总词数",     latin: "VOCABULA",   key: "total" as const,     fmt: (v: number) => v.toLocaleString() },
-  { label: "已打分",     latin: "AESTIMATA",  key: "scored" as const,    fmt: (v: number) => v.toLocaleString() },
-  { label: "未打分",     latin: "RUDES",      key: "unscored" as const,  fmt: (v: number) => v.toLocaleString() },
-  { label: "受保护",     latin: "CUSTODITA",  key: "protected" as const, fmt: (v: number) => v.toLocaleString() },
-  { label: "平均搜索量", latin: "MEDIA SV",   key: "avgSv" as const,     fmt: (v: number) => v.toLocaleString() },
-  { label: "平均 CPC",   latin: "MEDIA CPC",  key: "avgCpc" as const,    fmt: (v: number) => `$${v.toFixed(2)}` },
+  { label: "总词数",     latin: "VOCABULA",   key: "total" as const,     fmt: (v: number) => v.toLocaleString(), bg: "/summary/vocabula.svg" },
+  { label: "已打分",     latin: "AESTIMATA",  key: "scored" as const,    fmt: (v: number) => v.toLocaleString(), bg: "/summary/aestimata.svg" },
+  { label: "未打分",     latin: "RUDES",      key: "unscored" as const,  fmt: (v: number) => v.toLocaleString(), bg: "/summary/rudes.svg" },
+  { label: "受保护",     latin: "CUSTODITA",  key: "protected" as const, fmt: (v: number) => v.toLocaleString(), bg: "/summary/custodita.svg" },
+  { label: "平均搜索量", latin: "MEDIA SV",   key: "avgSv" as const,     fmt: (v: number) => v.toLocaleString(), bg: "/summary/media-sv.svg" },
+  { label: "平均 CPC",   latin: "MEDIA CPC",  key: "avgCpc" as const,    fmt: (v: number) => `$${v.toFixed(2)}`, bg: "/summary/media-cpc.svg" },
 ];
 
 interface SummaryBarProps {
@@ -51,7 +51,24 @@ export function SummaryBar({ stats, onCardClick }: SummaryBarProps) {
           }}
           onClick={() => onCardClick?.(card.key)}
         >
-          <div className="flex items-center gap-1.5 mb-1">
+          {/* themed decorative SVG positioned directly UNDER the brass divider line — same left start (≈64px after latin label) and same right end (12px matches the px-3 content padding) */}
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute z-[0]"
+            style={{
+              left: 64,
+              right: 12,
+              top: 22,
+              bottom: 4,
+              backgroundImage: `url(${card.bg})`,
+              backgroundSize: "auto 100%",
+              backgroundPosition: "right bottom",
+              backgroundRepeat: "no-repeat",
+              opacity: 0.32,
+              mixBlendMode: "screen",
+            }}
+          />
+          <div className="relative z-[1] flex items-center gap-1.5 mb-1">
             <span
               aria-hidden="true"
               style={{
@@ -78,13 +95,13 @@ export function SummaryBar({ stats, onCardClick }: SummaryBarProps) {
             />
           </div>
           <p
-            className="text-brass-gradient font-semibold tabnum leading-none num-breath"
+            className="relative z-[1] text-brass-gradient font-semibold tabnum leading-none num-breath"
             style={{ fontFamily: serif, fontSize: 22 }}
           >
             {card.fmt(stats[card.key])}
           </p>
           <p
-            className="text-manor-ink/70 mt-1.5"
+            className="relative z-[1] text-manor-ink/70 mt-1.5"
             style={{ fontFamily: serif, fontSize: 10.5, letterSpacing: "0.04em" }}
           >
             {card.label}
@@ -113,7 +130,24 @@ export function SummaryBar({ stats, onCardClick }: SummaryBarProps) {
             "inset 0 1px 0 rgba(240, 222, 160, .28), inset 0 -1px 0 rgba(0, 0, 0, .55), 0 0 16px -6px rgba(224, 197, 122, .4)",
         }}
       >
-        <div className="flex items-center gap-1.5 mb-1">
+        {/* Pocket-watch backdrop — positioned directly UNDER the brass divider line (left start ≈82px after the longer "ULTIMA · SYNC" latin, right 12px matches the px-3 padding) */}
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute z-[0]"
+          style={{
+            left: 82,
+            right: 12,
+            top: 22,
+            bottom: 4,
+            backgroundImage: "url(/summary/ultima-sync.svg)",
+            backgroundSize: "auto 100%",
+            backgroundPosition: "right bottom",
+            backgroundRepeat: "no-repeat",
+            opacity: 0.38,
+            mixBlendMode: "screen",
+          }}
+        />
+        <div className="relative z-[1] flex items-center gap-1.5 mb-1">
           <span
             aria-hidden="true"
             style={{
@@ -140,13 +174,13 @@ export function SummaryBar({ stats, onCardClick }: SummaryBarProps) {
           />
         </div>
         <p
-          className="text-brass-gradient font-semibold tabnum leading-none num-breath"
+          className="relative z-[1] text-brass-gradient font-semibold tabnum leading-none num-breath"
           style={{ fontFamily: serif, fontSize: 20 }}
         >
           {syncTime}
         </p>
         <p
-          className="text-manor-ink/70 mt-1.5"
+          className="relative z-[1] text-manor-ink/70 mt-1.5"
           style={{ fontFamily: serif, fontSize: 10.5, letterSpacing: "0.04em" }}
         >
           最近同步

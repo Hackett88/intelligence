@@ -129,7 +129,7 @@ export function FetchTabs() {
         </span>
       </div>
 
-      <div className="flex-1 min-h-0 overflow-hidden px-6 py-2 flex flex-col">
+      <div className="flex-1 min-h-0 overflow-y-auto px-6 py-2 flex flex-col">
         {/* keyed wrapper triggers fresh fade-up animation on every tab switch */}
         <div key={active} className="tab-fade-up flex-1 min-h-0 flex flex-col">
           {active === "query" && <DataQueryGrid />}

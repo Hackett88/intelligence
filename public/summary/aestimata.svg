@@ -1,0 +1,38 @@
+<svg viewBox="0 0 100 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#F8DE9A"/>
+      <stop offset="50%" stop-color="#B9893B"/>
+      <stop offset="100%" stop-color="#76551F"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFE8A6" stop-opacity="0.65"/>
+      <stop offset="100%" stop-color="#062016" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="b" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="0.8"/></filter>
+  </defs>
+  <ellipse cx="50" cy="42" rx="38" ry="20" fill="url(#glow)" opacity="0.55"/>
+  <!-- Constellation of 5 grading stars; 3 fully scored, 2 outline -->
+  <g>
+    <!-- Big center star: scored -->
+    <path d="M50 22 L53.2 31.2 L62.8 31.6 L55.2 37.6 L57.8 47 L50 41.6 L42.2 47 L44.8 37.6 L37.2 31.6 L46.8 31.2 Z"
+      fill="url(#g)" stroke="#F4E0A4" stroke-width="0.4" opacity="0.92" filter="url(#b)"/>
+    <!-- Left star: scored -->
+    <path d="M22 50 L23.8 54.5 L28.6 54.7 L24.8 57.7 L26 62.4 L22 59.8 L18 62.4 L19.2 57.7 L15.4 54.7 L20.2 54.5 Z"
+      fill="url(#g)" opacity="0.78"/>
+    <!-- Right star: scored -->
+    <path d="M78 50 L79.8 54.5 L84.6 54.7 L80.8 57.7 L82 62.4 L78 59.8 L74 62.4 L75.2 57.7 L71.4 54.7 L76.2 54.5 Z"
+      fill="url(#g)" opacity="0.78"/>
+    <!-- Outline secondary -->
+    <path d="M35 16 L36 19 L39 19 L36.6 21 L37.4 24 L35 22.2 L32.6 24 L33.4 21 L31 19 L34 19 Z"
+      stroke="url(#g)" stroke-width="0.6" fill="none" opacity="0.6"/>
+    <path d="M65 16 L66 19 L69 19 L66.6 21 L67.4 24 L65 22.2 L62.6 24 L63.4 21 L61 19 L64 19 Z"
+      stroke="url(#g)" stroke-width="0.6" fill="none" opacity="0.6"/>
+  </g>
+  <!-- Brass underscore -->
+  <line x1="20" y1="70" x2="80" y2="70" stroke="url(#g)" stroke-width="0.6" opacity="0.55"/>
+  <circle cx="20" cy="70" r="0.9" fill="#E4CB87"/>
+  <circle cx="80" cy="70" r="0.9" fill="#E4CB87"/>
+  <!-- Sparkle accents -->
+  <path d="M50 4 L50 7 M48.5 5.5 L51.5 5.5" stroke="#FFE3A0" stroke-width="0.5" opacity="0.7"/>
+</svg>

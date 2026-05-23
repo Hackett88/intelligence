@@ -72,6 +72,8 @@ type Props = {
   /** Legacy support — ignored if `medallion` resolves from endpoint */
   icon?: LucideIcon;
   medallion?: MedallionSym;
+  /** Optional decorative SVG/PNG painted as a low-opacity backdrop, anchored bottom. */
+  backgroundImage?: string;
 };
 
 export function SkillCard({
@@ -83,6 +85,7 @@ export function SkillCard({
   featured,
   medallion,
   priceLabel,
+  backgroundImage,
 }: Props) {
   const slug = endpoint.toLowerCase();
   const epUpper = endpoint.toUpperCase();
@@ -104,6 +107,24 @@ export function SkillCard({
     <>
       {/* sweep overlay — animates a brass shine across the card on hover */}
       <span aria-hidden="true" className="sheen-overlay" />
+
+      {/* optional decorative SVG backdrop — sits below content, anchored bottom but inset above the action bar so it never crosses the brass hairline divider */}
+      {backgroundImage && (
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 z-[1]"
+          style={{
+            top: 0,
+            bottom: 36,
+            backgroundImage: `url(${backgroundImage})`,
+            backgroundSize: "100% auto",
+            backgroundPosition: "center bottom",
+            backgroundRepeat: "no-repeat",
+            opacity: 0.45,
+            mixBlendMode: "screen",
+          }}
+        />
+      )}
 
       <FiligreeCorners size={10} />
 
