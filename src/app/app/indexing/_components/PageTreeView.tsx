@@ -1088,13 +1088,10 @@ export function PageTreeView({
                     perspective: PRISM_PERSPECTIVE,
                     perspectiveOrigin: "center center",
                     overflow: "visible",
-                    // R71 重构：自然尺寸下 R46 的矩形 box-shadow 与 drum-shell 椭圆几何不匹配
-                    // → column-anim 周围出现可见的"矩形暗框"破坏鼓体作为独立物体的纯净感
-                    // 删除①紧贴金属反光环（矩形角落高光最违和）
-                    // 减弱②远散暖晕 + 加大模糊（40px→80px, 0.30→0.15）→ "远景柔光"，矩形感消散
-                    // 减弱③重落地阴影 + 推远（0 16 32→0 24 48, 0.60→0.30）→ 鼓体在桌面的微弱悬空阴影
-                    boxShadow:
-                      "-4px -4px 80px -6px rgba(239,216,154,0.15), 0 24px 48px -16px rgba(0,0,0,0.30)",
+                    // R85 方向修订（卡片拼成物体）：删除底部矩形落地阴影（与 R35 椭圆接触阴影
+                    // 功能重复且矩形几何与圆柱物体不匹配），只保留左上环境光晕作为"物体被左上光
+                    // 照"的背景氛围。底部落地完全交给 R35 椭圆负责，矩形容器语义残留消散。
+                    boxShadow: "-4px -4px 80px -6px rgba(239,216,154,0.15)",
                   }}
                 >
                   {(() => {
@@ -1557,7 +1554,10 @@ export function PageTreeView({
                             height: 1,
                             background:
                               "linear-gradient(90deg, transparent 0%, rgba(255,250,225,0.85) 12%, rgba(239,216,154,0.55) 50%, rgba(212,179,111,0.25) 80%, transparent 100%)",
-                            boxShadow: "0 0 7px rgba(239,216,154,0.55), 0 1px 2px rgba(0,0,0,0.5)",
+                            // R84 焊缝语义对齐：原 R34 boxShadow 在反光线下方 1px 处有柔阴影，
+                            // 新增一项 `0 1px 0 rgba(0,0,0,0.4)` 无 blur 暗带，与 R47 焊缝凹痕语言统一。
+                            // 几何上 R34 是 8 棱柱最顶接缝（远面 +3/+4 之间），与 R47 焦点接缝同源。
+                            boxShadow: "0 0 7px rgba(239,216,154,0.55), 0 1px 0 rgba(0,0,0,0.40), 0 2px 3px rgba(0,0,0,0.45)",
                             zIndex: 7,
                           }}
                         />
@@ -1572,7 +1572,9 @@ export function PageTreeView({
                             height: 1,
                             background:
                               "linear-gradient(90deg, transparent 0%, rgba(255,250,225,0.85) 12%, rgba(239,216,154,0.55) 50%, rgba(212,179,111,0.25) 80%, transparent 100%)",
-                            boxShadow: "0 0 5px rgba(239,216,154,0.45), 0 -1px 2px rgba(0,0,0,0.5)",
+                            // R86 承重凹痕语义：底棱线相对顶棱线加厚暗带（2px 连续：1px 强 + 1px 弱衰减），
+                            // 模拟"金属圆柱底部承受重力导致的下沉凹缝"，体现物体重量感。
+                            boxShadow: "0 0 5px rgba(239,216,154,0.45), 0 -1px 0 rgba(0,0,0,0.50), 0 -2px 0 rgba(0,0,0,0.25), 0 -3px 4px rgba(0,0,0,0.45)",
                             zIndex: 7,
                           }}
                         />
@@ -1613,7 +1615,9 @@ export function PageTreeView({
                             height: 1,
                             background:
                               "linear-gradient(90deg, rgba(255,250,225,0.30) 0%, rgba(255,255,240,0.85) 22%, rgba(239,216,154,0.45) 55%, rgba(212,179,111,0.18) 82%, transparent 100%)",
-                            boxShadow: "0 0 7px rgba(255,246,210,0.55)",
+                            // R83 焊缝语义：反光线 + 朝焦点中心方向 1px 暗凹痕，
+                            // 让焦点卡与邻面 "焊" 在一起而非 "飘" 在容器里
+                            boxShadow: "0 0 7px rgba(255,246,210,0.55), 0 1px 0 rgba(0,0,0,0.45)",
                             zIndex: 9,
                           }}
                         />
@@ -1626,7 +1630,8 @@ export function PageTreeView({
                             height: 1,
                             background:
                               "linear-gradient(90deg, rgba(255,250,225,0.30) 0%, rgba(255,255,240,0.85) 22%, rgba(239,216,154,0.45) 55%, rgba(212,179,111,0.18) 82%, transparent 100%)",
-                            boxShadow: "0 0 7px rgba(255,246,210,0.55)",
+                            // R83 焊缝语义：反光线 + 朝焦点中心方向 1px 暗凹痕（镜像顶部）
+                            boxShadow: "0 0 7px rgba(255,246,210,0.55), 0 -1px 0 rgba(0,0,0,0.45)",
                             zIndex: 9,
                           }}
                         />
