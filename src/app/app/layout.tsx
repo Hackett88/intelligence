@@ -16,7 +16,7 @@ export default async function AppLayout({
   const session = await auth();
 
   return (
-    <div className="min-h-screen paper-grain">
+    <div className="min-h-screen w-screen overflow-x-hidden paper-grain">
       {/* Drifting atmosphere — slow vignette spotlight behind everything */}
       <div className="atmosphere" aria-hidden="true" />
       {/* Top brand-bar + horizontal nav (h-14) */}
