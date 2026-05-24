@@ -1167,9 +1167,10 @@ export function PageTreeView({
                           style={{
                             ...slotFaceStyle(slotOffset, nodeH),
                             ...(prismShadow ? { boxShadow: prismShadow } : {}),
-                            // 纵深感：远槽位文字渐淡，模拟"焦点近、远槽渐隐"
-                            // 抬升下限避免远槽过淡看不清（之前 0.32 → 0.6 阈值）
-                            opacity: dist === 0 ? 1 : dist === 1 ? 0.92 : dist === 2 ? 0.72 : 0.6,
+                            // R91 5 档渐隐：背景圆柱清掉后，纯靠 opacity 衰减表达"光照流转"。
+                            // dist 0=焦点正对镜头 / 1=±45° / 2=±90° / 3=±135° / 4=180° 背对镜头。
+                            // 物理上 dist 4 被前面遮住最多，应该最暗。
+                            opacity: dist === 0 ? 1 : dist === 1 ? 0.92 : dist === 2 ? 0.72 : dist === 3 ? 0.50 : 0.30,
                             // 字渲染质量提升 —— 焦点态走优先质量管线，其余保持默认（默认更快）
                             // 焦点：antialiased(灰阶子像素) + optimizeLegibility(开启连字/字偶) + isolation 隔离合成层
                             // 让 GPU 在 3D 投影下仍保留较高文字清晰度
@@ -1636,8 +1637,9 @@ export function PageTreeView({
                             height: 1,
                             background:
                               "linear-gradient(90deg, rgba(255,250,225,0.30) 0%, rgba(255,255,240,0.85) 22%, rgba(239,216,154,0.45) 55%, rgba(212,179,111,0.18) 82%, transparent 100%)",
-                            // R83 焊缝语义：反光线 + 朝焦点中心方向 1px 暗凹痕（镜像顶部）
                             boxShadow: "0 0 7px rgba(255,246,210,0.55), 0 -1px 0 rgba(0,0,0,0.45)",
+                            // R92 用户指令：只清下边焦点线（顶线 + R50 catchlight 保留）
+                            display: "none",
                             zIndex: 9,
                           }}
                         />
