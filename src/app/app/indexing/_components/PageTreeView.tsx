@@ -40,7 +40,11 @@ export function scopeMatches(s: Scope, p: PageRow, byId: Map<string, PageRow>): 
 
 // ─── 布局常量 ───
 const COL_WIDTH = 268;         // 焦点卡（正视）宽度 — 保持不变，作为棱柱"最窄端"基线
-const COL_GAP = 92;            // 列间距 — 连线走得开，列与列亲近不疏远
+// R101 列间距按视图区分：小窗 92（紧凑），大窗 180 —— 大窗 12 棱体积更大、
+// 倾斜面经透视拉宽后会冒进相邻列，需要更大 gap 防止视觉串台
+const COL_GAP_SMALL = 92;
+const COL_GAP_BIG = 180;
+const COL_GAP = (isBig: boolean) => (isBig ? COL_GAP_BIG : COL_GAP_SMALL);
 const NODE_H_BASE = 48;        // 基线高度 — 缩小以让小窗内卡片更协调
 const NODE_H = Math.round(NODE_H_BASE * 1.25);              // 60 — 小窗（折叠态）面高
 const NODE_H_BIG = Math.round(NODE_H * 4 / 3);              // 80 — 大窗（全景态）面高 +1/3
@@ -65,16 +69,28 @@ const PAD_BOTTOM = 10;
 //   8 面正棱柱：step = 45°，R = NODE_H / (2·sin(π/8)) ≈ NODE_H · 1.307
 //   小窗 NODE_H=60 → R≈78.4；大窗 NODE_H=80 → R≈104.5
 //   面紧贴形成闭合"纸盒子"，每个面正面平视 → 周围 2 个邻面以 45° 折叠延伸
-const PRISM_SIDES = 8;
-const PRISM_STEP_DEG = 360 / PRISM_SIDES;                   // 45°
-// 渲染 9 个槽位（焦点 ±4）：±4 在 ±180° 即背面，被 backface-visibility 隐藏；
-// 实际可见 = 焦点 + 上 3 + 下 3 = 7 个面（剩 1 个在背面绕回不可见）
-const SLOT_OFFSETS_RENDER: ReadonlyArray<number> = [-4, -3, -2, -1, 0, 1, 2, 3, 4];
+// R100/R101 大窗扩面：主视图 8 棱（紧凑），全景大窗 12 棱（R101：从 16 调到 12，避免 ±3 薄片堆叠 + 让相邻面更舒展）
+// 注意：cyls[colKey].rot 是 fractional slot offset（-1/0/+1），不再是 deg —— 让两套视图共享同一 rot
+// 但各自按 PRISM_STEP_DEG(isBig) 转成真实 deg 渲染，互不串台。
+const PRISM_SIDES = (isBig: boolean): number => (isBig ? 12 : 8);
+const PRISM_STEP_DEG = (isBig: boolean): number => 360 / PRISM_SIDES(isBig);
+// 渲染槽位：小窗 [-4..4]（9 个，覆盖 8 棱一周）；
+// 大窗 [-3..3]（7 个对称）—— R102 用户指令"恢复滚动感 + 上下各加一卡"：
+//   · 可见 5 卡：焦点 + ±1（30°）+ ±2（60°，明显倾斜但可读）
+//   · ±3 槽位（90° 边缘，正常态被 backface 隐藏）做"滚入候选" ——
+//     翻面时 rot 把它们从 90° 边缘转到 60° 可见区，制造"卡从外侧滚进来"的体感
+//   · 没有 ±3 就没有滚动来源，卡只会原地"瞬移交换"，失去 wheel 感
+const SLOT_OFFSETS_RENDER = (isBig: boolean): ReadonlyArray<number> => {
+  if (isBig) return [-3, -2, -1, 0, 1, 2, 3];
+  return [-4, -3, -2, -1, 0, 1, 2, 3, 4];
+};
 const PRISM_TRANSITION_MS = 280;                            // 翻面动画时长 — 280ms 兼顾流畅与响应感（原 540ms 用户觉得"翻完才看到信息"太慢）
-const PRISM_R = (nodeH: number) => nodeH / (2 * Math.sin(Math.PI / PRISM_SIDES));
-const PRISM_WINDOW_H = (nodeH: number) => 2 * PRISM_R(nodeH) + nodeH + 24;
+const PRISM_R = (nodeH: number, isBig: boolean) =>
+  nodeH / (2 * Math.sin(Math.PI / PRISM_SIDES(isBig)));
+const PRISM_WINDOW_H = (nodeH: number, isBig: boolean) => 2 * PRISM_R(nodeH, isBig) + nodeH + 24;
 const ROOT_DEFAULT_H = (nodeH: number) => 2 * nodeH;
-const FIXED_CANVAS_CONTENT_H = (nodeH: number) => Math.max(ROOT_DEFAULT_H(nodeH), PRISM_WINDOW_H(nodeH));
+const FIXED_CANVAS_CONTENT_H = (nodeH: number, isBig: boolean) =>
+  Math.max(ROOT_DEFAULT_H(nodeH), PRISM_WINDOW_H(nodeH, isBig));
 const PRISM_PERSPECTIVE = 820;                              // 透视距离 — 适中既保立体又不过度变形
 
 // ─── 子树聚合 ───
@@ -146,6 +162,9 @@ export function PageTreeView({
   // 本地 path 已经主动写好、不希望被下面 scope→path 同步 effect 覆盖时用此 ref 防御
   // 典型场景：Esc 步退想保留 ROOT_OPEN 状态，但 scope 改成 all 会触发同步把 path 强制收到 [SITE_ROOT]
   const skipNextScopeToPathSync = useRef(false);
+  // R98 水平滚动容器 ref —— 列数增加（级联展开）后自动滚到最右，确保新轮可见
+  const hScrollRef = useRef<HTMLDivElement>(null);
+  const hScrollBigRef = useRef<HTMLDivElement>(null);
 
   // 列表→树过渡微提示：local mirror of flashNodeId，1.5s 后自动清空
   // 用 local state 是为了让"哪个节点要 glow"与"animation 何时启动 / 结束"完全在本组件控
@@ -167,8 +186,22 @@ export function PageTreeView({
       return;
     }
     if (scope.kind === "all") setPath([SITE_ROOT_ID]);
-    else setPath([SITE_ROOT_ID, ...buildPathFromScope(scope.pageId, data)]);
+    // R96 一致性：外部 scope 同步 path 后也级联，让 scope 落点之下的"默认焦点链"自动展开
+    else setPath(cascadePath([SITE_ROOT_ID, ...buildPathFromScope(scope.pageId, data)]));
   }, [scope, data]);
+
+  // R98 列数增加 / path 变深 → 自动把水平滚动条推到最右，让最新展开的转轮可见
+  // 用 requestAnimationFrame 确保 DOM 在新列渲染之后再滚动
+  useEffect(() => {
+    const r = requestAnimationFrame(() => {
+      [hScrollRef.current, hScrollBigRef.current].forEach((el) => {
+        if (el && el.scrollWidth > el.clientWidth) {
+          el.scrollTo({ left: el.scrollWidth, behavior: "smooth" });
+        }
+      });
+    });
+    return () => cancelAnimationFrame(r);
+  }, [path.length]);
 
   // Logo 节点是否已点开（决定 C1 一级页面列是否出现）
   const rootOpened = path.length > 1;
@@ -275,6 +308,29 @@ export function PageTreeView({
     return map;
   }, [columns, path]);
 
+  // R96 一致性规则：原"焦点卡有子页 → 自动展开新转轮"只对 C1 触发了一次（onSiteRootClick / rotateCylinder
+  // 都只 push 一级），导致 C2 默认焦点哪怕有 4 个子页，C3 也不会自动出现 —— 必须点 CTA 才显示。
+  // 修复方案：所有 setPath 之后顺着"下一列默认焦点 = nodes[0]"链路级联展开，直到 nodes[0] 是叶子。
+  // 用 ref 取 childrenMap 最新值，让 rotateCylinder 闭包也能用。SAFETY=8 防失控（横向滚动可容纳）。
+  const cascadePath = (basePath: string[]): string[] => {
+    const out = [...basePath];
+    const SAFETY = 8;
+    const cm = childrenMapRef.current;
+    while (out.length < SAFETY + 1) {
+      const lastPid = out[out.length - 1];
+      if (!lastPid || lastPid === ROOT_OPEN_MARKER || lastPid === SITE_ROOT_ID) break;
+      // children(lastPid) 就是"下一列"的 nodes —— 它们的 nodes[0] 是该列默认焦点
+      const colNodes = cm.get(lastPid) ?? [];
+      if (colNodes.length === 0) break;
+      const firstFocus = colNodes[0];
+      // 默认焦点本身有子页，再下一列才有意义被自动展开
+      const firstFocusHasKids = (cm.get(firstFocus.id) ?? []).length > 0;
+      if (!firstFocusHasKids) break;
+      out.push(firstFocus.id);
+    }
+    return out;
+  };
+
   const getCyl = (colKey: string, count: number): CylState => {
     const s = cyls[colKey];
     if (!s) {
@@ -287,12 +343,12 @@ export function PageTreeView({
   };
 
   // 棱柱槽位样式 — 槽位 k（k ∈ SLOT_OFFSETS_RENDER）的 3D 位置
-  //   槽位绝对角度 = k × 45°，translateZ(R) → 落在 8 棱柱表面
+  //   槽位绝对角度 = k × step，translateZ(R) → 落在棱柱表面（小窗 8 棱 / 大窗 16 棱）
   //   ★ 所有槽位同高 nodeH：焦点态不改尺寸，仅靠 border/shadow/bg 区分
-  //   ★ 容器整体 rotateX(rot) → rot 是瞬态翻面动画值
-  const slotFaceStyle = (slotOffset: number, nodeH: number): React.CSSProperties => {
-    const angleDeg = slotOffset * PRISM_STEP_DEG;
-    const R = PRISM_R(nodeH);
+  //   ★ 容器整体 rotateX(rot * step) → rot 是 fractional slot offset（-1/0/+1）
+  const slotFaceStyle = (slotOffset: number, nodeH: number, isBig: boolean): React.CSSProperties => {
+    const angleDeg = slotOffset * PRISM_STEP_DEG(isBig);
+    const R = PRISM_R(nodeH, isBig);
     return {
       position: "absolute",
       left: 0,
@@ -324,12 +380,12 @@ export function PageTreeView({
 
     const step = deltaY > 0 ? 1 : -1;
 
-    // 阶段 1：rot 设为 ±45°，容器随 CSS transition 平滑翻转
+    // 阶段 1：rot 设为 ∓1（fractional slot offset），各视图按自己的 step deg 渲染真实角度
     setCyls((prev) => {
       const cur = prev[colKey] ?? { focus: 0, rot: 0, busy: false, skipTrans: false };
       return {
         ...prev,
-        [colKey]: { ...cur, rot: -step * PRISM_STEP_DEG, busy: true, skipTrans: false },
+        [colKey]: { ...cur, rot: -step, busy: true, skipTrans: false },
       };
     });
     // 阶段 2：动画结束后 → focus 进退一格 + rot 复位 + skipTrans 一帧避免反向回旋
@@ -369,7 +425,7 @@ export function PageTreeView({
             setPath((prev) => {
               const next = prev.slice(0, colIdx);
               next.push(nextNode.id);
-              return next;
+              return cascadePath(next);
             });
             if (scope.kind !== "subtree" || scope.pageId !== nextNode.id) {
               onScopeChange({ kind: "subtree", pageId: nextNode.id });
@@ -457,7 +513,8 @@ export function PageTreeView({
       const firstRootHasKids =
         firstRoot && (childrenMap.get(firstRoot.id) ?? []).length > 0;
       if (firstRoot && firstRootHasKids) {
-        setPath([SITE_ROOT_ID, firstRoot.id]);
+        // R96 一致性：跟"焦点 rotate 到有子页 → 级联展开下游列"同规则
+        setPath(cascadePath([SITE_ROOT_ID, firstRoot.id]));
       } else {
         setPath([SITE_ROOT_ID, ROOT_OPEN_MARKER]);
       }
@@ -494,12 +551,13 @@ export function PageTreeView({
         });
       }));
       // R31：新焦点有子页 → 直接展开 C(colIdx+1)；否则收掉下游列
+      // R96 一致性：级联展开下游所有"默认焦点 → 有子页"链路
       skipNextScopeToPathSync.current = true;
       if (hasChildren) {
         setPath((prev) => {
           const next = prev.slice(0, colIdx);
           next.push(node.id);
-          return next;
+          return cascadePath(next);
         });
       } else if (colIdx === 1) {
         setPath([SITE_ROOT_ID, ROOT_OPEN_MARKER]);
@@ -530,10 +588,11 @@ export function PageTreeView({
     //   抽屉的入口收敛到列表视图的网址行（onPageOpen 仅由列表层调用）
     if (hasChildren) {
       // 下钻：path 推一级 + 焦点改变 → 顺手清掉旧的揭示态
+      // R96 一致性：级联展开下游所有"默认焦点 → 有子页"链路
       setPendingActionId(null);
       const nextPath = path.slice(0, colIdx);
       nextPath.push(node.id);
-      setPath(nextPath);
+      setPath(cascadePath(nextPath));
       onScopeChange({ kind: "subtree", pageId: node.id });
     } else {
       // 叶子：揭示详情按钮（保留二段确认）；阻断 scope→path 同步避免诡异列变化
@@ -560,9 +619,10 @@ export function PageTreeView({
   // 用 stopPropagation 阻止冒泡到父按钮，避免触发两次下钻
   const handleDrillIntoChildren = (e: React.MouseEvent | React.KeyboardEvent, node: PageRow, colIdx: number) => {
     e.stopPropagation();
+    // R96 一致性：级联展开下游所有"默认焦点 → 有子页"链路
     const nextPath = path.slice(0, colIdx);
     nextPath.push(node.id);
-    setPath(nextPath);
+    setPath(cascadePath(nextPath));
     onScopeChange({ kind: "subtree", pageId: node.id });
   };
 
@@ -747,18 +807,29 @@ export function PageTreeView({
   // 高度 36 = top:8 + 文字 16 + 留白 12，比之前内嵌的 PAD_TOP=40 更紧凑
   const renderColHeaderBar = (isBig: boolean) => {
     const layouts = computeLayouts();
-    const colXAt = (i: number): number => PAD_X + i * (COL_WIDTH + COL_GAP);
-    const barW = PAD_X * 2 + columns.length * COL_WIDTH + Math.max(0, columns.length - 1) * COL_GAP;
+    const gap = COL_GAP(isBig);
+    const colXAt = (i: number): number => PAD_X + i * (COL_WIDTH + gap);
+    const barW = PAD_X * 2 + columns.length * COL_WIDTH + Math.max(0, columns.length - 1) * gap;
     return (
       <div className="relative shrink-0" style={{ width: barW, minWidth: "100%", height: 36 }}>
         {columns.map((col, i) => {
           let colTitle: string, colSubtitle: string, colCount: number;
+          // R99 业务语义递进命名：站点 → 多语言首页 → 目录页 → 内容页 → 详情页·n
+          //   C0 = 站点根
+          //   C1 = 各语种首页（/tr /ar /fr /de /id ...）
+          //   C2 = 目录页 / 类目 / 落地（/ar/blogs /ar/collections ...）
+          //   C3 = 内容页（/ar/blogs/muslim ...）
+          //   C4+ = 详情页 · n（n 从 1 开始，每深一层 +1）
           if (col.isSiteRoot) {
             colTitle = "ORIGO"; colSubtitle = "站点"; colCount = 1;
           } else if (i === 1) {
-            colTitle = "RADIX"; colSubtitle = "一级页"; colCount = col.nodes.length;
+            colTitle = "LINGUA"; colSubtitle = "多语言首页"; colCount = col.nodes.length;
+          } else if (i === 2) {
+            colTitle = "CATALOGUS"; colSubtitle = "目录页"; colCount = col.nodes.length;
+          } else if (i === 3) {
+            colTitle = "CONTENTUM"; colSubtitle = "内容页"; colCount = col.nodes.length;
           } else {
-            colTitle = `STRATUM · ${i - 1}`; colSubtitle = `第 ${i - 1} 层`; colCount = col.nodes.length;
+            colTitle = `DETALIA · ${i - 3}`; colSubtitle = `详情页 · ${i - 3}`; colCount = col.nodes.length;
           }
           const layout = layouts[i];
           return (
@@ -802,13 +873,17 @@ export function PageTreeView({
   // ★ 所有列垂直居中，连线锚到棱柱视觉中心，永远指向"用户在看的地方"
   const renderCanvas = (isBig: boolean) => {
     const nodeH = isBig ? NODE_H_BIG : NODE_H;
-    const fixedContentH = FIXED_CANVAS_CONTENT_H(nodeH);
-    const prismWindowH = PRISM_WINDOW_H(nodeH);
+    const fixedContentH = FIXED_CANVAS_CONTENT_H(nodeH, isBig);
+    const prismWindowH = PRISM_WINDOW_H(nodeH, isBig);
     const rootDefaultH = ROOT_DEFAULT_H(nodeH);
+    // R100：每个视图各自的棱面数 / 槽位偏移数组
+    const slotOffsets = SLOT_OFFSETS_RENDER(isBig);
+    const stepDeg = PRISM_STEP_DEG(isBig);
 
     const layouts = computeLayouts();
-    const colXAt = (i: number): number => PAD_X + i * (COL_WIDTH + COL_GAP);
-    const canvasW = PAD_X * 2 + columns.length * COL_WIDTH + Math.max(0, columns.length - 1) * COL_GAP;
+    const gap = COL_GAP(isBig);
+    const colXAt = (i: number): number => PAD_X + i * (COL_WIDTH + gap);
+    const canvasW = PAD_X * 2 + columns.length * COL_WIDTH + Math.max(0, columns.length - 1) * gap;
     const canvasH = PAD_TOP + fixedContentH + PAD_BOTTOM;
     const colHeight = (i: number): number => {
       const m = layouts[i].mode;
@@ -833,11 +908,13 @@ export function PageTreeView({
     };
 
     // 主连线：父列焦点 → 子列焦点（仅一条，避免 3D 旋转下连线视觉错乱）
-    // 端点缩进 — 两端各离卡 22px，连线总长 92-44=48px
-    // → 给箭头身体（往尖端左 10px）留显示空间，且与卡片 box-shadow 明显分离
-    //   SVG zIndex=5 时若间距小，箭头滑到末端会视觉"压住卡片"
-    const EDGE_INSET_FROM = 22;
-    const EDGE_INSET_TO = 22;
+    // 端点缩进 — R104：焦点 face 的 2D overlay 上加了 perspective scale，让焦点卡视觉宽度
+    // 超出 COL_WIDTH 边界。小窗 scale ≈ 1.10（多出 28px / 边 14px）；大窗 12 棱 scale ≈ 1.23
+    // （多出 62px / 边 31px）。EDGE_INSET 必须 ≥ 边外溢 + 箭头身体长度，否则线尖会压进卡里。
+    //   小窗：22px > 14（外溢） + 5（箭头身体）= 19 ✓
+    //   大窗：22px < 31（外溢）+ 8（箭头身体）= 39 ✗ → 调到 48 留一点呼吸
+    const EDGE_INSET_FROM = isBig ? 48 : 22;
+    const EDGE_INSET_TO = isBig ? 48 : 22;
     const mainEdges: Array<{ fromX: number; fromY: number; toX: number; toY: number; key: string }> = [];
     for (let i = 1; i < columns.length; i++) {
       if (!colHasFocus(i - 1) || !colHasFocus(i)) continue;
@@ -1171,7 +1248,7 @@ export function PageTreeView({
                             flashCls,
                           ].join(" ")}
                           style={{
-                            ...slotFaceStyle(slotOffset, nodeH),
+                            ...slotFaceStyle(slotOffset, nodeH, isBig),
                             ...(prismShadow ? { boxShadow: prismShadow } : {}),
                             // R91 5 档渐隐：背景圆柱清掉后，纯靠 opacity 衰减表达"光照流转"。
                             // dist 0=焦点正对镜头 / 1=±45° / 2=±90° / 3=±135° / 4=180° 背对镜头。
@@ -1409,7 +1486,8 @@ export function PageTreeView({
                             height: nodeH,
                             marginTop: -nodeH / 2,
                             transformStyle: "preserve-3d",
-                            transform: `rotateX(${rot}deg)`,
+                            // R100：rot 是 fractional slot offset，每个视图按自己的 stepDeg 转 deg
+                            transform: `rotateX(${rot * stepDeg}deg)`,
                             transition: skipTrans
                               ? "none"
                               // R88 转动惯性：原 (0.22, 0.65, 0.3, 1) 是 ease-out 快启动，
@@ -1420,7 +1498,7 @@ export function PageTreeView({
                             willChange: "transform",
                           }}
                         >
-                          {SLOT_OFFSETS_RENDER.map((slotOffset) => {
+                          {slotOffsets.map((slotOffset) => {
                             const nodeIdx = ((focus + slotOffset) % N + N) % N;
                             const node = col.nodes[nodeIdx];
                             return renderFace(node, nodeIdx, slotOffset);
@@ -1453,10 +1531,10 @@ export function PageTreeView({
                           className="absolute pointer-events-none"
                           style={{
                             top: "50%",
-                            marginTop: -PRISM_R(nodeH) - 14,
+                            marginTop: -PRISM_R(nodeH, isBig) - 14,
                             left: 0,
                             right: 0,
-                            height: PRISM_R(nodeH) * 2 + 28,
+                            height: PRISM_R(nodeH, isBig) * 2 + 28,
                             borderRadius: "50% / 22%",
                             background:
                               // R68 赤道反光中心从 "40% 42%" 微调到 "44% 46%"：
@@ -1507,10 +1585,10 @@ export function PageTreeView({
                           className="absolute pointer-events-none"
                           style={{
                             top: "50%",
-                            marginTop: -PRISM_R(nodeH) - 60,
+                            marginTop: -PRISM_R(nodeH, isBig) - 60,
                             left: -8,
                             right: -8,
-                            height: PRISM_R(nodeH) * 2 + 120,
+                            height: PRISM_R(nodeH, isBig) * 2 + 120,
                             background:
                               // R64 收紧过渡带 + 加深最大暗化：
                               // R61 过渡带 48%→100%（52% 宽）柔和，邻面溢出部分仍隐约可读
@@ -1551,7 +1629,7 @@ export function PageTreeView({
                         />
                         {/* R32（矩形 multiply 暗影）/ R33（容器左右竖光）已删除：功能被 drum-shell + R61 椭圆外晕收编，矩形几何与鼓体椭圆不兼容。详见 git log。 */}
                         {/* ─ R34 立体感 · 顶/底水平棱线 ─
-                            位置精确锁定在 y = ±R（PRISM_R(nodeH)），即"鼓体表面卷过最顶/最底端"的几何边界
+                            位置精确锁定在 y = ±R（PRISM_R(nodeH, isBig)），即"鼓体表面卷过最顶/最底端"的几何边界
                             细金线 + 柔光晕，让上下"屋檐"成为视觉锚点，强化"这是个有上下边界的鼓"
                             R65 改动：drum-shell 是椭圆 borderRadius 50%/22%，在 y=±R 处宽度只占 ~86%，
                                        棱线原 left:0 right:0 直线两端会"探出"鼓体椭圆边界。
@@ -1564,7 +1642,7 @@ export function PageTreeView({
                             top: "50%",
                             left: "6%",
                             right: "6%",
-                            marginTop: -PRISM_R(nodeH) - 1,
+                            marginTop: -PRISM_R(nodeH, isBig) - 1,
                             height: 1,
                             background:
                               "linear-gradient(90deg, transparent 0%, rgba(255,250,225,0.85) 12%, rgba(239,216,154,0.55) 50%, rgba(212,179,111,0.25) 80%, transparent 100%)",
@@ -1581,7 +1659,7 @@ export function PageTreeView({
                             top: "50%",
                             left: "6%",
                             right: "6%",
-                            marginTop: PRISM_R(nodeH),
+                            marginTop: PRISM_R(nodeH, isBig),
                             height: 1,
                             background:
                               "linear-gradient(90deg, transparent 0%, rgba(255,250,225,0.85) 12%, rgba(239,216,154,0.55) 50%, rgba(212,179,111,0.25) 80%, transparent 100%)",
@@ -1604,7 +1682,7 @@ export function PageTreeView({
                           className="absolute pointer-events-none"
                           style={{
                             top: "50%",
-                            marginTop: PRISM_R(nodeH) + 2,
+                            marginTop: PRISM_R(nodeH, isBig) + 2,
                             left: "14%",
                             right: "4%",
                             height: 16,
@@ -1694,7 +1772,7 @@ export function PageTreeView({
                           className="absolute pointer-events-none"
                           style={{
                             top: "50%",
-                            marginTop: PRISM_R(nodeH) + 22,
+                            marginTop: PRISM_R(nodeH, isBig) + 22,
                             left: "16%",
                             right: "12%",
                             height: 3,
@@ -1809,7 +1887,7 @@ export function PageTreeView({
                               // perspective 透视后视觉放大比 = P/(P-R)。overlay 不在 3D 内、不被透视，
                               // 必须用 2D scale 模拟该放大，否则 overlay 视觉小一圈、跟原 face 错位。
                               // scale 是 2D transform，仍保留字体的 CPU subpixel 渲染（不 GPU 合成糊化）。
-                              transform: `scale(${PRISM_PERSPECTIVE / (PRISM_PERSPECTIVE - PRISM_R(nodeH))})`,
+                              transform: `scale(${PRISM_PERSPECTIVE / (PRISM_PERSPECTIVE - PRISM_R(nodeH, isBig))})`,
                               transformOrigin: "center center",
                               transition: "opacity 80ms ease-out",
                               zIndex: 10,
@@ -1963,12 +2041,17 @@ export function PageTreeView({
     <div className="p-3 h-full flex flex-col">
       <div className="glass-panel overflow-hidden flex-1 flex flex-col min-h-0" style={{ borderRadius: 4 }}>
         {renderHeader(false)}
-        {/* 主视图：小窗 nodeH=60；列头条单独挂在顶部（不被 items-center 裁切）；canvas 居中 */}
-        <div className="shrink-0 overflow-hidden">
-          {renderColHeaderBar(false)}
-        </div>
-        <div className="flex-1 min-h-0 overflow-hidden flex items-center">
-          {renderCanvas(false)}
+        {/* R98 横向滚动：列头条 + canvas 共用一个 overflow-x-auto 父容器，两者宽度相同（都是 barW/canvasW）
+            自动对齐；多到挤不下时出现底部水平滚动条，scrollLeft 同步无需 JS。 */}
+        <div ref={hScrollRef} className="flex-1 min-h-0 overflow-x-auto overflow-y-hidden ptv-hscroll">
+          <div className="flex flex-col h-full" style={{ minWidth: "max-content" }}>
+            <div className="shrink-0">
+              {renderColHeaderBar(false)}
+            </div>
+            <div className="flex-1 min-h-0 flex items-center">
+              {renderCanvas(false)}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1996,12 +2079,19 @@ export function PageTreeView({
             }}
           >
             {renderHeader(true)}
-            {/* 全景：大窗 nodeH=80，列头条单独挂顶，canvas 居中铺满弹层 */}
-            <div className="shrink-0 overflow-hidden">
-              {renderColHeaderBar(true)}
-            </div>
-            <div className="flex-1 min-h-0 overflow-hidden flex items-center">
-              {renderCanvas(true)}
+            {/* R98 全景同样套一层 overflow-x-auto，列头条 + canvas 同步水平滚动
+                R103 列头条不再贴顶：用上/下两个 flex-1 spacer 把头条夹在"卡片上方空白"的中点，
+                canvas 仍居中。layout：[上 spacer flex-1 居中头条][canvas shrink][下 spacer flex-1] */}
+            <div ref={hScrollBigRef} className="flex-1 min-h-0 overflow-x-auto overflow-y-hidden ptv-hscroll">
+              <div className="flex flex-col h-full" style={{ minWidth: "max-content" }}>
+                <div className="flex-1 min-h-0 flex items-center">
+                  {renderColHeaderBar(true)}
+                </div>
+                <div className="shrink-0">
+                  {renderCanvas(true)}
+                </div>
+                <div className="flex-1 min-h-0" />
+              </div>
             </div>
           </div>
         </div>,
@@ -2016,6 +2106,29 @@ export function PageTreeView({
           0%   { opacity: 0; transform: translateX(-24px); }
           60%  { opacity: 1; }
           100% { opacity: 1; transform: translateX(0); }
+        }
+        /* R98 横向滚动条 —— 跟全站玻璃质感对齐，金黄滑块、暗底轨道，hover 加亮 */
+        .ptv-hscroll::-webkit-scrollbar {
+          height: 10px;
+          background: transparent;
+        }
+        .ptv-hscroll::-webkit-scrollbar-track {
+          background: rgba(20, 40, 28, 0.35);
+          border-radius: 5px;
+          margin: 0 8px;
+        }
+        .ptv-hscroll::-webkit-scrollbar-thumb {
+          background: linear-gradient(180deg, rgba(239,216,154,0.55) 0%, rgba(160,136,80,0.65) 100%);
+          border-radius: 5px;
+          border: 1px solid rgba(20, 40, 28, 0.6);
+        }
+        .ptv-hscroll::-webkit-scrollbar-thumb:hover {
+          background: linear-gradient(180deg, rgba(248,230,176,0.85) 0%, rgba(212,179,111,0.85) 100%);
+        }
+        /* Firefox */
+        .ptv-hscroll {
+          scrollbar-width: thin;
+          scrollbar-color: rgba(212,179,111,0.7) rgba(20,40,28,0.35);
         }
       `}</style>
       {/* 全局 keyframes — offset-distance 0%→100% 让箭头沿 offset-path 走完一遍
