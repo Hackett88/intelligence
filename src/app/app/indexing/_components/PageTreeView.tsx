@@ -1088,13 +1088,13 @@ export function PageTreeView({
                     perspective: PRISM_PERSPECTIVE,
                     perspectiveOrigin: "center center",
                     overflow: "visible",
-                    // R46 立体感 · 容器外光双层 + 大范围落地阴影（R45 基础上加强）
-                    //   ① 紧贴金色高光（小模糊、紧贴轮廓，让鼓体顶部边缘有 "金属反光环" 感）
-                    //   ② 远散环境暖晕（大模糊，向左上扩散，呼应光源方向）
-                    //   ③ 重落地阴影（叠加在 R35 接触阴影之上→形成"接触阴影 + 软阴影"两层物理光照）
-                    //   不影响内部分层，仅在 column-anim 矩形边界外投射
+                    // R71 重构：自然尺寸下 R46 的矩形 box-shadow 与 drum-shell 椭圆几何不匹配
+                    // → column-anim 周围出现可见的"矩形暗框"破坏鼓体作为独立物体的纯净感
+                    // 删除①紧贴金属反光环（矩形角落高光最违和）
+                    // 减弱②远散暖晕 + 加大模糊（40px→80px, 0.30→0.15）→ "远景柔光"，矩形感消散
+                    // 减弱③重落地阴影 + 推远（0 16 32→0 24 48, 0.60→0.30）→ 鼓体在桌面的微弱悬空阴影
                     boxShadow:
-                      "-1px -1px 6px -1px rgba(255,250,225,0.45), -4px -4px 40px -6px rgba(239,216,154,0.30), 0 16px 32px -10px rgba(0,0,0,0.60)",
+                      "-4px -4px 80px -6px rgba(239,216,154,0.15), 0 24px 48px -16px rgba(0,0,0,0.30)",
                   }}
                 >
                   {(() => {
@@ -1450,8 +1450,11 @@ export function PageTreeView({
                             height: PRISM_R(nodeH) * 2 + 28,
                             borderRadius: "50% / 22%",
                             background:
-                              "radial-gradient(ellipse 70% 100% at 40% 42%, rgba(92,110,82,0.72) 0%, rgba(68,86,65,0.58) 28%, rgba(45,62,48,0.40) 55%, rgba(25,38,30,0.18) 82%, transparent 100%)",
-                            border: "1px solid rgba(239,216,154,0.22)",
+                              // R68 赤道反光中心从 "40% 42%" 微调到 "44% 46%"：
+                              // 更靠近焦点带中央（焦点卡是 50% 50%），让赤道反光与焦点视觉"咬合"
+                              // 仍保留偏左上的方向感（不到正中），呼应"光从左上来"系统
+                              "radial-gradient(ellipse 70% 100% at 44% 46%, rgba(92,110,82,0.72) 0%, rgba(68,86,65,0.58) 28%, rgba(45,62,48,0.40) 55%, rgba(25,38,30,0.18) 82%, transparent 100%)",
+                            border: "1px solid rgba(239,216,154,0.32)",
                             boxShadow: [
                               // R63 金属厚度环（淡化 R62 的过度强化）：
                               // R62 双层 0.18/0.50 alpha 让鼓体变成"金框相框"，破坏圆柱曲面感
@@ -1463,10 +1466,13 @@ export function PageTreeView({
                               // 内部曲面光照（R59-R60 原 inset shadow）
                               "inset 0 3px 10px rgba(255,250,225,0.20)",
                               "inset 0 -3px 14px rgba(0,0,0,0.65)",
-                              "inset 3px 0 14px rgba(255,250,225,0.10)",
-                              "inset -3px 0 14px rgba(0,0,0,0.40)",
-                              "inset 12px 0 30px -12px rgba(0,0,0,0.50)",
-                              "inset -4px 0 22px -6px rgba(212,179,111,0.14)",
+                              // R67 左右极点强化"金属箍圈"凹陷感（真实金属鼓两端通常有加固金属箍）
+                              // 左极点：浅高光（迎光面金属箍反光）+ 深凹陷
+                              "inset 4px 0 14px rgba(255,250,225,0.18)",
+                              "inset 18px 0 32px -10px rgba(0,0,0,0.68)",
+                              // 右极点：暗琥珀高光（背光面金属箍微弱反光）+ 深凹陷
+                              "inset -4px 0 14px rgba(0,0,0,0.55)",
+                              "inset -14px 0 28px -10px rgba(0,0,0,0.50)",
                               "inset 0 0 2px rgba(239,216,154,0.55)",
                             ].join(", "),
                             zIndex: 0,
@@ -1533,7 +1539,7 @@ export function PageTreeView({
                           style={{
                             height: "44%",
                             background:
-                              "linear-gradient(180deg, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.50) 12%, rgba(0,0,0,0.15) 50%, rgba(0,0,0,0) 100%)",
+                              "linear-gradient(180deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.30) 12%, rgba(0,0,0,0.10) 50%, rgba(0,0,0,0) 100%)",
                             mixBlendMode: "multiply",
                             zIndex: 5,
                           }}
@@ -1544,7 +1550,7 @@ export function PageTreeView({
                           style={{
                             height: "44%",
                             background:
-                              "linear-gradient(0deg, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.50) 12%, rgba(0,0,0,0.15) 50%, rgba(0,0,0,0) 100%)",
+                              "linear-gradient(0deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.30) 12%, rgba(0,0,0,0.10) 50%, rgba(0,0,0,0) 100%)",
                             mixBlendMode: "multiply",
                             zIndex: 5,
                           }}
