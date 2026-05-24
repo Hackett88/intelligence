@@ -85,7 +85,7 @@ function MultiSelect({
       <DropdownMenuTrigger
         className={[
           width,
-          "h-8 shrink-0 border border-manor-brass/30 rounded-md px-2.5",
+          "h-8 min-w-0 border border-manor-brass/30 rounded-md px-2.5",
           "flex items-center justify-between gap-1 text-xs text-left",
           "hover:border-manor-brass/65 transition-colors",
           "focus:outline-none",
@@ -237,7 +237,9 @@ export function FilterBar({
     filters.timeWindow !== "90d";
 
   return (
-    <div className="flex items-center gap-2 overflow-x-auto py-1 min-w-0">
+    // R107 去掉横向滚动条 → 只让 4 个 MultiSelect 自适应收缩（flex-1 + min-w-0），
+    // FILTRA 标签、时间窗、reset 按钮保持原宽不动
+    <div className="flex items-center gap-2 py-1 min-w-0">
       {/* Latin section anchor */}
       <span className="flex items-center gap-1.5 shrink-0 pr-1">
         <span
@@ -273,7 +275,7 @@ export function FilterBar({
         values={filters.market}
         options={marketOptions}
         onChange={(v) => update("market", v)}
-        width="w-32"
+        width="flex-1 basis-0 min-w-[76px] max-w-[148px]"
         showFlagOnTrigger
         showFlagInItem
       />
@@ -282,21 +284,21 @@ export function FilterBar({
         values={filters.pageType}
         options={pageTypeOptions}
         onChange={(v) => update("pageType", v)}
-        width="w-32"
+        width="flex-1 basis-0 min-w-[76px] max-w-[148px]"
       />
       <MultiSelect
         placeholder="排名段"
         values={filters.position}
         options={POSITION_OPTIONS}
         onChange={(v) => update("position", v as PositionBucketValue[])}
-        width="w-32"
+        width="flex-1 basis-0 min-w-[76px] max-w-[148px]"
       />
       <MultiSelect
         placeholder="收录状态"
         values={filters.indexState}
         options={INDEX_STATE_OPTIONS}
         onChange={(v) => update("indexState", v as IndexState[])}
-        width="w-32"
+        width="flex-1 basis-0 min-w-[76px] max-w-[148px]"
       />
 
       {hasFilters && (

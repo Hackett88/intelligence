@@ -357,16 +357,19 @@ export function IndexingClient({ initialData, stats, lastSyncMeta }: IndexingCli
       {/* 左侧主区 */}
       <div className="flex flex-col flex-1 min-h-0 min-w-0">
         {/* 标题栏 */}
-        <div className="px-5 py-3 border-b border-manor-brass/25 bg-manor-bg2 flex items-center justify-between shrink-0">
-          <div className="flex items-baseline gap-3">
+        {/* R106 抽屉打开后顶栏被压窄 → 中文按钮 / 标签竖排成"更\n新"。
+            统一加 whitespace-nowrap 防字符堆叠；右侧工具区 shrink-0 不被挤压；
+            标题区里只有"GSC · 性能数据 · weslamic.com"这条 italic 副标题允许在最窄时截断隐藏。 */}
+        <div className="px-5 py-3 border-b border-manor-brass/25 bg-manor-bg2 flex items-center justify-between gap-4 shrink-0">
+          <div className="flex items-baseline gap-3 min-w-0">
             <span
-              className="font-sc tracking-[0.32em] text-manor-brassHi/80"
+              className="font-sc tracking-[0.32em] text-manor-brassHi/80 whitespace-nowrap shrink-0"
               style={{ fontFamily: "var(--font-sc), 'Cormorant SC', serif", fontSize: 10 }}
             >
               ◆ OFFICINA
             </span>
             <h1
-              className="text-brass-gradient font-serif font-semibold leading-none"
+              className="text-brass-gradient font-serif font-semibold leading-none whitespace-nowrap shrink-0"
               style={{
                 fontFamily: "var(--font-serif), 'EB Garamond', serif",
                 fontSize: 22,
@@ -378,7 +381,7 @@ export function IndexingClient({ initialData, stats, lastSyncMeta }: IndexingCli
               收录与索引
             </h1>
             <span
-              className="font-sc tracking-[0.24em] text-manor-brassHi"
+              className="font-sc tracking-[0.24em] text-manor-brassHi whitespace-nowrap shrink-0 hidden 2xl:inline"
               style={{
                 fontFamily: "var(--font-sc), 'Cormorant SC', serif",
                 fontSize: 10,
@@ -389,7 +392,7 @@ export function IndexingClient({ initialData, stats, lastSyncMeta }: IndexingCli
               〔INDEX · ACCEPTATIO〕
             </span>
             <span
-              className="text-manor-ink/65 italic"
+              className="text-manor-ink/65 italic truncate min-w-0 hidden 2xl:inline"
               style={{
                 fontFamily: "var(--font-serif), 'EB Garamond', serif",
                 fontSize: 11,
@@ -399,10 +402,10 @@ export function IndexingClient({ initialData, stats, lastSyncMeta }: IndexingCli
               GSC · 性能数据 · weslamic.com
             </span>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 shrink-0">
             {/* 数据源 + 上次同步 + 同步按钮 */}
             <div
-              className="flex items-center gap-2 text-[10.5px] text-manor-inkDim"
+              className="flex items-center gap-2 text-[10.5px] text-manor-inkDim whitespace-nowrap"
               style={{ fontFamily: "var(--font-serif), 'EB Garamond', serif" }}
             >
               {lastSyncMeta?.source === "mock" ? (
@@ -438,7 +441,7 @@ export function IndexingClient({ initialData, stats, lastSyncMeta }: IndexingCli
               disabled={syncing}
               title={syncing ? "正在抓取…" : "从本地浏览器的 GSC 抓取最新数据"}
               className={[
-                "h-7 inline-flex items-center gap-1.5 px-2.5 rounded text-[11px]",
+                "h-7 inline-flex items-center gap-1.5 px-2.5 rounded text-[11px] shrink-0 whitespace-nowrap",
                 "border transition-all",
                 syncing
                   ? "border-manor-brass/25 text-manor-inkDim cursor-wait"
@@ -454,7 +457,7 @@ export function IndexingClient({ initialData, stats, lastSyncMeta }: IndexingCli
               <span>{syncing ? "同步中" : "更新"}</span>
             </button>
             <Input
-              className="w-56 h-7 bg-manor-void/60 border-manor-brass/30 text-manor-ink placeholder:text-manor-inkFaint text-xs focus-visible:ring-manor-brass focus-visible:border-manor-brass"
+              className="w-32 lg:w-44 xl:w-56 h-7 bg-manor-void/60 border-manor-brass/30 text-manor-ink placeholder:text-manor-inkFaint text-xs focus-visible:ring-manor-brass focus-visible:border-manor-brass min-w-0"
               placeholder="搜索 URL / 关键词..."
               value={filters.search}
               onChange={(e) => setFilters((prev) => ({ ...prev, search: e.target.value }))}
@@ -656,7 +659,7 @@ export function IndexingClient({ initialData, stats, lastSyncMeta }: IndexingCli
         className={[
           "flex-shrink-0 border-l border-manor-line bg-manor-bg overflow-y-auto",
           "transition-[width] duration-300 ease-in-out",
-          drawerOpen ? "w-[460px]" : "w-0 overflow-hidden",
+          drawerOpen ? "w-[420px]" : "w-0 overflow-hidden",
         ].join(" ")}
       >
         {selectedDetail && (

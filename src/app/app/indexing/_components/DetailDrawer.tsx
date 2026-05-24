@@ -85,7 +85,7 @@ function Section({
           }}
         />
         <h3
-          className="text-brass-gradient font-serif font-semibold leading-none"
+          className="text-brass-gradient font-serif font-semibold leading-none whitespace-nowrap shrink-0"
           style={{
             fontFamily: "var(--font-serif), 'EB Garamond', serif",
             fontSize: 14,
@@ -94,13 +94,14 @@ function Section({
         >
           {title}
         </h3>
+        {/* R108 抽屉降到 420 后窄屏吃紧 → 拉丁副标可隐藏让 divider + extra 优先 */}
         <span
-          className="font-sc tracking-[0.32em] text-manor-brassHi leading-none"
+          className="font-sc tracking-[0.32em] text-manor-brassHi leading-none whitespace-nowrap shrink truncate min-w-0"
           style={{ fontFamily: "var(--font-sc), 'Cormorant SC', serif", fontSize: 9.5 }}
         >
           〔{latin}〕
         </span>
-        <span className="brass-divider flex-1 opacity-60 self-center" />
+        <span className="brass-divider flex-1 min-w-[8px] opacity-60 self-center" />
         {extra && <span className="shrink-0">{extra}</span>}
       </div>
       <div className={grid ? "p-3 grid grid-cols-2 gap-x-4 gap-y-3 text-xs" : "p-3 text-xs"}>
@@ -299,7 +300,7 @@ export function DetailDrawer({ page, timeWindow, onTimeWindowChange, onClose }: 
     : null;
 
   return (
-    <div className="flex flex-col min-w-[440px]">
+    <div className="flex flex-col min-w-[400px]">
       {/* 面板顶部 */}
       <div className="px-5 py-4 border-b border-manor-brass/25 sticky top-0 bg-manor-bg3 z-10 flex items-start justify-between">
         <div className="min-w-0 flex-1 pr-3">
@@ -313,7 +314,7 @@ export function DetailDrawer({ page, timeWindow, onTimeWindowChange, onClose }: 
             className="text-brass-gradient font-serif font-semibold leading-tight break-all"
             style={{
               fontFamily: "var(--font-serif), 'EB Garamond', serif",
-              fontSize: 18,
+              fontSize: 16,
               letterSpacing: "0.02em",
             }}
             title={page.fullUrl}
