@@ -1479,6 +1479,9 @@ export function PageTreeView({
                               "inset -14px 0 28px -10px rgba(0,0,0,0.50)",
                               "inset 0 0 2px rgba(239,216,154,0.55)",
                             ].join(", "),
+                            // R82+ 方向修订：用户澄清转轮不是"独立容器"，而是"卡片自己拼成物体"。
+                            // drum-shell 从主角降为淡背板，opacity 拉到 50% 让位给卡片间的拼接关系。
+                            opacity: 0.5,
                             zIndex: 0,
                           }}
                         />
@@ -1505,6 +1508,8 @@ export function PageTreeView({
                               // 最大暗化 0.85→0.92：椭圆外侧基本完全压暗 → 邻面溢出部分接近不可见
                               "radial-gradient(ellipse 78% 100% at center, transparent 0%, transparent 60%, rgba(15,28,22,0.55) 75%, rgba(8,18,12,0.85) 88%, rgba(5,12,8,0.92) 100%)",
                             mixBlendMode: "multiply",
+                            // R82+ 方向修订：drum-shell 弱化后，配套的外晕也降到 50% 强度
+                            opacity: 0.5,
                             zIndex: 3,
                           }}
                         />
