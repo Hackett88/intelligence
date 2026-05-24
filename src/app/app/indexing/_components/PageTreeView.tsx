@@ -1404,7 +1404,11 @@ export function PageTreeView({
                             transform: `rotateX(${rot}deg)`,
                             transition: skipTrans
                               ? "none"
-                              : `transform ${PRISM_TRANSITION_MS}ms cubic-bezier(0.22, 0.65, 0.3, 1)`,
+                              // R88 转动惯性：原 (0.22, 0.65, 0.3, 1) 是 ease-out 快启动，
+                              // 改为 (0.4, 0.05, 0.25, 1) 轻惯性 ease-in-out —
+                              // 慢启动 (overcoming static inertia) + 中段加速 + 慢结尾 (deceleration like braking)，
+                              // 280ms 内体现"重物体被推动旋转"的惯性读感。
+                              : `transform ${PRISM_TRANSITION_MS}ms cubic-bezier(0.4, 0.05, 0.25, 1)`,
                             willChange: "transform",
                           }}
                         >
