@@ -1464,6 +1464,28 @@ export function PageTreeView({
                             zIndex: 0,
                           }}
                         />
+                        {/* ─ R61 鼓体外阴影晕 · 让邻面"渐入鼓体阴影"（转型最后一公里）─
+                            R60 drum-shell 建立了鼓体壳，但 ±1 邻面卡片溢出椭圆端面约 30px
+                            （邻面 y±142，drum-shell 椭圆边界 y±113）→ 邻面"探出"鼓体破坏实体感
+                            这一层在 prism 卡片之上、R32 大气暗影之下，用 radial-gradient + multiply
+                            把椭圆外侧（鼓体壳之外）的所有像素压暗 → 邻面溢出部分"渐入鼓体阴影"
+                            椭圆形状跟随 drum-shell 几何但稍大 + 横向略外扩 → 完美覆盖溢出区
+                            zIndex 3：高于 prism 卡片 (0) 与 R37 (4)，低于 R32 暗影 (5) → 不与其他装饰打架 */}
+                        <div
+                          aria-hidden="true"
+                          className="absolute pointer-events-none"
+                          style={{
+                            top: "50%",
+                            marginTop: -PRISM_R(nodeH) - 60,
+                            left: -8,
+                            right: -8,
+                            height: PRISM_R(nodeH) * 2 + 120,
+                            background:
+                              "radial-gradient(ellipse 78% 100% at center, transparent 0%, transparent 48%, rgba(15,28,22,0.40) 72%, rgba(8,18,12,0.72) 92%, rgba(5,12,8,0.85) 100%)",
+                            mixBlendMode: "multiply",
+                            zIndex: 3,
+                          }}
+                        />
                         {/* ─ R37 立体感 · 焦点底部回弹光（R51 转型 · 与 R50 上方 catchlight 互补） ─
                             R51 重大变更：原 R37 为"焦点中央均匀聚光"，与 R50（上方 catchlight）功能重叠，
                                          在焦点上半区造成 screen 双叠加→文字对比度被稀释。
