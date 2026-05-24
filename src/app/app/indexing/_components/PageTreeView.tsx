@@ -1088,10 +1088,9 @@ export function PageTreeView({
                     perspective: PRISM_PERSPECTIVE,
                     perspectiveOrigin: "center center",
                     overflow: "visible",
-                    // R85 方向修订（卡片拼成物体）：删除底部矩形落地阴影（与 R35 椭圆接触阴影
-                    // 功能重复且矩形几何与圆柱物体不匹配），只保留左上环境光晕作为"物体被左上光
-                    // 照"的背景氛围。底部落地完全交给 R35 椭圆负责，矩形容器语义残留消散。
-                    boxShadow: "-4px -4px 80px -6px rgba(239,216,154,0.15)",
+                    // R89 用户清理指令：彻底清掉"圆柱和背景"。column-anim 左上环境光晕也属于
+                    // 背景装饰，删除。保留 boxShadow 字段但置 none，便于日后追溯。
+                    boxShadow: "none",
                   }}
                 >
                   {(() => {
@@ -1480,8 +1479,9 @@ export function PageTreeView({
                               "inset -14px 0 28px -10px rgba(0,0,0,0.50)",
                               "inset 0 0 2px rgba(239,216,154,0.55)",
                             ].join(", "),
-                            // R82+ 方向修订：用户澄清转轮不是"独立容器"，而是"卡片自己拼成物体"。
-                            // drum-shell 从主角降为淡背板，opacity 拉到 50% 让位给卡片间的拼接关系。
+                            // R89 用户明确指令：清理掉圆柱和背景。drum-shell 整层 display:none 隐藏，
+                            // 保留代码以便日后想加回但不再参与渲染。
+                            display: "none",
                             opacity: 0.5,
                             zIndex: 0,
                           }}
@@ -1509,7 +1509,8 @@ export function PageTreeView({
                               // 最大暗化 0.85→0.92：椭圆外侧基本完全压暗 → 邻面溢出部分接近不可见
                               "radial-gradient(ellipse 78% 100% at center, transparent 0%, transparent 60%, rgba(15,28,22,0.55) 75%, rgba(8,18,12,0.85) 88%, rgba(5,12,8,0.92) 100%)",
                             mixBlendMode: "multiply",
-                            // R82+ 方向修订：drum-shell 弱化后，配套的外晕也降到 50% 强度
+                            // R89 用户清理指令：drum-shell 配套的外晕同步隐藏
+                            display: "none",
                             opacity: 0.5,
                             zIndex: 3,
                           }}
@@ -1558,10 +1559,9 @@ export function PageTreeView({
                             height: 1,
                             background:
                               "linear-gradient(90deg, transparent 0%, rgba(255,250,225,0.85) 12%, rgba(239,216,154,0.55) 50%, rgba(212,179,111,0.25) 80%, transparent 100%)",
-                            // R84 焊缝语义对齐：原 R34 boxShadow 在反光线下方 1px 处有柔阴影，
-                            // 新增一项 `0 1px 0 rgba(0,0,0,0.4)` 无 blur 暗带，与 R47 焊缝凹痕语言统一。
-                            // 几何上 R34 是 8 棱柱最顶接缝（远面 +3/+4 之间），与 R47 焦点接缝同源。
                             boxShadow: "0 0 7px rgba(239,216,154,0.55), 0 1px 0 rgba(0,0,0,0.40), 0 2px 3px rgba(0,0,0,0.45)",
+                            // R89 用户清理指令：R34 是"圆柱端面棱线"，属于背景装饰，隐藏
+                            display: "none",
                             zIndex: 7,
                           }}
                         />
@@ -1576,9 +1576,9 @@ export function PageTreeView({
                             height: 1,
                             background:
                               "linear-gradient(90deg, transparent 0%, rgba(255,250,225,0.85) 12%, rgba(239,216,154,0.55) 50%, rgba(212,179,111,0.25) 80%, transparent 100%)",
-                            // R86 承重凹痕语义：底棱线相对顶棱线加厚暗带（2px 连续：1px 强 + 1px 弱衰减），
-                            // 模拟"金属圆柱底部承受重力导致的下沉凹缝"，体现物体重量感。
                             boxShadow: "0 0 5px rgba(239,216,154,0.45), 0 -1px 0 rgba(0,0,0,0.50), 0 -2px 0 rgba(0,0,0,0.25), 0 -3px 4px rgba(0,0,0,0.45)",
+                            // R89 用户清理指令：底棱线同上隐藏
+                            display: "none",
                             zIndex: 7,
                           }}
                         />
@@ -1602,6 +1602,8 @@ export function PageTreeView({
                             background:
                               "radial-gradient(ellipse at 42% top, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.46) 32%, rgba(0,0,0,0.18) 65%, transparent 100%)",
                             filter: "blur(4px)",
+                            // R89 用户清理指令：R35 椭圆接触阴影是"圆柱压在桌面"的背景装饰，隐藏
+                            display: "none",
                             zIndex: 2,
                           }}
                         />
@@ -1687,6 +1689,8 @@ export function PageTreeView({
                             background:
                               "linear-gradient(90deg, transparent 0%, rgba(239,216,154,0.18) 25%, rgba(255,246,210,0.28) 48%, rgba(212,179,111,0.12) 75%, transparent 100%)",
                             filter: "blur(2px)",
+                            // R89 用户清理指令：R48 地面反射光是圆柱地面装饰，隐藏
+                            display: "none",
                             zIndex: 1,
                           }}
                         />
@@ -1737,6 +1741,8 @@ export function PageTreeView({
                               "radial-gradient(circle at 28% 28%, #FFFEF2 0%, #FFF6D2 25%, #E5C97E 55%, #7E6328 85%, #3C2D10 100%)",
                             boxShadow:
                               "0 0 9px rgba(255,246,210,0.80), 0 1.5px 2.5px rgba(0,0,0,0.60), inset -1px -1px 1.5px rgba(0,0,0,0.45)",
+                            // R89 用户清理指令：R36 铆钉是"圆柱轴心"装饰，隐藏
+                            display: "none",
                             zIndex: 8,
                           }}
                         />
@@ -1755,6 +1761,8 @@ export function PageTreeView({
                               "radial-gradient(circle at 62% 38%, #E8D098 0%, #C8A85D 35%, #7E5E26 70%, #3C2A0E 100%)",
                             boxShadow:
                               "0 0 5px rgba(200,168,93,0.45), 0 1px 2px rgba(0,0,0,0.55), inset 1px -1px 1.5px rgba(0,0,0,0.50)",
+                            // R89 用户清理指令：R36 铆钉同上隐藏
+                            display: "none",
                             zIndex: 8,
                           }}
                         />
