@@ -165,10 +165,11 @@ function MultiSelect({
 }
 
 // 时间窗 segmented — 7d / 28d / 90d
+// GSC 当前一次同步拉的是 3 个月窗口，7d / 28d 暂时禁用并标注原因。
 function TimeWindowSelect({ value, onChange }: { value: TimeWindow; onChange: (v: TimeWindow) => void }) {
-  const opts: { value: TimeWindow; label: string }[] = [
-    { value: "7d",  label: "7 天" },
-    { value: "28d", label: "28 天" },
+  const opts: { value: TimeWindow; label: string; disabled?: boolean; reason?: string }[] = [
+    { value: "7d",  label: "7 天",   disabled: true, reason: "GSC 当前一次同步拉的是 3 个月窗口" },
+    { value: "28d", label: "28 天",  disabled: true, reason: "GSC 当前一次同步拉的是 3 个月窗口" },
     { value: "90d", label: "3 个月" },
   ];
   return (
@@ -183,19 +184,24 @@ function TimeWindowSelect({ value, onChange }: { value: TimeWindow; onChange: (v
     >
       {opts.map((o) => {
         const active = value === o.value;
+        const disabled = !!o.disabled;
         return (
           <button
             key={o.value}
             type="button"
-            onClick={() => onChange(o.value)}
+            disabled={disabled}
+            title={o.reason}
+            onClick={() => { if (!disabled) onChange(o.value); }}
             className={[
               "h-full px-2.5 text-xs font-medium transition-colors border-r border-manor-brass/15 last:border-r-0",
-              active
+              disabled
+                ? "text-manor-inkFaint/60 cursor-not-allowed opacity-50"
+                : active
                 ? "text-manor-brassHi bg-manor-brassDim/15"
                 : "text-manor-inkDim hover:text-manor-brassHi hover:bg-manor-brassDim/10",
             ].join(" ")}
             style={
-              active
+              !disabled && active
                 ? { textShadow: "0 0 6px rgba(239,216,154,.45)" }
                 : undefined
             }

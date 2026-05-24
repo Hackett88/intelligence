@@ -3,9 +3,17 @@
 import dynamic from "next/dynamic";
 import type { PageRow, IndexingStats } from "./_mock";
 
+export type LastSyncMeta = {
+  source: "gsc" | "mock";
+  fetchedAt?: string;
+  property?: string;
+  freshnessText?: string;
+};
+
 interface IndexingWrapperProps {
   initialData: PageRow[];
   stats: IndexingStats;
+  lastSyncMeta?: LastSyncMeta;
 }
 
 const IndexingClientDynamic = dynamic(
@@ -20,6 +28,16 @@ const IndexingClientDynamic = dynamic(
   }
 );
 
-export function IndexingWrapper({ initialData, stats }: IndexingWrapperProps) {
-  return <IndexingClientDynamic initialData={initialData} stats={stats} />;
+export function IndexingWrapper({
+  initialData,
+  stats,
+  lastSyncMeta,
+}: IndexingWrapperProps) {
+  return (
+    <IndexingClientDynamic
+      initialData={initialData}
+      stats={stats}
+      lastSyncMeta={lastSyncMeta}
+    />
+  );
 }

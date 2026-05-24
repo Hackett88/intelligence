@@ -28,6 +28,10 @@ export type PageRow = {
   parentId?: string;    // 显式所属：spoke → pillar / 子枢纽 → 上级枢纽
   isPillar?: boolean;   // 是否是 cluster 中心枢纽（PLP / 落地页 / 工具中心等）
   sortOrder: number;    // 业务逻辑排序权重 — 同 parent 内按它升序（不是按 clicks）
+  // 树视图聚合用的合成节点（如 /products /collections）：GSC 没返回过它，
+  // 但 UI 需要它做 sub-page 的目录入口。这类节点 clicks/impressions 都是 0，
+  // 列表视图、SummaryBar、Stats 都应过滤掉。
+  isSynthetic?: boolean;
 };
 
 export type QueryRow = {

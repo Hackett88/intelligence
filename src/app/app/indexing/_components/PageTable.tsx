@@ -85,11 +85,14 @@ export function PageTable({ data, onRowClick }: PageTableProps) {
       accessorKey: "clicks",
       header: "总点击",
       size: 88,
-      cell: ({ getValue }) => {
+      cell: ({ row, getValue }) => {
+        // "—" 占位只用于 excluded / error 这种"页面没进 GSC 数据"的状态；
+        // indexed / discovered 的页即使 clicks=0 也是真实的"暂无点击"，要显示数字。
         const v = getValue() as number;
+        const hasData = row.original.indexState === "indexed" || row.original.indexState === "discovered";
         return (
           <span className="text-xs text-manor-ink tabular-nums">
-            {v > 0 ? v.toLocaleString() : <span className="text-manor-inkGhost">—</span>}
+            {hasData ? v.toLocaleString() : <span className="text-manor-inkGhost">—</span>}
           </span>
         );
       },
@@ -98,11 +101,12 @@ export function PageTable({ data, onRowClick }: PageTableProps) {
       accessorKey: "impressions",
       header: "总曝光",
       size: 96,
-      cell: ({ getValue }) => {
+      cell: ({ row, getValue }) => {
         const v = getValue() as number;
+        const hasData = row.original.indexState === "indexed" || row.original.indexState === "discovered";
         return (
           <span className="text-xs text-manor-ink tabular-nums">
-            {v > 0 ? formatLargeNumber(v) : <span className="text-manor-inkGhost">—</span>}
+            {hasData ? formatLargeNumber(v) : <span className="text-manor-inkGhost">—</span>}
           </span>
         );
       },
@@ -111,13 +115,13 @@ export function PageTable({ data, onRowClick }: PageTableProps) {
       accessorKey: "ctr",
       header: "CTR",
       size: 72,
-      cell: ({ getValue }) => formatCtr(getValue() as number),
+      cell: ({ row, getValue }) => formatCtr(getValue() as number, row.original.indexState),
     },
     {
       accessorKey: "position",
       header: "平均排名",
       size: 80,
-      cell: ({ getValue }) => formatPosition(getValue() as number),
+      cell: ({ row, getValue }) => formatPosition(getValue() as number, row.original.indexState),
     },
     {
       accessorKey: "trend12m",

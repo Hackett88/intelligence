@@ -1,5 +1,5 @@
 import {
-  pgTable, text, integer, real, timestamp, serial, boolean, jsonb, index, uuid, varchar
+  pgTable, text, integer, real, timestamp, serial, boolean, jsonb, index, uuid, varchar, doublePrecision, bigint, bigserial, uniqueIndex
 } from "drizzle-orm/pg-core";
 
 // ---- Main keyword table (mirrors N8N keywords_pool DataTable) ----
@@ -126,3 +126,65 @@ export const queryHistory = pgTable(
 
 export type QueryHistoryRow = typeof queryHistory.$inferSelect;
 export type NewQueryHistoryRow = typeof queryHistory.$inferInsert;
+
+// ────────────────────────────────────────────────────────────────────────────
+// GSC 收录与索引（迁移 0009，2026-05-24）
+// 决策：① 累积历史（每次同步一个 batch，留时间序列）② 合成节点不入库
+// ────────────────────────────────────────────────────────────────────────────
+
+export const gscSyncLog = pgTable(
+  "gsc_sync_log",
+  {
+    id:               bigserial("id", { mode: "number" }).primaryKey(),
+    startedAt:        timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
+    completedAt:      timestamp("completed_at", { withTimezone: true }),
+    status:           text("status").notNull().default("pending"),       // pending | ok | error
+    property:         text("property"),                                  // sc-domain:weslamic.com
+    freshnessText:    text("freshness_text"),                            // "上次更新日期：4小时前"
+    totalPages:       integer("total_pages"),                            // 真实页数（不含合成）
+    totalClicks:      integer("total_clicks"),
+    totalImpressions: bigint("total_impressions", { mode: "number" }),
+    avgCtr:           doublePrecision("avg_ctr"),
+    avgPosition:      doublePrecision("avg_position"),
+    top10Pages:       integer("top10_pages"),
+    errorCode:        text("error_code"),
+    errorMessage:     text("error_message"),
+  },
+  (t) => ({
+    startedAtIdx: index("idx_gsc_sync_log_started_at").on(t.startedAt),
+    statusIdx:    index("idx_gsc_sync_log_status").on(t.status),
+  })
+);
+
+export const gscPages = pgTable(
+  "gsc_pages",
+  {
+    id:          bigserial("id", { mode: "number" }).primaryKey(),
+    batchId:     bigint("batch_id", { mode: "number" }).notNull().references(() => gscSyncLog.id, { onDelete: "cascade" }),
+    url:         text("url").notNull(),
+    fullUrl:     text("full_url").notNull(),
+    market:      text("market").notNull(),
+    pageType:    text("page_type").notNull(),
+    cluster:     text("cluster").notNull(),
+    topQuery:    text("top_query").notNull().default("—"),
+    clicks:      integer("clicks").notNull().default(0),
+    impressions: integer("impressions").notNull().default(0),
+    ctr:         doublePrecision("ctr").notNull().default(0),
+    position:    doublePrecision("position").notNull().default(0),
+    indexState:  text("index_state").notNull().default("indexed"),
+    trend12m:    jsonb("trend12m").notNull().default([]),
+    isPillar:    boolean("is_pillar").notNull().default(false),
+    sortOrder:   integer("sort_order").notNull(),
+  },
+  (t) => ({
+    batchIdIdx:     index("idx_gsc_pages_batch_id").on(t.batchId),
+    batchClicksIdx: index("idx_gsc_pages_batch_clicks").on(t.batchId, t.clicks),
+    urlIdx:         index("idx_gsc_pages_url").on(t.url),
+    uqBatchUrl:     uniqueIndex("uq_gsc_pages_batch_url").on(t.batchId, t.url),
+  })
+);
+
+export type GscSyncLog    = typeof gscSyncLog.$inferSelect;
+export type NewGscSyncLog = typeof gscSyncLog.$inferInsert;
+export type GscPage       = typeof gscPages.$inferSelect;
+export type NewGscPage    = typeof gscPages.$inferInsert;

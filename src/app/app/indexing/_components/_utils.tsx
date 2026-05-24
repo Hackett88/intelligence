@@ -171,7 +171,14 @@ export function positionBucketLabel(b: PositionBucket): string {
   return POSITION_BUCKET_LABEL[b];
 }
 
-export function formatPosition(pos: number): React.ReactNode {
+// indexState 可选参数：当页面是 excluded / error（没进 GSC 数据）时整列显"—"；
+// indexed / discovered 即使指标=0 也按真值显示（GSC 里曝光极低 / 长尾排名页）。
+type IndexStateLite = "indexed" | "discovered" | "excluded" | "error";
+
+export function formatPosition(pos: number, indexState?: IndexStateLite): React.ReactNode {
+  if (indexState === "excluded" || indexState === "error") {
+    return <span className="text-manor-inkGhost">—</span>;
+  }
   if (!pos || pos <= 0) return <span className="text-manor-inkGhost">—</span>;
   const b = positionBucket(pos);
   const color =
@@ -186,9 +193,12 @@ export function formatPosition(pos: number): React.ReactNode {
   );
 }
 
-export function formatCtr(ctr: number): React.ReactNode {
-  if (!ctr || ctr <= 0) return <span className="text-manor-inkGhost">—</span>;
-  const pct = ctr * 100;
+export function formatCtr(ctr: number, indexState?: IndexStateLite): React.ReactNode {
+  if (indexState === "excluded" || indexState === "error") {
+    return <span className="text-manor-inkGhost">—</span>;
+  }
+  // 此处不再用 ctr<=0 兜底成"—"；ctr=0（有曝光无点击）应真实展示为 "0.0%"
+  const pct = (ctr || 0) * 100;
   const color =
     pct >= 5   ? "text-manor-brassHi" :
     pct >= 2   ? "text-manor-brassDim" :

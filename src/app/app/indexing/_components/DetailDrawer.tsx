@@ -188,9 +188,10 @@ function MiniSegmented({
   value: TimeWindow;
   onChange: (v: TimeWindow) => void;
 }) {
-  const opts: { value: TimeWindow; label: string }[] = [
-    { value: "7d",  label: "7d" },
-    { value: "28d", label: "28d" },
+  // GSC 当前一次同步拉的是 3 个月窗口，7d / 28d 暂时禁用并标注原因。
+  const opts: { value: TimeWindow; label: string; disabled?: boolean; reason?: string }[] = [
+    { value: "7d",  label: "7d",  disabled: true, reason: "GSC 当前一次同步拉的是 3 个月窗口" },
+    { value: "28d", label: "28d", disabled: true, reason: "GSC 当前一次同步拉的是 3 个月窗口" },
     { value: "90d", label: "90d" },
   ];
   return (
@@ -200,14 +201,19 @@ function MiniSegmented({
     >
       {opts.map((o) => {
         const active = value === o.value;
+        const disabled = !!o.disabled;
         return (
           <button
             key={o.value}
             type="button"
-            onClick={() => onChange(o.value)}
+            disabled={disabled}
+            title={o.reason}
+            onClick={() => { if (!disabled) onChange(o.value); }}
             className={[
               "px-1.5 text-[10px] tracking-wide transition-colors border-r border-manor-brass/15 last:border-r-0",
-              active
+              disabled
+                ? "text-manor-inkFaint/60 cursor-not-allowed opacity-50"
+                : active
                 ? "text-manor-brassHi bg-manor-brassDim/15"
                 : "text-manor-inkDim hover:text-manor-brassHi",
             ].join(" ")}
@@ -384,28 +390,34 @@ export function DetailDrawer({ page, timeWindow, onTimeWindowChange, onClose }: 
             <MiniSegmented value={timeWindow} onChange={onTimeWindowChange} />
           }
         >
+          {(() => {
+            // 整版数据有效性：indexed / discovered 才显示真实数字（0 也显示）；
+            // excluded / error 整面 "—" 并提示状态。
+            const hasData =
+              page.indexState === "indexed" || page.indexState === "discovered";
+            return (
           <div className="grid grid-cols-2 gap-2">
             <MetricTile
               label="总点击次数"
               latin="CLICKS"
-              value={page.clicks > 0 ? page.clicks.toLocaleString() : "—"}
+              value={hasData ? page.clicks.toLocaleString() : "—"}
             />
             <MetricTile
               label="总曝光次数"
               latin="VISUS"
-              value={page.impressions > 0 ? formatLargeNumber(page.impressions) : "—"}
+              value={hasData ? formatLargeNumber(page.impressions) : "—"}
             />
             <MetricTile
               label="点击率"
               latin="PROPORTIO"
-              value={page.ctr > 0 ? `${(page.ctr * 100).toFixed(1)}%` : "—"}
+              value={hasData ? `${(page.ctr * 100).toFixed(1)}%` : "—"}
             />
             <MetricTile
               label="平均排名"
               latin="POSITIO"
-              value={page.position > 0 ? page.position.toFixed(1) : "—"}
+              value={hasData && page.position > 0 ? page.position.toFixed(1) : "—"}
               subline={
-                page.position > 0
+                hasData && page.position > 0
                   ? page.position <= 3 ? "1-3 首位"
                     : page.position <= 10 ? "4-10 首页"
                     : page.position <= 20 ? "11-20 第二页"
@@ -414,6 +426,8 @@ export function DetailDrawer({ page, timeWindow, onTimeWindowChange, onClose }: 
               }
             />
           </div>
+            );
+          })()}
         </Section>
 
         {/* 12 月趋势 */}

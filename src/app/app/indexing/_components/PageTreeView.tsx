@@ -90,9 +90,13 @@ function aggregateSubtree(
     const id = stack.pop()!;
     const p = byId.get(id);
     if (!p) continue;
-    out.pages++;
-    out.clicks += p.clicks;
-    out.impressions += p.impressions;
+    // 合成的虚拟目录节点不算"真实被索引的页"，跳过 pages 计数与指标累加；
+    // 但仍要遍历它的子节点，否则下面的真实页会被漏掉
+    if (!p.isSynthetic) {
+      out.pages++;
+      out.clicks += p.clicks;
+      out.impressions += p.impressions;
+    }
     const kids = childrenMap.get(id) ?? [];
     kids.forEach((k) => stack.push(k.id));
   }
@@ -563,6 +567,8 @@ export function PageTreeView({
   };
 
   // ─── 站点总量（Logo 卡片显示） ───
+  // 真实页面数（不计合成的虚拟目录节点）— 与 SummaryBar AGNITI 口径对齐
+  const realPagesCount = data.filter((r) => !r.isSynthetic).length;
   const totalClicks = data.reduce((s, r) => s + r.clicks, 0);
   const totalImpr = data.reduce((s, r) => s + r.impressions, 0);
 
@@ -1027,7 +1033,7 @@ export function PageTreeView({
                         textShadow: rootOpened ? "0 1px 0 rgba(0,0,0,0.6)" : undefined,
                       }}
                     >
-                      <span>{data.length} 页</span>
+                      <span>{realPagesCount} 页</span>
                       <span className="opacity-60">·</span>
                       <span>{totalClicks.toLocaleString()} 点击</span>
                       <span className="opacity-60">·</span>
@@ -1180,6 +1186,8 @@ export function PageTreeView({
                             isolation: isVisualFocus ? "isolate" : "auto",
                           } as React.CSSProperties}
                         >
+                          {/* R95 用户指令：去掉 face 内 catchlight（影响视觉，干扰字面阅读）。
+                              R94 的 face 内白光层连同 R50 原 column-anim 顶部 catchlight 一并取消。 */}
                           {/* 焦点态：原内容隐藏（仅保留 face 棱面外形作占位），文字由 axis 外的 focus overlay 渲染（2D，不参与 3D 投影，字锐利） */}
                           <div
                             className="flex flex-col w-full"
@@ -1720,6 +1728,9 @@ export function PageTreeView({
                               "radial-gradient(ellipse at 38% 50%, rgba(255,250,225,0.32) 0%, rgba(255,246,210,0.18) 25%, rgba(239,216,154,0.06) 55%, transparent 80%)",
                             filter: "blur(1.5px)",
                             mixBlendMode: "screen",
+                            // R94 用户指令：原 R50 在 column-anim 内固定位置，不随卡片旋转。
+                            // 已替换为 face 内部 catchlight overlay（跟随 rotateX 旋转）。本层隐藏。
+                            display: "none",
                             zIndex: 9,
                           }}
                         />

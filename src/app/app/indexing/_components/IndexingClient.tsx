@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { SummaryBar } from "./SummaryBar";
 import {
@@ -12,17 +14,54 @@ import {
 import { PageTable } from "./PageTable";
 import { PageTreeView, type Scope, scopeMatches } from "./PageTreeView";
 import { DetailDrawer } from "./DetailDrawer";
-import { List, Network, X } from "lucide-react";
+import { List, Network, RefreshCw, X } from "lucide-react";
 import {
   type PageRow,
   type IndexingStats,
+  type PageDetail,
   getMockPageDetail,
 } from "./_mock";
 import { MARKET_FLAGS, MARKET_LABELS, positionBucket, comparePageType } from "./_utils";
+import type { LastSyncMeta } from "./IndexingWrapper";
 
 interface IndexingClientProps {
   initialData: PageRow[];
   stats: IndexingStats;
+  lastSyncMeta?: LastSyncMeta;
+}
+
+type SyncResponse = {
+  ok: boolean;
+  code?: string;
+  message?: string;
+  hint?: string;
+  durationMs?: number;
+  property?: string;
+  fetchedAt?: string;
+  freshnessText?: string;
+  stats?: {
+    totalPages: number;
+    totalClicks: number;
+    totalImpressions: number;
+    avgCtr: number;
+    avgPosition: number;
+    top10Pages: number;
+  };
+};
+
+function formatRelative(iso: string | undefined): string {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  const now = Date.now();
+  const diff = now - d.getTime();
+  if (Number.isNaN(diff)) return iso;
+  const min = Math.floor(diff / 60000);
+  if (min < 1) return "刚刚";
+  if (min < 60) return `${min} 分钟前`;
+  const h = Math.floor(min / 60);
+  if (h < 24) return `${h} 小时前`;
+  const day = Math.floor(h / 24);
+  return `${day} 天前`;
 }
 
 const PAGE_SIZE_OPTIONS = [20, 50, 100];
@@ -124,7 +163,50 @@ function ScopeBreadcrumb({
   );
 }
 
-export function IndexingClient({ initialData, stats }: IndexingClientProps) {
+export function IndexingClient({ initialData, stats, lastSyncMeta }: IndexingClientProps) {
+  const router = useRouter();
+  const [syncing, setSyncing] = useState(false);
+  const handleSync = async () => {
+    if (syncing) return;
+    setSyncing(true);
+    const toastId = toast.loading("正在同步 GSC 数据…", {
+      description: "正驱动本地浏览器抓取 Performance > 网页",
+    });
+    try {
+      const res = await fetch("/api/indexing/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      const body = (await res.json()) as SyncResponse;
+      if (!res.ok || !body.ok) {
+        toast.error(body.message || "同步失败", {
+          id: toastId,
+          description: body.hint || body.code,
+          duration: 8000,
+        });
+        return;
+      }
+      const s = body.stats;
+      toast.success("GSC 数据已同步", {
+        id: toastId,
+        description: s
+          ? `共 ${s.totalPages} 页 · 点击 ${s.totalClicks.toLocaleString()} · 曝光 ${s.totalImpressions.toLocaleString()} · 用时 ${(body.durationMs ?? 0) / 1000}s`
+          : `用时 ${(body.durationMs ?? 0) / 1000}s`,
+        duration: 6000,
+      });
+      router.refresh();
+    } catch (err) {
+      toast.error("同步请求失败", {
+        id: toastId,
+        description: err instanceof Error ? err.message : "网络错误",
+        duration: 8000,
+      });
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   const [filters, setFilters] = useState<IndexingFilterState>({ ...DEFAULT_INDEXING_FILTERS });
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -150,6 +232,25 @@ export function IndexingClient({ initialData, stats }: IndexingClientProps) {
     }
     prevViewMode.current = viewMode;
   }, [viewMode, selectedId, scope]);
+
+  // 数据 fingerprint 变化 → reset 客户端状态
+  // 触发场景：用户点"更新"后 router.refresh()，RSC 重读 snapshot 文件，传进来
+  // 全新的 initialData。React 不卸载这个组件，所以 useState 里的 selectedId /
+  // filter / scope 会残留 —— stale 的 ID 在新数据里查不到，导致抽屉空、filter
+  // 异常预选等问题。用 lastSync 做 fingerprint，变化时清零所有客户端状态。
+  const prevFingerprint = useRef(stats.lastSync);
+  useEffect(() => {
+    if (prevFingerprint.current !== stats.lastSync) {
+      setSelectedId(null);
+      setDrawerOpen(false);
+      setFilters({ ...DEFAULT_INDEXING_FILTERS });
+      setScope({ kind: "all" });
+      setCurrentPage(1);
+      setFlashNodeId(null);
+      setTreeExpanded(false);
+      prevFingerprint.current = stats.lastSync;
+    }
+  }, [stats.lastSync]);
 
   // 派生选项（市场 / 页面类型）
   const { marketOptions, pageTypeOptions } = useMemo(() => {
@@ -196,22 +297,28 @@ export function IndexingClient({ initialData, stats }: IndexingClientProps) {
     [initialData]
   );
 
-  // 再叠加 scope 过滤 —— 喂给列表视图与分页
+  // 再叠加 scope 过滤 —— 喂给树视图（含合成目录节点，做聚合 + 父子结构）
   const scoped = useMemo(
     () => filtered.filter((p) => scopeMatches(scope, p, allById)),
     [filtered, scope, allById]
   );
 
+  // 列表视图与分页用 —— 不显示合成的虚拟目录节点（它们不是被 GSC 索引的真实页）
+  const scopedReal = useMemo(
+    () => scoped.filter((p) => !p.isSynthetic),
+    [scoped]
+  );
+
   useEffect(() => {
     setCurrentPage(1);
-  }, [scoped]);
+  }, [scopedReal]);
 
-  const totalCount = scoped.length;
+  const totalCount = scopedReal.length;
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
   const safePage = Math.min(currentPage, totalPages);
   const paginated = useMemo(
-    () => scoped.slice((safePage - 1) * pageSize, safePage * pageSize),
-    [scoped, safePage, pageSize]
+    () => scopedReal.slice((safePage - 1) * pageSize, safePage * pageSize),
+    [scopedReal, safePage, pageSize]
   );
   const rangeStart = totalCount === 0 ? 0 : (safePage - 1) * pageSize + 1;
   const rangeEnd = Math.min(safePage * pageSize, totalCount);
@@ -225,7 +332,17 @@ export function IndexingClient({ initialData, stats }: IndexingClientProps) {
     setDrawerOpen(false);
   };
 
-  const selectedDetail = selectedId ? getMockPageDetail(selectedId) : null;
+  // 抽屉数据：先在当前 initialData（真实 GSC 数据）里找，找不到再回落到 mock。
+  // 一期 GSC snapshot 不带 per-URL 的 query 明细，所以 queries 给空数组 —
+  // UI 已经有 "本页面暂无关键词曝光" 兜底文案。
+  const selectedDetail: PageDetail | null = useMemo(() => {
+    if (!selectedId) return null;
+    const row = initialData.find((p) => p.id === selectedId);
+    if (row) {
+      return { ...row, queries: [], poolMatches: 0 };
+    }
+    return getMockPageDetail(selectedId);
+  }, [selectedId, initialData]);
 
   const btnCls = (disabled: boolean) =>
     [
@@ -282,12 +399,67 @@ export function IndexingClient({ initialData, stats }: IndexingClientProps) {
               GSC · 性能数据 · weslamic.com
             </span>
           </div>
-          <Input
-            className="w-56 h-7 bg-manor-void/60 border-manor-brass/30 text-manor-ink placeholder:text-manor-inkFaint text-xs focus-visible:ring-manor-brass focus-visible:border-manor-brass"
-            placeholder="搜索 URL / 关键词..."
-            value={filters.search}
-            onChange={(e) => setFilters((prev) => ({ ...prev, search: e.target.value }))}
-          />
+          <div className="flex items-center gap-3">
+            {/* 数据源 + 上次同步 + 同步按钮 */}
+            <div
+              className="flex items-center gap-2 text-[10.5px] text-manor-inkDim"
+              style={{ fontFamily: "var(--font-serif), 'EB Garamond', serif" }}
+            >
+              {lastSyncMeta?.source === "mock" ? (
+                <span
+                  className="px-1.5 py-0.5 rounded border border-manor-brass/25 text-manor-inkFaint"
+                  title={`当前展示 mock 数据，点击右侧"更新"按钮可拉取真实 GSC 数据`}
+                >
+                  MOCK
+                </span>
+              ) : (
+                <>
+                  <span className="text-manor-brassDim">上次同步</span>
+                  <span className="text-manor-brassHi tabnum">
+                    {formatRelative(lastSyncMeta?.fetchedAt)}
+                  </span>
+                  {lastSyncMeta?.freshnessText && (
+                    <>
+                      <span className="text-manor-inkFaint">·</span>
+                      <span
+                        className="text-manor-inkDim"
+                        title="GSC 自身的数据延迟，不是我们 sync 的时间"
+                      >
+                        GSC {lastSyncMeta.freshnessText}
+                      </span>
+                    </>
+                  )}
+                </>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={handleSync}
+              disabled={syncing}
+              title={syncing ? "正在抓取…" : "从本地浏览器的 GSC 抓取最新数据"}
+              className={[
+                "h-7 inline-flex items-center gap-1.5 px-2.5 rounded text-[11px]",
+                "border transition-all",
+                syncing
+                  ? "border-manor-brass/25 text-manor-inkDim cursor-wait"
+                  : "border-manor-brass/45 text-manor-brassHi hover:border-manor-brassHi hover:shadow-[0_0_10px_-2px_rgba(239,216,154,.65)] hover:bg-manor-brassDim/10",
+              ].join(" ")}
+              style={{ fontFamily: "var(--font-sc), 'Cormorant SC', serif", letterSpacing: "0.12em" }}
+            >
+              <RefreshCw
+                size={12}
+                className={syncing ? "animate-spin" : ""}
+                aria-hidden="true"
+              />
+              <span>{syncing ? "同步中" : "更新"}</span>
+            </button>
+            <Input
+              className="w-56 h-7 bg-manor-void/60 border-manor-brass/30 text-manor-ink placeholder:text-manor-inkFaint text-xs focus-visible:ring-manor-brass focus-visible:border-manor-brass"
+              placeholder="搜索 URL / 关键词..."
+              value={filters.search}
+              onChange={(e) => setFilters((prev) => ({ ...prev, search: e.target.value }))}
+            />
+          </div>
         </div>
 
         {/* 统计指标 */}
@@ -423,9 +595,12 @@ export function IndexingClient({ initialData, stats }: IndexingClientProps) {
           </span>
 
           <span className="text-manor-inkDim tabnum">
-            {totalCount !== initialData.length
-              ? `已筛选 ${totalCount} / ${initialData.length} 条`
-              : `共 ${totalCount} 条`}
+            {(() => {
+              const realTotal = initialData.filter((p) => !p.isSynthetic).length;
+              return totalCount !== realTotal
+                ? `已筛选 ${totalCount} / ${realTotal} 条`
+                : `共 ${totalCount} 条`;
+            })()}
           </span>
 
           <span className="flex-1" />
