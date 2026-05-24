@@ -1463,9 +1463,10 @@ export function PageTreeView({
                               "0 0 0 2px rgba(60,48,28,0.18)",
                               // 方向性外发光（左上主光源 → 鼓体厚度边迎光面）保留但降到 0.15
                               "-2px -2px 8px -1px rgba(255,246,210,0.15)",
-                              // R74 鼓体外环境光剪影：大模糊柔光晕跟随椭圆形状（不同于 R71 矩形 box-shadow），
-                              // 让鼓体作为独立物体"从背景中浮出"——更强化"完整容器物体"的存在感
-                              "0 0 28px -6px rgba(239,216,154,0.18)",
+                              // R74 鼓体外环境光剪影 R76 微调：alpha 0.18→0.26 + blur 28→36
+                              // 跟随椭圆形状的大模糊柔光晕（不同于 R71 矩形 box-shadow）
+                              // 让鼓体作为独立物体"从背景中浮出"——浮出感更明确但仍不抢戏
+                              "0 0 36px -4px rgba(239,216,154,0.26)",
                               // 内部曲面光照（R59-R60 原 inset shadow）
                               "inset 0 3px 10px rgba(255,250,225,0.20)",
                               "inset 0 -3px 14px rgba(0,0,0,0.65)",
@@ -1532,20 +1533,7 @@ export function PageTreeView({
                             zIndex: 4,
                           }}
                         />
-                        {/* ─ R32 删除（R72 转型清理）─
-                            R32 是 column-anim 矩形顶/底 44% 高度的 linear-gradient multiply 暗影，
-                            作用是"鼓体表面从赤道向顶/底退入阴影"。
-                            R59-R61 drum-shell 鼓体壳 + 外阴影晕建立后，R61 用 radial-gradient 椭圆形状
-                            把鼓体外侧所有像素压暗，功能与 R32 完全重叠但几何更精准（椭圆 vs 矩形）。
-                            R70 已减弱 R32 alpha 但仍留下矩形硬切痕迹 → R72 完全删除让 R61 独自承担。
-                            预期效果：鼓体椭圆形状彻底纯净，矩形暗框完全消失。 */}
-                        {/* ─ R33 删除（R66 转型清理）─
-                            R33 原本是在 column-anim 容器左右内壁画两条竖光，作用是"框出 3D 鼓体轮廓"。
-                            R59-R60 drum-shell 鼓体壳建立后（borderRadius 50%/22% 几乎全椭圆），
-                            R33 所在的 x=0/COL_WIDTH 位置完全落在鼓体椭圆之外 → 变成"鼓体之外的孤立竖光"。
-                            语义上不再合理（鼓体侧面的反光应该贴在椭圆边缘内，不在容器边缘外），
-                            视觉上几乎不可见（被 R32 暗影 + drum-shell border 完全覆盖）。
-                            删除净化层数 + 强化"鼓体几何由 drum-shell 统一负责"的设计原则。 */}
+                        {/* R32（矩形 multiply 暗影）/ R33（容器左右竖光）已删除：功能被 drum-shell + R61 椭圆外晕收编，矩形几何与鼓体椭圆不兼容。详见 git log。 */}
                         {/* ─ R34 立体感 · 顶/底水平棱线 ─
                             位置精确锁定在 y = ±R（PRISM_R(nodeH)），即"鼓体表面卷过最顶/最底端"的几何边界
                             细金线 + 柔光晕，让上下"屋檐"成为视觉锚点，强化"这是个有上下边界的鼓"
@@ -1564,7 +1552,7 @@ export function PageTreeView({
                             height: 1,
                             background:
                               "linear-gradient(90deg, transparent 0%, rgba(255,250,225,0.85) 12%, rgba(239,216,154,0.55) 50%, rgba(212,179,111,0.25) 80%, transparent 100%)",
-                            boxShadow: "0 0 5px rgba(239,216,154,0.45), 0 1px 2px rgba(0,0,0,0.5)",
+                            boxShadow: "0 0 7px rgba(239,216,154,0.55), 0 1px 2px rgba(0,0,0,0.5)",
                             zIndex: 7,
                           }}
                         />
@@ -1596,12 +1584,12 @@ export function PageTreeView({
                           className="absolute pointer-events-none"
                           style={{
                             top: "50%",
-                            marginTop: PRISM_R(nodeH) + 6,
+                            marginTop: PRISM_R(nodeH) + 2,
                             left: "14%",
                             right: "4%",
                             height: 16,
                             background:
-                              "radial-gradient(ellipse at 42% top, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.42) 32%, rgba(0,0,0,0.16) 65%, transparent 100%)",
+                              "radial-gradient(ellipse at 42% top, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.46) 32%, rgba(0,0,0,0.18) 65%, transparent 100%)",
                             filter: "blur(4px)",
                             zIndex: 2,
                           }}
@@ -1620,7 +1608,7 @@ export function PageTreeView({
                             height: 1,
                             background:
                               "linear-gradient(90deg, rgba(255,250,225,0.30) 0%, rgba(255,255,240,0.85) 22%, rgba(239,216,154,0.45) 55%, rgba(212,179,111,0.18) 82%, transparent 100%)",
-                            boxShadow: "0 0 5px rgba(255,246,210,0.50)",
+                            boxShadow: "0 0 7px rgba(255,246,210,0.55)",
                             zIndex: 9,
                           }}
                         />
@@ -1629,11 +1617,11 @@ export function PageTreeView({
                           className="absolute left-[8%] right-[8%] pointer-events-none"
                           style={{
                             top: "50%",
-                            marginTop: nodeH / 2 + 1,
+                            marginTop: nodeH / 2 + 2,
                             height: 1,
                             background:
                               "linear-gradient(90deg, rgba(255,250,225,0.30) 0%, rgba(255,255,240,0.85) 22%, rgba(239,216,154,0.45) 55%, rgba(212,179,111,0.18) 82%, transparent 100%)",
-                            boxShadow: "0 0 5px rgba(255,246,210,0.50)",
+                            boxShadow: "0 0 7px rgba(255,246,210,0.55)",
                             zIndex: 9,
                           }}
                         />
@@ -1666,12 +1654,7 @@ export function PageTreeView({
                             transform: "translateZ(8px)",
                           }}
                         />
-                        {/* ─ R56 删除（伪需求）─
-                            R56 曾尝试在右缘加对称 rim light 补对称感，实地复检发现：
-                            ① 右缘的"2" CTA pill 占据高亮位 + R36 右铆钉的琥珀色背景，让对称光不可见；
-                            ② 物理上单光源照圆柱本就应该左强右暗——强行对称反而破坏了"光从左上来"的方向感。
-                            清理验证：R52 单边 rim light + R55 与铆钉重叠成"金属轴透光"的非对称视觉是
-                                     最终最优解，保留主光源方向感 + 焦点卡的"独立 3D 物体"读感都做到了。 */}
+                        {/* R56（右缘对称 rim light）已删除：单光源照圆柱本就左强右暗，强行对称会破坏方向感，且被 CTA pill 与 R36 铆钉遮挡不可见。详见 git log。 */}
                         {/* ─ R48 立体感 · 地面反射光 ─
                             位置：R34 底棱线下方 ~22px（在 R35 接触阴影区与 R46 落地软阴影的过渡带）
                             语义："桌面反射出鼓体底部的微弱金属反光"——真实金属物件压在反光表面上的标准细节
