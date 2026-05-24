@@ -1463,6 +1463,9 @@ export function PageTreeView({
                               "0 0 0 2px rgba(60,48,28,0.18)",
                               // 方向性外发光（左上主光源 → 鼓体厚度边迎光面）保留但降到 0.15
                               "-2px -2px 8px -1px rgba(255,246,210,0.15)",
+                              // R74 鼓体外环境光剪影：大模糊柔光晕跟随椭圆形状（不同于 R71 矩形 box-shadow），
+                              // 让鼓体作为独立物体"从背景中浮出"——更强化"完整容器物体"的存在感
+                              "0 0 28px -6px rgba(239,216,154,0.18)",
                               // 内部曲面光照（R59-R60 原 inset shadow）
                               "inset 0 3px 10px rgba(255,250,225,0.20)",
                               "inset 0 -3px 14px rgba(0,0,0,0.65)",
@@ -1529,32 +1532,13 @@ export function PageTreeView({
                             zIndex: 4,
                           }}
                         />
-                        {/* ─ R32 立体感 · 大气深度：顶/底渐暗（multiply）─
-                            模拟"棱柱表面从赤道亮区向上下两端退入阴影"的滚动鼓体感
-                            zIndex 5：盖住 axis（auto=0 的非焦点面），让位 focus overlay（zIndex 10）保持锐利
-                            pointer-events:none：不挡卡片点击 */}
-                        <div
-                          aria-hidden="true"
-                          className="absolute left-0 right-0 top-0 pointer-events-none"
-                          style={{
-                            height: "44%",
-                            background:
-                              "linear-gradient(180deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.30) 12%, rgba(0,0,0,0.10) 50%, rgba(0,0,0,0) 100%)",
-                            mixBlendMode: "multiply",
-                            zIndex: 5,
-                          }}
-                        />
-                        <div
-                          aria-hidden="true"
-                          className="absolute left-0 right-0 bottom-0 pointer-events-none"
-                          style={{
-                            height: "44%",
-                            background:
-                              "linear-gradient(0deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.30) 12%, rgba(0,0,0,0.10) 50%, rgba(0,0,0,0) 100%)",
-                            mixBlendMode: "multiply",
-                            zIndex: 5,
-                          }}
-                        />
+                        {/* ─ R32 删除（R72 转型清理）─
+                            R32 是 column-anim 矩形顶/底 44% 高度的 linear-gradient multiply 暗影，
+                            作用是"鼓体表面从赤道向顶/底退入阴影"。
+                            R59-R61 drum-shell 鼓体壳 + 外阴影晕建立后，R61 用 radial-gradient 椭圆形状
+                            把鼓体外侧所有像素压暗，功能与 R32 完全重叠但几何更精准（椭圆 vs 矩形）。
+                            R70 已减弱 R32 alpha 但仍留下矩形硬切痕迹 → R72 完全删除让 R61 独自承担。
+                            预期效果：鼓体椭圆形状彻底纯净，矩形暗框完全消失。 */}
                         {/* ─ R33 删除（R66 转型清理）─
                             R33 原本是在 column-anim 容器左右内壁画两条竖光，作用是"框出 3D 鼓体轮廓"。
                             R59-R60 drum-shell 鼓体壳建立后（borderRadius 50%/22% 几乎全椭圆），
