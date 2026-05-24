@@ -8,7 +8,7 @@ import {
   type ColumnDef,
   type SortingState,
 } from "@tanstack/react-table";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Sparkline } from "../../keywords/_components/_utils";
 import type { PageRow } from "./_mock";
 import {
@@ -151,7 +151,44 @@ export function PageTable({ data, onRowClick }: PageTableProps) {
     getSortedRowModel: getSortedRowModel(),
   });
 
+  // R111 URL 列默认自适应容器：把容器宽度 - 其他列宽度之和 给 URL，
+  // 让默认状态下右边没有空白。用户主动拖过 URL 后退出自动模式，由用户控制；
+  // 用户拖其他列时 URL 也会跟着收缩补偿，仍然填满容器。
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const urlUserResizedRef = useRef(false);
+  // 其他列宽度之和；当用户拖任一非 URL 列时这个值会变，触发下方 effect 同步 URL
+  const otherColsSum = table
+    .getAllLeafColumns()
+    .filter((c) => c.id !== "url")
+    .reduce((acc, c) => acc + c.getSize(), 0);
+
+  const syncUrl = () => {
+    if (urlUserResizedRef.current) return;
+    const el = wrapperRef.current;
+    if (!el) return;
+    const next = Math.max(280, el.clientWidth - otherColsSum);
+    if (table.getState().columnSizing.url === next) return;
+    table.setColumnSizing((prev) => ({ ...prev, url: next }));
+  };
+
+  useEffect(() => {
+    syncUrl();
+    const el = wrapperRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(syncUrl);
+    ro.observe(el);
+    return () => ro.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    // 其他列宽变化（用户拖动其他列） → 重新计算 URL，吃掉/让出余量
+    syncUrl();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [otherColsSum]);
+
   return (
+    <div ref={wrapperRef} className="w-full">
     <table
       className="border-collapse"
       style={{ tableLayout: "fixed", width: table.getTotalSize() }}
@@ -212,11 +249,19 @@ export function PageTable({ data, onRowClick }: PageTableProps) {
                       onClick 阻断冒泡防止触发排序；onMouseDown 用 react-table 提供的 handler。 */}
                   {header.column.getCanResize() && (
                     <span
-                      onMouseDown={header.getResizeHandler()}
-                      onTouchStart={header.getResizeHandler()}
+                      onMouseDown={(e) => {
+                        // R111 用户主动拖动 URL → 退出自动撑满模式，由用户控制
+                        if (header.column.id === "url") urlUserResizedRef.current = true;
+                        header.getResizeHandler()(e);
+                      }}
+                      onTouchStart={(e) => {
+                        if (header.column.id === "url") urlUserResizedRef.current = true;
+                        header.getResizeHandler()(e);
+                      }}
                       onClick={(e) => e.stopPropagation()}
                       onDoubleClick={(e) => {
                         e.stopPropagation();
+                        if (header.column.id === "url") urlUserResizedRef.current = false;
                         header.column.resetSize();
                       }}
                       title="拖动调整列宽，双击复位"
@@ -280,5 +325,6 @@ export function PageTable({ data, onRowClick }: PageTableProps) {
         )}
       </tbody>
     </table>
+    </div>
   );
 }
