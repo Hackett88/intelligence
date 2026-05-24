@@ -1453,6 +1453,14 @@ export function PageTreeView({
                               "radial-gradient(ellipse 70% 100% at 40% 42%, rgba(92,110,82,0.72) 0%, rgba(68,86,65,0.58) 28%, rgba(45,62,48,0.40) 55%, rgba(25,38,30,0.18) 82%, transparent 100%)",
                             border: "1px solid rgba(239,216,154,0.22)",
                             boxShadow: [
+                              // R63 金属厚度环（淡化 R62 的过度强化）：
+                              // R62 双层 0.18/0.50 alpha 让鼓体变成"金框相框"，破坏圆柱曲面感
+                              // 退回到只"暗示"金属厚度的水平 —— 0.10/0.18，整体读感是"半隐边缘"
+                              "0 0 0 1px rgba(255,250,225,0.10)",
+                              "0 0 0 2px rgba(60,48,28,0.18)",
+                              // 方向性外发光（左上主光源 → 鼓体厚度边迎光面）保留但降到 0.15
+                              "-2px -2px 8px -1px rgba(255,246,210,0.15)",
+                              // 内部曲面光照（R59-R60 原 inset shadow）
                               "inset 0 3px 10px rgba(255,250,225,0.20)",
                               "inset 0 -3px 14px rgba(0,0,0,0.65)",
                               "inset 3px 0 14px rgba(255,250,225,0.10)",
@@ -1481,7 +1489,11 @@ export function PageTreeView({
                             right: -8,
                             height: PRISM_R(nodeH) * 2 + 120,
                             background:
-                              "radial-gradient(ellipse 78% 100% at center, transparent 0%, transparent 48%, rgba(15,28,22,0.40) 72%, rgba(8,18,12,0.72) 92%, rgba(5,12,8,0.85) 100%)",
+                              // R64 收紧过渡带 + 加深最大暗化：
+                              // R61 过渡带 48%→100%（52% 宽）柔和，邻面溢出部分仍隐约可读
+                              // R64 改为 60%→88%（28% 宽），让邻面在鼓体边界处更"突然渐隐"
+                              // 最大暗化 0.85→0.92：椭圆外侧基本完全压暗 → 邻面溢出部分接近不可见
+                              "radial-gradient(ellipse 78% 100% at center, transparent 0%, transparent 60%, rgba(15,28,22,0.55) 75%, rgba(8,18,12,0.85) 88%, rgba(5,12,8,0.92) 100%)",
                             mixBlendMode: "multiply",
                             zIndex: 3,
                           }}
@@ -1537,59 +1549,46 @@ export function PageTreeView({
                             zIndex: 5,
                           }}
                         />
-                        {/* ─ R33 立体感 · 左右垂直边缘金光带（R44 左强右弱，呼应"光从左上来"）─
-                            在 R32 阴影区里提亮棱柱左右边缘 → "框出"3D 鼓体轮廓
-                            渐变峰值在 ~20% 与 ~80% 处（避开 50% 焦点位，那里被 focus overlay 完全遮蔽）
-                            R44 改动：左条 alpha 峰值 0.32→0.45（迎光面更亮），右条 0.32→0.14（背光面几乎消失）
-                            screen 混合：暖金色与底色叠加 → 在暗部里发亮，亮部不过曝 */}
-                        <div
-                          aria-hidden="true"
-                          className="absolute top-0 bottom-0 left-0 pointer-events-none"
-                          style={{
-                            width: 2,
-                            background:
-                              "linear-gradient(180deg, rgba(239,216,154,0) 0%, rgba(255,250,225,0.45) 20%, rgba(239,216,154,0.12) 50%, rgba(255,250,225,0.45) 80%, rgba(239,216,154,0) 100%)",
-                            mixBlendMode: "screen",
-                            zIndex: 6,
-                          }}
-                        />
-                        <div
-                          aria-hidden="true"
-                          className="absolute top-0 bottom-0 right-0 pointer-events-none"
-                          style={{
-                            width: 2,
-                            background:
-                              "linear-gradient(180deg, rgba(212,179,111,0) 0%, rgba(212,179,111,0.14) 20%, rgba(212,179,111,0.04) 50%, rgba(212,179,111,0.14) 80%, rgba(212,179,111,0) 100%)",
-                            mixBlendMode: "screen",
-                            zIndex: 6,
-                          }}
-                        />
+                        {/* ─ R33 删除（R66 转型清理）─
+                            R33 原本是在 column-anim 容器左右内壁画两条竖光，作用是"框出 3D 鼓体轮廓"。
+                            R59-R60 drum-shell 鼓体壳建立后（borderRadius 50%/22% 几乎全椭圆），
+                            R33 所在的 x=0/COL_WIDTH 位置完全落在鼓体椭圆之外 → 变成"鼓体之外的孤立竖光"。
+                            语义上不再合理（鼓体侧面的反光应该贴在椭圆边缘内，不在容器边缘外），
+                            视觉上几乎不可见（被 R32 暗影 + drum-shell border 完全覆盖）。
+                            删除净化层数 + 强化"鼓体几何由 drum-shell 统一负责"的设计原则。 */}
                         {/* ─ R34 立体感 · 顶/底水平棱线 ─
                             位置精确锁定在 y = ±R（PRISM_R(nodeH)），即"鼓体表面卷过最顶/最底端"的几何边界
                             细金线 + 柔光晕，让上下"屋檐"成为视觉锚点，强化"这是个有上下边界的鼓"
-                            两条棱线都在视觉极限位置，远离 50% 焦点位 → 不被 focus overlay 遮挡 */}
+                            R65 改动：drum-shell 是椭圆 borderRadius 50%/22%，在 y=±R 处宽度只占 ~86%，
+                                       棱线原 left:0 right:0 直线两端会"探出"鼓体椭圆边界。
+                                       改为 left:6% right:6% + 渐变两端透明 → 棱线落在鼓体椭圆内，
+                                       两端 fade 与椭圆曲率自然衔接。 */}
                         <div
                           aria-hidden="true"
-                          className="absolute left-0 right-0 pointer-events-none"
+                          className="absolute pointer-events-none"
                           style={{
                             top: "50%",
+                            left: "6%",
+                            right: "6%",
                             marginTop: -PRISM_R(nodeH) - 1,
                             height: 1,
                             background:
-                              "linear-gradient(90deg, rgba(255,246,210,0.30) 0%, rgba(255,250,225,0.85) 20%, rgba(239,216,154,0.55) 50%, rgba(212,179,111,0.25) 80%, transparent 100%)",
+                              "linear-gradient(90deg, transparent 0%, rgba(255,250,225,0.85) 12%, rgba(239,216,154,0.55) 50%, rgba(212,179,111,0.25) 80%, transparent 100%)",
                             boxShadow: "0 0 5px rgba(239,216,154,0.45), 0 1px 2px rgba(0,0,0,0.5)",
                             zIndex: 7,
                           }}
                         />
                         <div
                           aria-hidden="true"
-                          className="absolute left-0 right-0 pointer-events-none"
+                          className="absolute pointer-events-none"
                           style={{
                             top: "50%",
+                            left: "6%",
+                            right: "6%",
                             marginTop: PRISM_R(nodeH),
                             height: 1,
                             background:
-                              "linear-gradient(90deg, rgba(255,246,210,0.30) 0%, rgba(255,250,225,0.85) 20%, rgba(239,216,154,0.55) 50%, rgba(212,179,111,0.25) 80%, transparent 100%)",
+                              "linear-gradient(90deg, transparent 0%, rgba(255,250,225,0.85) 12%, rgba(239,216,154,0.55) 50%, rgba(212,179,111,0.25) 80%, transparent 100%)",
                             boxShadow: "0 0 5px rgba(239,216,154,0.45), 0 -1px 2px rgba(0,0,0,0.5)",
                             zIndex: 7,
                           }}
