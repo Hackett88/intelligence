@@ -1417,6 +1417,53 @@ export function PageTreeView({
                             return renderFace(node, nodeIdx, slotOffset);
                           })}
                         </div>
+                        {/* ═══════════════════════════════════════════════════════════════════
+                            R59 鼓体外壳（DRUM SHELL）· 转型关键层
+                            ─────────────────────────────────────────────────────────────────
+                            用户反馈："当前转轮的背后只是一个黑色的阴影"——卡片飘在空中
+                            缺少实体外壳，散装的装饰层无法构成"一个真实的转轮"。
+
+                            这一层提供完整鼓体实体的视觉锚点：
+                            ① 几何形：top 50% 居中赤道，高度 = 2 × PRISM_R + 上下端面留白
+                                       borderRadius "50% / 18%" → 上下椭圆端面 + 左右垂直侧面
+                                       = 横躺金属圆柱鼓的标准侧视轮廓
+                            ② 表面色：圆柱曲面径向渐变 —— 中央亮（赤道朝向镜头反光）
+                                       向左右暗（柱体侧面退入背景）
+                                       向上下渐淡（鼓体顶/底退入端面）
+                                       色相深青铜绿（与背景融合，不抢戏只提供实体锚点）
+                            ③ 表面光照（inset shadow，呼应"光从左上来"系统）：
+                                       顶部内反光（左上光直射顶端边缘）
+                                       底部内暗影（背光面）
+                                       左侧内反光（迎光面）
+                                       右侧内暗影（背光面）
+                            ④ zIndex 0：最底层，在所有装饰层（R32 zIndex 5+, R37 zIndex 4）之下
+                                         所有现有光影都自然变成"鼓体表面上的反光"
+                            ═══════════════════════════════════════════════════════════════════ */}
+                        <div
+                          aria-hidden="true"
+                          className="absolute pointer-events-none"
+                          style={{
+                            top: "50%",
+                            marginTop: -PRISM_R(nodeH) - 14,
+                            left: 0,
+                            right: 0,
+                            height: PRISM_R(nodeH) * 2 + 28,
+                            borderRadius: "50% / 22%",
+                            background:
+                              "radial-gradient(ellipse 70% 100% at 40% 42%, rgba(92,110,82,0.72) 0%, rgba(68,86,65,0.58) 28%, rgba(45,62,48,0.40) 55%, rgba(25,38,30,0.18) 82%, transparent 100%)",
+                            border: "1px solid rgba(239,216,154,0.22)",
+                            boxShadow: [
+                              "inset 0 3px 10px rgba(255,250,225,0.20)",
+                              "inset 0 -3px 14px rgba(0,0,0,0.65)",
+                              "inset 3px 0 14px rgba(255,250,225,0.10)",
+                              "inset -3px 0 14px rgba(0,0,0,0.40)",
+                              "inset 12px 0 30px -12px rgba(0,0,0,0.50)",
+                              "inset -4px 0 22px -6px rgba(212,179,111,0.14)",
+                              "inset 0 0 2px rgba(239,216,154,0.55)",
+                            ].join(", "),
+                            zIndex: 0,
+                          }}
+                        />
                         {/* ─ R37 立体感 · 焦点底部回弹光（R51 转型 · 与 R50 上方 catchlight 互补） ─
                             R51 重大变更：原 R37 为"焦点中央均匀聚光"，与 R50（上方 catchlight）功能重叠，
                                          在焦点上半区造成 screen 双叠加→文字对比度被稀释。
@@ -1603,6 +1650,9 @@ export function PageTreeView({
                             filter: "blur(0.5px)",
                             mixBlendMode: "screen",
                             zIndex: 9,
+                            // R58: translateZ(8) 让 rim light 在 column-anim 的 perspective: 1200 下
+                            // 浮在卡片表面之上 → 真实 3D 视差，光带相对卡片有 8px 前突
+                            transform: "translateZ(8px)",
                           }}
                         />
                         {/* ─ R56 删除（伪需求）─
