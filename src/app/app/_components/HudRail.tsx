@@ -72,7 +72,12 @@ function HudCard({
   return (
     <div
       className={[
-        "hud-card glass-panel relative flex flex-col items-center justify-center py-1 flex-1 min-h-0",
+        // flex-1 撑满 aside（9 cards 平分），保留紧凑视觉与所有动画基线。
+        // min-h-[34px] 下限 —— flex 收缩时停在内容自然高度（32px），不被压扁；
+        //                       总和超过 aside 时由 aside.overflow-y-auto 自滚。
+        // 不加 overflow-hidden：会裁掉 ::after pulse ring（外扩 12px）与 :hover scale(1.03) 边缘动效。
+        // 防溢出靠 min-h 单一手段足矣 —— card 高度始终 ≥ 内容需求。
+        "hud-card glass-panel relative flex flex-col items-center justify-center py-1 flex-1 min-h-[34px]",
         isPulsing ? "is-pulsing" : "",
       ].join(" ")}
       style={{

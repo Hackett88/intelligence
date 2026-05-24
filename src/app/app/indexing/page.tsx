@@ -1,16 +1,10 @@
-import { PageHero, PageEmpty } from "../_components/PageHero";
+import { getMockPages, getMockStats } from "./_components/_mock";
+import { IndexingWrapper } from "./_components/IndexingWrapper";
 
+// 一期：mock 数据，等真实 GSC 接入后改为
+//   const [pages, stats] = await Promise.all([getPages(), getIndexingStats()]);
 export default function IndexingPage() {
-  return (
-    <>
-      <PageHero
-        medallion="orn-compass"
-        eyebrow="◆ OFFICINA · 收录"
-        title="收录与索引"
-        latin="INDEX · ACCEPTATIO"
-        tagline="Crawl · Index · Audit"
-      />
-      <PageEmpty message="收录监控与索引诊断功能开发中" latin="INDEX EXPECTATUR" />
-    </>
-  );
+  const pages = getMockPages();
+  const stats = getMockStats();
+  return <IndexingWrapper initialData={pages} stats={stats} />;
 }
