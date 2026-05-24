@@ -1668,6 +1668,8 @@ export function PageTreeView({
                             // R58: translateZ(8) 让 rim light 在 column-anim 的 perspective: 1200 下
                             // 浮在卡片表面之上 → 真实 3D 视差，光带相对卡片有 8px 前突
                             transform: "translateZ(8px)",
+                            // R90 用户指令：背景圆柱清掉后，R52 单侧 rim light 失去依据成"凭空亮柱"，隐藏
+                            display: "none",
                           }}
                         />
                         {/* R56（右缘对称 rim light）已删除：单光源照圆柱本就左强右暗，强行对称会破坏方向感，且被 CTA pill 与 R36 铆钉遮挡不可见。详见 git log。 */}
