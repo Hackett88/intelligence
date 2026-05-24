@@ -4,7 +4,10 @@
 import { db } from "@/db/client";
 import { gscSyncLog, gscPages } from "@/db/schema";
 import type { NewGscSyncLog, NewGscPage, GscSyncLog, GscPage } from "@/db/schema";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, sql } from "drizzle-orm";
+
+// 清理时区：按 Asia/Shanghai 划分自然日。改时区改这里一处即可。
+const PRUNE_TIMEZONE = "Asia/Shanghai";
 
 export interface BatchMeta {
   property?: string;
@@ -95,6 +98,18 @@ export async function saveBatch(meta: BatchMeta, pages: RealPageRecord[]): Promi
         top10Pages: meta.top10Pages,
       })
       .where(eq(gscSyncLog.id, batchId));
+
+    // 4) 同日去重：每个自然日（按 PRUNE_TIMEZONE）只保留 id 最大的 ok batch。
+    //    error 行不动 — 留作故障诊断历史。pages 通过 FK CASCADE 一起删。
+    await tx.execute(sql`
+      DELETE FROM gsc_sync_log
+      WHERE status = 'ok'
+        AND id NOT IN (
+          SELECT MAX(id) FROM gsc_sync_log
+          WHERE status = 'ok'
+          GROUP BY (started_at AT TIME ZONE ${PRUNE_TIMEZONE})::date
+        )
+    `);
 
     return batchId;
   });
