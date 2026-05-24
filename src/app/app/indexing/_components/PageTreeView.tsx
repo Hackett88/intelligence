@@ -1088,6 +1088,13 @@ export function PageTreeView({
                     perspective: PRISM_PERSPECTIVE,
                     perspectiveOrigin: "center center",
                     overflow: "visible",
+                    // R46 立体感 · 容器外光双层 + 大范围落地阴影（R45 基础上加强）
+                    //   ① 紧贴金色高光（小模糊、紧贴轮廓，让鼓体顶部边缘有 "金属反光环" 感）
+                    //   ② 远散环境暖晕（大模糊，向左上扩散，呼应光源方向）
+                    //   ③ 重落地阴影（叠加在 R35 接触阴影之上→形成"接触阴影 + 软阴影"两层物理光照）
+                    //   不影响内部分层，仅在 column-anim 矩形边界外投射
+                    boxShadow:
+                      "-1px -1px 6px -1px rgba(255,250,225,0.45), -4px -4px 40px -6px rgba(239,216,154,0.30), 0 16px 32px -10px rgba(0,0,0,0.60)",
                   }}
                 >
                   {(() => {
@@ -1410,6 +1417,289 @@ export function PageTreeView({
                             return renderFace(node, nodeIdx, slotOffset);
                           })}
                         </div>
+                        {/* ─ R37 立体感 · 焦点底部回弹光（R51 转型 · 与 R50 上方 catchlight 互补） ─
+                            R51 重大变更：原 R37 为"焦点中央均匀聚光"，与 R50（上方 catchlight）功能重叠，
+                                         在焦点上半区造成 screen 双叠加→文字对比度被稀释。
+                                         转型为"底部琥珀回弹光"——模拟主光源照到桌面后反射回卡片底部的环境光。
+                            center 移到 "42% 90%"：能量集中在焦点底部偏左，与 R50 顶部 catchlight 形成
+                                                   "顶部主光直射 + 底部环境回弹"的真实物理光照对偶
+                            色相从暖白 → 琥珀（212,179,111）：回弹光带有桌面色温，比直射光更暖更橙
+                            alpha 0.28 → 0.18：环境光天然弱于直射，让 R50 顶部 catchlight 占主导地位
+                            渐变 stop 重排：底部 18% → 中部 6% → 顶部 0%（不再侵入文字上半区）
+                            zIndex 4：在 axis 之上、R32 暗影 (5) 之下 */}
+                        <div
+                          aria-hidden="true"
+                          className="absolute pointer-events-none"
+                          style={{
+                            top: "50%",
+                            left: "10%",
+                            right: "10%",
+                            height: nodeH * 1.4,
+                            marginTop: -nodeH * 0.7,
+                            background:
+                              "radial-gradient(ellipse at 42% 90%, rgba(212,179,111,0.18) 0%, rgba(212,179,111,0.06) 35%, transparent 65%)",
+                            mixBlendMode: "screen",
+                            zIndex: 4,
+                          }}
+                        />
+                        {/* ─ R32 立体感 · 大气深度：顶/底渐暗（multiply）─
+                            模拟"棱柱表面从赤道亮区向上下两端退入阴影"的滚动鼓体感
+                            zIndex 5：盖住 axis（auto=0 的非焦点面），让位 focus overlay（zIndex 10）保持锐利
+                            pointer-events:none：不挡卡片点击 */}
+                        <div
+                          aria-hidden="true"
+                          className="absolute left-0 right-0 top-0 pointer-events-none"
+                          style={{
+                            height: "44%",
+                            background:
+                              "linear-gradient(180deg, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.50) 12%, rgba(0,0,0,0.15) 50%, rgba(0,0,0,0) 100%)",
+                            mixBlendMode: "multiply",
+                            zIndex: 5,
+                          }}
+                        />
+                        <div
+                          aria-hidden="true"
+                          className="absolute left-0 right-0 bottom-0 pointer-events-none"
+                          style={{
+                            height: "44%",
+                            background:
+                              "linear-gradient(0deg, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.50) 12%, rgba(0,0,0,0.15) 50%, rgba(0,0,0,0) 100%)",
+                            mixBlendMode: "multiply",
+                            zIndex: 5,
+                          }}
+                        />
+                        {/* ─ R33 立体感 · 左右垂直边缘金光带（R44 左强右弱，呼应"光从左上来"）─
+                            在 R32 阴影区里提亮棱柱左右边缘 → "框出"3D 鼓体轮廓
+                            渐变峰值在 ~20% 与 ~80% 处（避开 50% 焦点位，那里被 focus overlay 完全遮蔽）
+                            R44 改动：左条 alpha 峰值 0.32→0.45（迎光面更亮），右条 0.32→0.14（背光面几乎消失）
+                            screen 混合：暖金色与底色叠加 → 在暗部里发亮，亮部不过曝 */}
+                        <div
+                          aria-hidden="true"
+                          className="absolute top-0 bottom-0 left-0 pointer-events-none"
+                          style={{
+                            width: 2,
+                            background:
+                              "linear-gradient(180deg, rgba(239,216,154,0) 0%, rgba(255,250,225,0.45) 20%, rgba(239,216,154,0.12) 50%, rgba(255,250,225,0.45) 80%, rgba(239,216,154,0) 100%)",
+                            mixBlendMode: "screen",
+                            zIndex: 6,
+                          }}
+                        />
+                        <div
+                          aria-hidden="true"
+                          className="absolute top-0 bottom-0 right-0 pointer-events-none"
+                          style={{
+                            width: 2,
+                            background:
+                              "linear-gradient(180deg, rgba(212,179,111,0) 0%, rgba(212,179,111,0.14) 20%, rgba(212,179,111,0.04) 50%, rgba(212,179,111,0.14) 80%, rgba(212,179,111,0) 100%)",
+                            mixBlendMode: "screen",
+                            zIndex: 6,
+                          }}
+                        />
+                        {/* ─ R34 立体感 · 顶/底水平棱线 ─
+                            位置精确锁定在 y = ±R（PRISM_R(nodeH)），即"鼓体表面卷过最顶/最底端"的几何边界
+                            细金线 + 柔光晕，让上下"屋檐"成为视觉锚点，强化"这是个有上下边界的鼓"
+                            两条棱线都在视觉极限位置，远离 50% 焦点位 → 不被 focus overlay 遮挡 */}
+                        <div
+                          aria-hidden="true"
+                          className="absolute left-0 right-0 pointer-events-none"
+                          style={{
+                            top: "50%",
+                            marginTop: -PRISM_R(nodeH) - 1,
+                            height: 1,
+                            background:
+                              "linear-gradient(90deg, rgba(255,246,210,0.30) 0%, rgba(255,250,225,0.85) 20%, rgba(239,216,154,0.55) 50%, rgba(212,179,111,0.25) 80%, transparent 100%)",
+                            boxShadow: "0 0 5px rgba(239,216,154,0.45), 0 1px 2px rgba(0,0,0,0.5)",
+                            zIndex: 7,
+                          }}
+                        />
+                        <div
+                          aria-hidden="true"
+                          className="absolute left-0 right-0 pointer-events-none"
+                          style={{
+                            top: "50%",
+                            marginTop: PRISM_R(nodeH),
+                            height: 1,
+                            background:
+                              "linear-gradient(90deg, rgba(255,246,210,0.30) 0%, rgba(255,250,225,0.85) 20%, rgba(239,216,154,0.55) 50%, rgba(212,179,111,0.25) 80%, transparent 100%)",
+                            boxShadow: "0 0 5px rgba(239,216,154,0.45), 0 -1px 2px rgba(0,0,0,0.5)",
+                            zIndex: 7,
+                          }}
+                        />
+                        {/* ─ R35 立体感 · 底部椭圆投影（R41 偏移至右下，呼应"光从左上来"） ─
+                            贴在 R34 底部棱线下方，模拟"鼓体压在画布表面"的接触阴影
+                            radial ellipse + blur 形成自然 taper
+                            R41 改动：左 14% / 右 4% → 投影整体向右偏移 ~5% width，符合左上光源的物理投影
+                                       radial center 也从 "center top" 改为 "45% top"，影核略偏左
+                                       但整体椭圆向右扩展，模拟"光被物体遮挡后阴影朝光源相反方向延展"
+                            zIndex 2：在 axis (auto=0) 之上，但低于所有金光/暗影/棱线，避免叠加成黑块
+                            overflow:visible 允许投影延展到 column-anim 边界之外 */}
+                        <div
+                          aria-hidden="true"
+                          className="absolute pointer-events-none"
+                          style={{
+                            top: "50%",
+                            marginTop: PRISM_R(nodeH) + 6,
+                            left: "14%",
+                            right: "4%",
+                            height: 16,
+                            background:
+                              "radial-gradient(ellipse at 42% top, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.42) 32%, rgba(0,0,0,0.16) 65%, transparent 100%)",
+                            filter: "blur(4px)",
+                            zIndex: 2,
+                          }}
+                        />
+                        {/* ─ R47 立体感 · 焦点卡上下赤道反光带 ─
+                            两条暖白横向高光线，紧贴焦点卡的上沿（-nodeH/2 - 2）和下沿（+nodeH/2 + 2）
+                            语义："金属圆柱赤道附近反射主光源的两道平行反光带"
+                            渐变左明右暗，呼应 R34/R43 顶/底棱线已建立的方向性光照
+                            zIndex 9：高于其他装饰层 (8)，低于 focus overlay (10) → focus 卡上下"夹反光"，不遮内容 */}
+                        <div
+                          aria-hidden="true"
+                          className="absolute left-[8%] right-[8%] pointer-events-none"
+                          style={{
+                            top: "50%",
+                            marginTop: -nodeH / 2 - 2,
+                            height: 1,
+                            background:
+                              "linear-gradient(90deg, rgba(255,250,225,0.30) 0%, rgba(255,255,240,0.85) 22%, rgba(239,216,154,0.45) 55%, rgba(212,179,111,0.18) 82%, transparent 100%)",
+                            boxShadow: "0 0 5px rgba(255,246,210,0.50)",
+                            zIndex: 9,
+                          }}
+                        />
+                        <div
+                          aria-hidden="true"
+                          className="absolute left-[8%] right-[8%] pointer-events-none"
+                          style={{
+                            top: "50%",
+                            marginTop: nodeH / 2 + 1,
+                            height: 1,
+                            background:
+                              "linear-gradient(90deg, rgba(255,250,225,0.30) 0%, rgba(255,255,240,0.85) 22%, rgba(239,216,154,0.45) 55%, rgba(212,179,111,0.18) 82%, transparent 100%)",
+                            boxShadow: "0 0 5px rgba(255,246,210,0.50)",
+                            zIndex: 9,
+                          }}
+                        />
+                        {/* ─ R52 立体感 · 焦点卡左缘 rim light（剪影点亮） ─
+                            位置：R54 修正——left: 1 (容器左缘 1px)，让 rim light 紧贴卡片外缘，
+                                  不再落入卡片内容区切割 chip
+                            语义：左上 45° 主光源在金属/玻璃物件左缘形成的镜面反射剪影线——
+                                  真实物件经典的"边缘点亮"特征，让焦点完全脱离背景成为独立 3D 物体
+                            完成四元素光照系统：R50(顶 catchlight) + R47(上下镜面带) + R37(底回弹) + R52(左缘剪影)
+                            渐变垂直：中段最亮（赤道镜面峰值），上下衰减（呼应卡片圆角与柱面曲率）
+                            宽 2px + blur(0.5px) + 双层 boxShadow → 让光带向卡缘外侧自然散开
+                            mixBlendMode: screen，zIndex 9：与其他镜面层同层 */}
+                        <div
+                          aria-hidden="true"
+                          className="absolute pointer-events-none"
+                          style={{
+                            top: "50%",
+                            marginTop: -nodeH / 2 + 4,
+                            left: "3.5%",
+                            width: 2,
+                            height: nodeH - 8,
+                            background:
+                              "linear-gradient(180deg, transparent 0%, rgba(255,250,225,0.45) 12%, rgba(255,255,245,0.92) 45%, rgba(239,216,154,0.70) 72%, rgba(212,179,111,0.28) 90%, transparent 100%)",
+                            boxShadow: "0 0 6px rgba(255,246,210,0.60), 0 0 2px rgba(255,255,240,0.85)",
+                            filter: "blur(0.5px)",
+                            mixBlendMode: "screen",
+                            zIndex: 9,
+                          }}
+                        />
+                        {/* ─ R56 删除（伪需求）─
+                            R56 曾尝试在右缘加对称 rim light 补对称感，实地复检发现：
+                            ① 右缘的"2" CTA pill 占据高亮位 + R36 右铆钉的琥珀色背景，让对称光不可见；
+                            ② 物理上单光源照圆柱本就应该左强右暗——强行对称反而破坏了"光从左上来"的方向感。
+                            清理验证：R52 单边 rim light + R55 与铆钉重叠成"金属轴透光"的非对称视觉是
+                                     最终最优解，保留主光源方向感 + 焦点卡的"独立 3D 物体"读感都做到了。 */}
+                        {/* ─ R48 立体感 · 地面反射光 ─
+                            位置：R34 底棱线下方 ~22px（在 R35 接触阴影区与 R46 落地软阴影的过渡带）
+                            语义："桌面反射出鼓体底部的微弱金属反光"——真实金属物件压在反光表面上的标准细节
+                            与 R35 (椭圆接触阴影) + R46 (重落地软阴影) 共同构成"投影→反射"完整物理交互
+                            左明右暗：呼应 R34/R43/R47 已建立的"光从左上来"系统
+                            blur(2px) + 极低 alpha (0.18 max)：只够提供"暗示"，不抢戏 */}
+                        <div
+                          aria-hidden="true"
+                          className="absolute pointer-events-none"
+                          style={{
+                            top: "50%",
+                            marginTop: PRISM_R(nodeH) + 22,
+                            left: "16%",
+                            right: "12%",
+                            height: 3,
+                            background:
+                              "linear-gradient(90deg, transparent 0%, rgba(239,216,154,0.18) 25%, rgba(255,246,210,0.28) 48%, rgba(212,179,111,0.12) 75%, transparent 100%)",
+                            filter: "blur(2px)",
+                            zIndex: 1,
+                          }}
+                        />
+                        {/* ─ R50 立体感 · 焦点中央曲面 catchlight ─
+                            位置：焦点卡内部，垂直略偏上（marginTop: -nodeH/5）—— 对应"光从左上来"系统在
+                                  柱面最高光点的水平位置（圆柱表面与 45° 入射光的镜面反射区在赤道偏上）
+                            形态：横向软椭圆光斑，左强右弱（38% 处峰值）—— 模拟单一点光源在柱面上形成的
+                                  非对称 catchlight，让焦点面"鼓出来"而非"平贴"
+                            与 R47 互补：R47 是焦点上下边缘的镜面反光（薄线），R50 是焦点中央的曲面高光（软斑）
+                                       两者一起完成"赤道双反光 + 中央催光"的金属圆柱物理光照完整链路
+                            mixBlendMode: screen — 与卡片暖色调融合发光，不覆盖文字
+                            zIndex 9：与 R47 同层，但因 background 是 radial-gradient 几乎不与文字争位 */}
+                        <div
+                          aria-hidden="true"
+                          className="absolute pointer-events-none"
+                          style={{
+                            top: "50%",
+                            marginTop: -nodeH / 5 - 6,
+                            left: "12%",
+                            right: "18%",
+                            height: nodeH * 0.55,
+                            background:
+                              "radial-gradient(ellipse at 38% 50%, rgba(255,250,225,0.32) 0%, rgba(255,246,210,0.18) 25%, rgba(239,216,154,0.06) 55%, transparent 80%)",
+                            filter: "blur(1.5px)",
+                            mixBlendMode: "screen",
+                            zIndex: 9,
+                          }}
+                        />
+                        {/* ─ R36 立体感 · 两端轴心铆钉 ─
+                            在棱柱的左右端面中心（赤道高度）画两枚金属铆钉
+                            语义："这是个绕水平轴旋转的鼓体，两端有轴心"
+                            略微伸出 column-anim 边界 3px，落在 COL_GAP=92px 列间空隙里
+                            渐变球体 + 外发光 + 下方接触阴影 → 像真实金属圆头
+                            zIndex 8：低于 focus overlay (10)，避免覆盖焦点 CTA 胶囊；
+                                       高于 R34 棱线 (7)，与棱线在视觉上"咬合"成一体 */}
+                        {/* R40 方向性光照：左铆钉 = 迎光面（更亮、高光偏左上） */}
+                        <div
+                          aria-hidden="true"
+                          className="absolute pointer-events-none"
+                          style={{
+                            top: "50%",
+                            left: -4,
+                            width: 9,
+                            height: 9,
+                            marginTop: -4.5,
+                            borderRadius: "50%",
+                            background:
+                              "radial-gradient(circle at 28% 28%, #FFFEF2 0%, #FFF6D2 25%, #E5C97E 55%, #7E6328 85%, #3C2D10 100%)",
+                            boxShadow:
+                              "0 0 9px rgba(255,246,210,0.80), 0 1.5px 2.5px rgba(0,0,0,0.60), inset -1px -1px 1.5px rgba(0,0,0,0.45)",
+                            zIndex: 8,
+                          }}
+                        />
+                        {/* R40 方向性光照：右铆钉 = 背光面（高光起点偏右下、整体调暗 ~15%） */}
+                        <div
+                          aria-hidden="true"
+                          className="absolute pointer-events-none"
+                          style={{
+                            top: "50%",
+                            right: -4,
+                            width: 9,
+                            height: 9,
+                            marginTop: -4.5,
+                            borderRadius: "50%",
+                            background:
+                              "radial-gradient(circle at 62% 38%, #E8D098 0%, #C8A85D 35%, #7E5E26 70%, #3C2A0E 100%)",
+                            boxShadow:
+                              "0 0 5px rgba(200,168,93,0.45), 0 1px 2px rgba(0,0,0,0.55), inset 1px -1px 1.5px rgba(0,0,0,0.50)",
+                            zIndex: 8,
+                          }}
+                        />
                         {/* ─ focus 2D 飘浮副本（焦点文字真正锐利之处）─ */}
                         {focusNode && (
                           <button
