@@ -186,6 +186,14 @@ async function fetchAllRows(): Promise<PoolRow[]> {
   console.log(`  deleted : ${deleted.length} (source orphans, protected kept)`);
   console.log(`  sample[0]: ${rows[0]?.keyword} (${rows[0]?.market}, sv=${rows[0]?.search_volume})`);
 
+  // 缓存提示：本脚本是独立进程，清不到运行中 server 进程里的 keywords 内存缓存
+  // （src/lib/keywords-cache.ts，globalThis + TTL 60s）。导入后 /app/keywords 最长
+  // 60s 仍显示旧数据，之后随 TTL 自愈；想立即生效就重启 server。应用内增删改/刷新
+  // 走的是 invalidateKeywordsCache()，不受此影响。
+  console.log(
+    "\n  [cache] 运行中页面缓存最多 60s 后自动刷新（想立即生效请重启 dev/prod server）",
+  );
+
   process.exit(0);
 })().catch((err) => {
   console.error("import failed:", err);

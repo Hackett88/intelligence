@@ -5,6 +5,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { n8nCallbackEvents, keywords } from "@/db/schema";
 import { N8nCallbackEventSchema } from "@/contracts/n8n-callback";
+import { invalidateKeywordsCache } from "@/lib/keywords-cache";
 import {
   triggerW01PhraseThese,
   triggerW02PhraseThis,
@@ -1051,6 +1052,7 @@ function realW03Stream(
             .set(updateValues)
             .where(eq(keywords.rowKey, rowKey));
           pgUpdated = true;
+          invalidateKeywordsCache(); // 手动刷新写了 keywords 表 → 失效列表/统计缓存
         } catch (err) {
           const msg = err instanceof Error ? err.message : String(err);
           enqueue(
