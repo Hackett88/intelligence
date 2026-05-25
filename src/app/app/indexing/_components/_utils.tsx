@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import type { IndexState, ClusterKey } from "./_mock";
+import type { IndexState, ClusterKey, QueryRow } from "./_mock";
+import { classifyHealth, HEALTH_META, type HealthState } from "@/lib/gsc/classify";
 
 // ───────────────────────────────────────────────────────────────────────────
 // 收录状态点 — 4 档：indexed(绿) / discovered(琥珀) / excluded(灰) / error(红)
@@ -67,6 +68,113 @@ export function IndexStateChip({ state }: { state: IndexState }) {
 }
 
 // ───────────────────────────────────────────────────────────────────────────
+// 健康灯 —— "状态"列从单纯的"收录态"升级为"健康/可优化/待激活/低优先"业务态。
+//   背景：真实 GSC 数据里几乎所有页都是 indexed，旧绿灯一片绿、不传达任何信息。
+//   新逻辑：indexed/discovered 的页按 classifyHealth(关键词数+排名+类型) 分 4 档；
+//          excluded/error 这两种收录态本身就是结论，沿用旧收录灯（真实数据极少出现）；
+//          合成目录节点没有页面数据 → 中性灯（不评健康）。
+// ───────────────────────────────────────────────────────────────────────────
+
+type StatusKind = HealthState | "excluded" | "error" | "directory";
+
+export interface PageStatusInput {
+  indexState: IndexState;
+  queries?: QueryRow[];
+  position: number;
+  pageType: string;
+  fullUrl?: string; // 资源/分页 URL 识别用，无关键词页据此区分"待激活"与"低优先"
+  isSynthetic?: boolean;
+}
+
+interface ResolvedStatus {
+  kind: StatusKind;
+  label: string;
+  latin: string;
+  color: string;
+  hint: string;
+}
+
+const STATUS_EXTRA_META: Record<"excluded" | "error" | "directory", Omit<ResolvedStatus, "kind">> = {
+  excluded: {
+    label: "未收录",
+    latin: "EXCLUSUS",
+    color: "#8B8B7A",
+    hint: "GSC 未收录该页（已排除），无法评估健康度。",
+  },
+  error: {
+    label: "异常",
+    latin: "ERRATUM",
+    color: "#C46B5A",
+    hint: "GSC 报告该页处于异常状态，需排查抓取 / 收录问题。",
+  },
+  directory: {
+    label: "目录",
+    latin: "INDEX",
+    color: "#5C6B5E",
+    hint: "合成的目录层级节点，本身不是真实页，不评估健康度。",
+  },
+};
+
+export function resolvePageStatus(page: PageStatusInput): ResolvedStatus {
+  if (page.isSynthetic) return { kind: "directory", ...STATUS_EXTRA_META.directory };
+  if (page.indexState === "excluded") return { kind: "excluded", ...STATUS_EXTRA_META.excluded };
+  if (page.indexState === "error") return { kind: "error", ...STATUS_EXTRA_META.error };
+  const h = classifyHealth({
+    keywordCount: page.queries?.length ?? 0,
+    position: page.position,
+    pageType: page.pageType,
+    url: page.fullUrl,
+  });
+  return { kind: h, ...HEALTH_META[h] };
+}
+
+/** 健康灯小圆点 —— 复刻机柜概览 StatusDot 的"立体玻璃珠"质感：
+ *  左上高光 → 基色(55%) → 暗边 三段径向渐变 + 同色辉光。
+ *  颜色仍由健康度 m.color 决定（健康绿/可优化黄/待激活橙/低优先灰…），
+ *  用 color-mix 从单色自动派生亮/暗两端，无需为每档手调三色。
+ *  directory（合成目录节点，不评健康）保持弱化：单色 + 半透明、无光晕。 */
+export function HealthDot({ page, size = 9 }: { page: PageStatusInput; size?: number }) {
+  const m = resolvePageStatus(page);
+  const muted = m.kind === "directory";
+  const c = m.color;
+  const hi = `color-mix(in srgb, ${c} 42%, #ffffff)`; // 高光（提亮）
+  const lo = `color-mix(in srgb, ${c} 62%, #000000)`; // 暗边（压暗）
+  return (
+    <span
+      aria-label={`${m.label} · ${m.latin}`}
+      title={`${m.label} · ${m.latin} —— ${m.hint}`}
+      style={{
+        display: "inline-block",
+        width: size,
+        height: size,
+        borderRadius: 9999,
+        background: muted
+          ? c
+          : `radial-gradient(circle at 30% 30%, ${hi}, ${c} 55%, ${lo})`,
+        opacity: muted ? 0.5 : 1,
+        boxShadow: muted ? "none" : `0 0 6px ${c}b3`,
+      }}
+    />
+  );
+}
+
+/** 健康态 chip —— 抽屉里用，灯 + 中文标签 + 拉丁副名。 */
+export function HealthChip({ page }: { page: PageStatusInput }) {
+  const m = resolvePageStatus(page);
+  return (
+    <span
+      className="inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded text-[10.5px] border"
+      title={m.hint}
+      style={{ borderColor: `${m.color}55`, background: `${m.color}14` }}
+    >
+      <HealthDot page={page} size={7} />
+      <span className="text-manor-ink/90">{m.label}</span>
+      <span className="text-manor-inkGhost text-[9px] tracking-[0.16em]">{m.latin}</span>
+    </span>
+  );
+}
+
+// ───────────────────────────────────────────────────────────────────────────
 // 页面类型 chip — 12 类（SEO 行业通行的 page template 分类）
 // 配色策略：4 tier 分层
 //   T1 金主突出  → 全站枢纽 / 头部商业（首页 / PDP）
@@ -97,6 +205,10 @@ const PAGE_TYPE_COLOR: Record<string, string> = {
   "博客目录":   "bg-manor-bg3 text-manor-brassDim/85 border-manor-brassDim/30",
   "常见问题":   "bg-manor-bg3 text-manor-brassDim/80 border-manor-brassDim/30",
   "关于页":     "bg-manor-bg3 text-manor-brassDim/75 border-manor-brassDim/25",
+  "政策页":     "bg-manor-bg3 text-manor-brassDim/70 border-manor-brassDim/25",
+  // T5 — 非内容 / noindex 候选（最弱化，冷灰，与内容页拉开）
+  "资源文件":   "bg-manor-bg3 text-manor-inkDim/70 border-manor-line",
+  "系统页":     "bg-manor-bg3 text-manor-inkDim/70 border-manor-line",
 };
 const NEUTRAL_BADGE = "bg-manor-bg3 text-manor-brassDim/70 border-manor-brassDim/25";
 
@@ -121,6 +233,10 @@ export const PAGE_TYPE_ORDER: string[] = [
   "工具页",
   "常见问题",
   "关于页",
+  "政策页",
+  // 非内容 / noindex 候选 —— 排最后（最低优先级）
+  "资源文件",
+  "系统页",
 ];
 
 export function comparePageType(a: string, b: string): number {

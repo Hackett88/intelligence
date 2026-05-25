@@ -84,6 +84,7 @@ export function rebuildPagesFromReal(
       position: p.position,
       indexState: p.indexState as IndexState,
       trend12m: p.trend12m && p.trend12m.length > 0 ? p.trend12m : emptyTrend(),
+      queries: p.queries ?? [],
       lastSync: lastSyncISO,
       parentId: parentPath ? idByPath.get(parentPath) : undefined,
       isPillar: p.isPillar || undefined,

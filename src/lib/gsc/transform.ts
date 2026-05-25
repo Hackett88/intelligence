@@ -13,6 +13,7 @@ import type {
   IndexState,
 } from "@/app/app/indexing/_components/_mock";
 import type { GscSnapshot, GscPageRaw } from "./fetcher";
+import { isAssetUrl, SYSTEM_PAGE_RE } from "./classify";
 
 // URL → market（语言/地区子路径）
 const LOCALE_TO_MARKET: Record<string, string> = {
@@ -37,6 +38,9 @@ export function inferMarket(pathname: string): string {
 // URL → pageType
 export function inferPageType(pathname: string): string {
   const p = pathname.toLowerCase();
+  // 最优先：本不该被当页面收录的两类（noindex 候选），从其它规则里截走
+  if (isAssetUrl(p)) return "资源文件"; // 图片 / CSS / JS / CDN 等静态资源
+  if (SYSTEM_PAGE_RE.test(p)) return "系统页"; // 购物车 / 结账 / 账户 / 认证 / 搜索等功能页
   if (p === "/" || /^\/(ar|fr|de|tr|es|pt|id|ms|ur|ja|zh)\/?$/.test(p))
     return "首页";
   if (/\/products\//.test(p)) return "产品详情页";
@@ -49,7 +53,12 @@ export function inferPageType(pathname: string): string {
   if (/\/(news|articles?)(\/|$)/.test(p)) return "资讯新闻";
   if (/\/(guide|tutorial|how-to)/.test(p)) return "指南教程";
   if (/\/(vs|compare)/.test(p)) return "对比页";
-  if (/\/(tools?|calculator|finder|compass)/.test(p)) return "工具页";
+  // 工具页：通用工具关键词（紧跟 /）+ 本站连字符 slug 里的工具词（尺寸器 / 门店定位）
+  if (/\/(tools?|calculator|finder|compass)/.test(p) || /(sizer|size-guide|store-locat)/.test(p))
+    return "工具页";
+  // 政策 / 法务页：隐私 / 条款 / 退款 / 运费 / 支付 / 各类 *-policy —— 月更 / 低优先
+  if (/\/(privacy|terms|refund|shipping|payment|return|cookie|legal|disclaimer)([-/]|$)/.test(p) || /policy(\/|$)/.test(p))
+    return "政策页";
   if (/\/pages?\//.test(p)) return "落地页";
   return "落地页";
 }

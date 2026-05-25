@@ -139,6 +139,7 @@ export const gscSyncLog = pgTable(
     startedAt:        timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
     completedAt:      timestamp("completed_at", { withTimezone: true }),
     status:           text("status").notNull().default("pending"),       // pending | ok | error
+    mode:             text("mode").notNull().default("full"),            // full（月度全量）| daily（日更增量）
     property:         text("property"),                                  // sc-domain:weslamic.com
     freshnessText:    text("freshness_text"),                            // "上次更新日期：4小时前"
     totalPages:       integer("total_pages"),                            // 真实页数（不含合成）
@@ -173,6 +174,9 @@ export const gscPages = pgTable(
     position:    doublePrecision("position").notNull().default(0),
     indexState:  text("index_state").notNull().default("indexed"),
     trend12m:    jsonb("trend12m").notNull().default([]),
+    // 该 URL 的页面关键词排名（top N），同步时批量抓取一并落库；
+    // 元素形如 { query, clicks, impressions, ctr, position }
+    queries:     jsonb("queries").notNull().default([]),
     isPillar:    boolean("is_pillar").notNull().default(false),
     sortOrder:   integer("sort_order").notNull(),
   },

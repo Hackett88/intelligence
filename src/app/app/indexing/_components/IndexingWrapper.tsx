@@ -10,10 +10,19 @@ export type LastSyncMeta = {
   freshnessText?: string;
 };
 
+// 各模式最近一次成功同步的完成时间（ISO），没跑过为 null
+export type SyncModeStatus = {
+  full: string | null;
+  weekly: string | null;
+  daily: string | null;
+};
+
 interface IndexingWrapperProps {
   initialData: PageRow[];
   stats: IndexingStats;
   lastSyncMeta?: LastSyncMeta;
+  syncStatus?: SyncModeStatus;
+  syncEnabled?: boolean;
 }
 
 const IndexingClientDynamic = dynamic(
@@ -32,12 +41,16 @@ export function IndexingWrapper({
   initialData,
   stats,
   lastSyncMeta,
+  syncStatus,
+  syncEnabled,
 }: IndexingWrapperProps) {
   return (
     <IndexingClientDynamic
       initialData={initialData}
       stats={stats}
       lastSyncMeta={lastSyncMeta}
+      syncStatus={syncStatus}
+      syncEnabled={syncEnabled}
     />
   );
 }

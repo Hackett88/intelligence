@@ -8,7 +8,7 @@ import {
 import { Menu as MenuPrimitive } from "@base-ui/react/menu";
 import { Check, ChevronDown, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { IndexState } from "./_mock";
+import { HEALTH_META, type HealthState } from "@/lib/gsc/classify";
 
 export type TimeWindow = "7d" | "28d" | "90d";
 
@@ -19,7 +19,7 @@ export interface IndexingFilterState {
   market: string[];
   pageType: string[];
   position: PositionBucketValue[];
-  indexState: IndexState[];
+  health: HealthState[];
   timeWindow: TimeWindow;
 }
 
@@ -28,7 +28,7 @@ export const DEFAULT_INDEXING_FILTERS: IndexingFilterState = {
   market: [],
   pageType: [],
   position: [],
-  indexState: [],
+  health: [],
   timeWindow: "90d",
 };
 
@@ -48,12 +48,10 @@ const POSITION_OPTIONS: { value: PositionBucketValue; label: string }[] = [
   { value: "deep",  label: "21+ 深页" },
 ];
 
-const INDEX_STATE_OPTIONS: { value: IndexState; label: string }[] = [
-  { value: "indexed",    label: "已收录" },
-  { value: "discovered", label: "已发现" },
-  { value: "excluded",   label: "已排除" },
-  { value: "error",      label: "异常" },
-];
+// 页面健康筛选 —— 取代失效的"收录状态"（真实数据全是已收录）。与状态列健康灯同源。
+const HEALTH_OPTIONS: { value: HealthState; label: string }[] = (
+  ["healthy", "improve", "activate", "lowpriority"] as HealthState[]
+).map((k) => ({ value: k, label: HEALTH_META[k].label }));
 
 interface MultiSelectProps {
   placeholder: string;
@@ -233,7 +231,7 @@ export function FilterBar({
     filters.market.length > 0 ||
     filters.pageType.length > 0 ||
     filters.position.length > 0 ||
-    filters.indexState.length > 0 ||
+    filters.health.length > 0 ||
     filters.timeWindow !== "90d";
 
   return (
@@ -294,10 +292,10 @@ export function FilterBar({
         width="flex-1 basis-0 min-w-[76px] max-w-[148px]"
       />
       <MultiSelect
-        placeholder="收录状态"
-        values={filters.indexState}
-        options={INDEX_STATE_OPTIONS}
-        onChange={(v) => update("indexState", v as IndexState[])}
+        placeholder="页面健康"
+        values={filters.health}
+        options={HEALTH_OPTIONS}
+        onChange={(v) => update("health", v as HealthState[])}
         width="flex-1 basis-0 min-w-[76px] max-w-[148px]"
       />
 

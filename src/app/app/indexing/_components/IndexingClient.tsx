@@ -21,13 +21,18 @@ import {
   type PageDetail,
   getMockPageDetail,
 } from "./_mock";
-import { MARKET_FLAGS, MARKET_LABELS, positionBucket, comparePageType } from "./_utils";
-import type { LastSyncMeta } from "./IndexingWrapper";
+import { MARKET_FLAGS, MARKET_LABELS, positionBucket, comparePageType, resolvePageStatus } from "./_utils";
+import type { LastSyncMeta, SyncModeStatus } from "./IndexingWrapper";
+import { classifyCadence, CADENCE_META, type Cadence, type HealthState } from "@/lib/gsc/classify";
+
+type SyncMode = "full" | "weekly" | "daily";
 
 interface IndexingClientProps {
   initialData: PageRow[];
   stats: IndexingStats;
   lastSyncMeta?: LastSyncMeta;
+  syncStatus?: SyncModeStatus;
+  syncEnabled?: boolean;
 }
 
 type SyncResponse = {
@@ -39,6 +44,11 @@ type SyncResponse = {
   property?: string;
   fetchedAt?: string;
   freshnessText?: string;
+  mode?: SyncMode;
+  requestedMode?: SyncMode;
+  pagesQueried?: number;
+  queryFetched?: number;
+  queryFailures?: number;
   stats?: {
     totalPages: number;
     totalClicks: number;
@@ -163,20 +173,33 @@ function ScopeBreadcrumb({
   );
 }
 
-export function IndexingClient({ initialData, stats, lastSyncMeta }: IndexingClientProps) {
+export function IndexingClient({
+  initialData,
+  stats,
+  lastSyncMeta,
+  syncStatus,
+  syncEnabled = true,
+}: IndexingClientProps) {
   const router = useRouter();
   const [syncing, setSyncing] = useState(false);
-  const handleSync = async () => {
+  const [syncMenuOpen, setSyncMenuOpen] = useState(false);
+  const [syncMode, setSyncMode] = useState<SyncMode>("daily");
+  const SYNC_MODE_LABEL: Record<SyncMode, string> = { full: "全量", weekly: "周更", daily: "日更" };
+  const handleSync = async (mode: SyncMode) => {
     if (syncing) return;
+    setSyncMenuOpen(false);
     setSyncing(true);
-    const toastId = toast.loading("正在同步 GSC 数据…", {
-      description: "正驱动本地浏览器抓取 Performance > 网页",
+    const toastId = toast.loading(`正在${SYNC_MODE_LABEL[mode]}同步 GSC 数据…`, {
+      description:
+        mode === "full"
+          ? "全量抓取页面指标 + 逐页关键词（约 250+ 页，需数分钟，请勿关闭浏览器）"
+          : "抓取该档页面的关键词排名，请勿关闭浏览器",
     });
     try {
       const res = await fetch("/api/indexing/sync", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({}),
+        body: JSON.stringify({ mode }),
       });
       const body = (await res.json()) as SyncResponse;
       if (!res.ok || !body.ok) {
@@ -188,11 +211,16 @@ export function IndexingClient({ initialData, stats, lastSyncMeta }: IndexingCli
         return;
       }
       const s = body.stats;
-      toast.success("GSC 数据已同步", {
+      const kwPart =
+        typeof body.queryFetched === "number"
+          ? ` · 关键词 ${body.queryFetched} 页${body.queryFailures ? `（${body.queryFailures} 页失败）` : ""}`
+          : "";
+      const modeLabel = body.mode ? SYNC_MODE_LABEL[body.mode] ?? body.mode : "";
+      toast.success(`${modeLabel}同步完成`, {
         id: toastId,
         description: s
-          ? `共 ${s.totalPages} 页 · 点击 ${s.totalClicks.toLocaleString()} · 曝光 ${s.totalImpressions.toLocaleString()} · 用时 ${(body.durationMs ?? 0) / 1000}s`
-          : `用时 ${(body.durationMs ?? 0) / 1000}s`,
+          ? `共 ${s.totalPages} 页 · 本次爬 ${body.pagesQueried ?? "?"} 页${kwPart} · 用时 ${Math.round((body.durationMs ?? 0) / 1000)}s`
+          : `用时 ${Math.round((body.durationMs ?? 0) / 1000)}s`,
         duration: 6000,
       });
       router.refresh();
@@ -206,6 +234,57 @@ export function IndexingClient({ initialData, stats, lastSyncMeta }: IndexingCli
       setSyncing(false);
     }
   };
+
+  // 是否为真实 GSC 数据（mock 模式不去 GSC 抓 query，沿用 mock 样本）
+  const isRealData = lastSyncMeta?.source === "gsc";
+
+  // 同步页数 / 耗时预估 —— 口径严格对齐 sync/route：
+  //   · 只统计"有曝光的真实页"（impressions>0）；合成节点 + 零曝光页都不导航、不计入。
+  //   · 分档同 classifyCadence（关键词数 + 页面类型）；full 档 = 三档之和（全爬有曝光页）。
+  //   · 耗时不能按页数线性外推：无关键词页要等满 table-wait（~20s/页），有关键词页较快
+  //     （~5s/页），并发 4。分别累加再除并发，避免"全量大量无数据页"被严重低估。
+  const SYNC_CONCURRENCY = 4;
+  const SEC_NO_DATA = 20;
+  const SEC_HAS_DATA = 5;
+  const syncEst = useMemo(() => {
+    const z = () => ({ pages: 0, seconds: 0 });
+    const byCadence: Record<Cadence, { pages: number; seconds: number }> = {
+      daily: z(),
+      weekly: z(),
+      monthly: z(),
+    };
+    const full = z();
+    for (const p of initialData) {
+      if (p.isSynthetic || p.impressions <= 0) continue;
+      const kc = p.queries?.length ?? 0;
+      const sec = kc > 0 ? SEC_HAS_DATA : SEC_NO_DATA;
+      const cad = classifyCadence({ pageType: p.pageType, keywordCount: kc, url: p.fullUrl });
+      byCadence[cad].pages += 1;
+      byCadence[cad].seconds += sec;
+      full.pages += 1;
+      full.seconds += sec;
+    }
+    const toMin = (s: number) => Math.max(1, Math.ceil(s / SYNC_CONCURRENCY / 60));
+    return {
+      daily: { pages: byCadence.daily.pages, minutes: toMin(byCadence.daily.seconds) },
+      weekly: { pages: byCadence.weekly.pages, minutes: toMin(byCadence.weekly.seconds) },
+      full: { pages: full.pages, minutes: toMin(full.seconds) },
+    } as Record<SyncMode, { pages: number; minutes: number }>;
+  }, [initialData]);
+
+  // 弹窗里三档的展示元信息（顺序：日更 → 周更 → 全量）。
+  const SYNC_OPTIONS: { mode: SyncMode; title: string; latin: string; hint: string }[] = [
+    { mode: "daily", title: "日更", latin: CADENCE_META.daily.latin, hint: CADENCE_META.daily.hint },
+    { mode: "weekly", title: "周更", latin: CADENCE_META.weekly.latin, hint: CADENCE_META.weekly.hint },
+    {
+      mode: "full",
+      title: "全量",
+      latin: "OMNIA",
+      hint: "重抓全部有曝光页并刷新关键词基准；日更/周更的分档以最近一次全量为准，建议每月一次。",
+    },
+  ];
+  const lastSyncOf = (mode: SyncMode): string | undefined =>
+    (syncStatus?.[mode] ?? undefined) || undefined;
 
   const [filters, setFilters] = useState<IndexingFilterState>({ ...DEFAULT_INDEXING_FILTERS });
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -252,6 +331,12 @@ export function IndexingClient({ initialData, stats, lastSyncMeta }: IndexingCli
     }
   }, [stats.lastSync]);
 
+  // 当前选中的真实页行（synthetic / 找不到 → null）
+  const selectedRow = useMemo(
+    () => (selectedId ? initialData.find((p) => p.id === selectedId) ?? null : null),
+    [selectedId, initialData]
+  );
+
   // 派生选项（市场 / 页面类型）
   const { marketOptions, pageTypeOptions } = useMemo(() => {
     const markets = new Set<string>();
@@ -282,7 +367,11 @@ export function IndexingClient({ initialData, stats, lastSyncMeta }: IndexingCli
       }
       if (filters.market.length > 0 && !filters.market.includes(p.market)) return false;
       if (filters.pageType.length > 0 && !filters.pageType.includes(p.pageType)) return false;
-      if (filters.indexState.length > 0 && !filters.indexState.includes(p.indexState)) return false;
+      // 健康筛选：合成目录节点豁免（保树视图骨架不断层），真实页按健康态过滤
+      if (filters.health.length > 0 && !p.isSynthetic) {
+        const kind = resolvePageStatus(p).kind;
+        if (!filters.health.includes(kind as HealthState)) return false;
+      }
       if (filters.position.length > 0) {
         const b = positionBucket(p.position);
         if (b === "none" || !filters.position.includes(b)) return false;
@@ -357,17 +446,20 @@ export function IndexingClient({ initialData, stats, lastSyncMeta }: IndexingCli
     setDrawerOpen(false);
   };
 
-  // 抽屉数据：先在当前 initialData（真实 GSC 数据）里找，找不到再回落到 mock。
-  // 一期 GSC snapshot 不带 per-URL 的 query 明细，所以 queries 给空数组 —
-  // UI 已经有 "本页面暂无关键词曝光" 兜底文案。
+  // 抽屉数据：
+  //   · 真实 GSC 数据 → queries 已随每次同步批量抓好、随页行一起带进来（selectedRow.queries），
+  //     抽屉直接读，不再逐次点击发请求。
+  //   · mock 模式 → 用 mock 样本（getMockPageDetail 自带 query 明细）。
   const selectedDetail: PageDetail | null = useMemo(() => {
     if (!selectedId) return null;
-    const row = initialData.find((p) => p.id === selectedId);
-    if (row) {
-      return { ...row, queries: [], poolMatches: 0 };
+    if (selectedRow) {
+      if (isRealData) {
+        return { ...selectedRow, queries: selectedRow.queries ?? [], poolMatches: 0 };
+      }
+      return getMockPageDetail(selectedId) ?? { ...selectedRow, queries: [], poolMatches: 0 };
     }
     return getMockPageDetail(selectedId);
-  }, [selectedId, initialData]);
+  }, [selectedId, selectedRow, isRealData]);
 
   const btnCls = (disabled: boolean) =>
     [
@@ -460,27 +552,153 @@ export function IndexingClient({ initialData, stats, lastSyncMeta }: IndexingCli
                 </>
               )}
             </div>
-            <button
-              type="button"
-              onClick={handleSync}
-              disabled={syncing}
-              title={syncing ? "正在抓取…" : "从本地浏览器的 GSC 抓取最新数据"}
-              className={[
-                "h-7 inline-flex items-center gap-1.5 px-2.5 rounded text-[11px] shrink-0 whitespace-nowrap",
-                "border transition-all",
-                syncing
-                  ? "border-manor-brass/25 text-manor-inkDim cursor-wait"
-                  : "border-manor-brass/45 text-manor-brassHi hover:border-manor-brassHi hover:shadow-[0_0_10px_-2px_rgba(239,216,154,.65)] hover:bg-manor-brassDim/10",
-              ].join(" ")}
-              style={{ fontFamily: "var(--font-sc), 'Cormorant SC', serif", letterSpacing: "0.12em" }}
-            >
-              <RefreshCw
-                size={12}
-                className={syncing ? "animate-spin" : ""}
-                aria-hidden="true"
-              />
-              <span>{syncing ? "同步中" : "更新"}</span>
-            </button>
+            <div className="relative shrink-0">
+              <button
+                type="button"
+                onClick={() => setSyncMenuOpen((o) => !o)}
+                disabled={syncing}
+                title={syncing ? "正在抓取…" : "选择更新范围，从本地浏览器的 GSC 抓取"}
+                className={[
+                  "h-7 inline-flex items-center gap-1.5 px-2.5 rounded text-[11px] whitespace-nowrap",
+                  "border transition-all",
+                  syncing
+                    ? "border-manor-brass/25 text-manor-inkDim cursor-wait"
+                    : "border-manor-brass/45 text-manor-brassHi hover:border-manor-brassHi hover:shadow-[0_0_10px_-2px_rgba(239,216,154,.65)] hover:bg-manor-brassDim/10",
+                ].join(" ")}
+                style={{ fontFamily: "var(--font-sc), 'Cormorant SC', serif", letterSpacing: "0.12em" }}
+              >
+                <RefreshCw
+                  size={12}
+                  className={syncing ? "animate-spin" : ""}
+                  aria-hidden="true"
+                />
+                <span>{syncing ? "同步中" : "更新"}</span>
+                {!syncing && (
+                  <span className="text-manor-brassDim text-[9px] -mr-0.5" aria-hidden="true">▾</span>
+                )}
+              </button>
+
+              {syncMenuOpen && !syncing && (
+                <>
+                  {/* 点击遮罩关闭 */}
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setSyncMenuOpen(false)}
+                    aria-hidden="true"
+                  />
+                  <div
+                    className="absolute right-0 mt-2 w-[290px] z-50 rounded-lg border border-manor-brass/30 shadow-[0_12px_40px_-8px_rgba(0,0,0,.7)] overflow-hidden"
+                    style={{
+                      background:
+                        "linear-gradient(180deg, rgba(20,42,28,.98) 0%, rgba(8,20,13,.99) 100%)",
+                    }}
+                    role="dialog"
+                    aria-label="选择更新范围"
+                  >
+                    <div
+                      className="px-3.5 py-2.5 border-b border-manor-brass/15 text-[11px] text-manor-brassHi"
+                      style={{ fontFamily: "var(--font-sc), 'Cormorant SC', serif", letterSpacing: "0.1em" }}
+                    >
+                      选择更新范围 · SYNC SCOPE
+                    </div>
+
+                    {!syncEnabled ? (
+                      // 部署/非本地环境：无本地 Chrome，禁用抓取并提示联系管理员
+                      <div className="px-3.5 py-4 text-[11.5px] text-manor-inkDim leading-relaxed"
+                        style={{ fontFamily: "var(--font-serif), 'EB Garamond', serif" }}
+                      >
+                        <p className="text-manor-brassDim mb-1.5">当前为部署环境</p>
+                        <p>
+                          GSC 抓取依赖本地浏览器（调试端口 9222），线上无法运行。
+                          如需刷新数据，<span className="text-manor-brassHi">请联系管理员</span>在本地执行同步。
+                        </p>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="py-1.5">
+                          {SYNC_OPTIONS.map((opt) => {
+                            const active = syncMode === opt.mode;
+                            const { pages, minutes } = syncEst[opt.mode];
+                            const last = lastSyncOf(opt.mode);
+                            return (
+                              <button
+                                key={opt.mode}
+                                type="button"
+                                onClick={() => setSyncMode(opt.mode)}
+                                className={[
+                                  "w-full text-left px-3.5 py-2 flex items-start gap-2.5 transition-colors",
+                                  active ? "bg-manor-brassDim/12" : "hover:bg-manor-brassDim/6",
+                                ].join(" ")}
+                              >
+                                {/* 单选点 */}
+                                <span
+                                  className={[
+                                    "mt-0.5 w-3 h-3 rounded-full border shrink-0 flex items-center justify-center",
+                                    active ? "border-manor-brassHi" : "border-manor-brass/40",
+                                  ].join(" ")}
+                                  aria-hidden="true"
+                                >
+                                  {active && (
+                                    <span className="w-1.5 h-1.5 rounded-full bg-manor-brassHi" />
+                                  )}
+                                </span>
+                                <span className="min-w-0 flex-1">
+                                  <span className="flex items-baseline justify-between gap-2">
+                                    <span
+                                      className={active ? "text-manor-brassHi text-[12.5px]" : "text-manor-ink text-[12.5px]"}
+                                      style={{ fontFamily: "var(--font-sc), 'Cormorant SC', serif", letterSpacing: "0.08em" }}
+                                    >
+                                      {opt.title}
+                                      <span className="text-manor-inkGhost text-[9px] ml-1.5 tracking-[0.18em]">
+                                        {opt.latin}
+                                      </span>
+                                    </span>
+                                    <span className="text-manor-brassDim text-[10.5px] tabnum shrink-0">
+                                      约 {pages} 页 · ≈{minutes} 分
+                                    </span>
+                                  </span>
+                                  <span
+                                    className="block text-[10.5px] text-manor-inkDim mt-0.5 leading-snug"
+                                    style={{ fontFamily: "var(--font-serif), 'EB Garamond', serif" }}
+                                  >
+                                    {opt.hint}
+                                  </span>
+                                  <span className="block text-[10px] text-manor-inkFaint mt-1">
+                                    上次{opt.title}：
+                                    <span className="text-manor-brassDim tabnum">
+                                      {last ? formatRelative(last) : "未运行过"}
+                                    </span>
+                                  </span>
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        <div className="px-3.5 py-2.5 border-t border-manor-brass/15 flex items-center justify-end gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setSyncMenuOpen(false)}
+                            className="h-7 px-3 rounded text-[11px] border border-manor-brass/25 text-manor-inkDim hover:text-manor-ink hover:border-manor-brass/45 transition-colors"
+                            style={{ fontFamily: "var(--font-serif), 'EB Garamond', serif" }}
+                          >
+                            取消
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleSync(syncMode)}
+                            className="h-7 px-3.5 rounded text-[11px] border border-manor-brassHi/60 text-manor-brassHi bg-manor-brassDim/15 hover:bg-manor-brassDim/25 hover:shadow-[0_0_10px_-2px_rgba(239,216,154,.65)] transition-all"
+                            style={{ fontFamily: "var(--font-sc), 'Cormorant SC', serif", letterSpacing: "0.1em" }}
+                          >
+                            确定更新
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
             <Input
               className="w-32 lg:w-44 xl:w-56 h-7 bg-manor-void/60 border-manor-brass/30 text-manor-ink placeholder:text-manor-inkFaint text-xs focus-visible:ring-manor-brass focus-visible:border-manor-brass min-w-0"
               placeholder="搜索 URL / 关键词..."

@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import { Home as HomeIcon, Maximize2, Minimize2, Globe2, ListChecks } from "lucide-react";
 import type { PageRow } from "./_mock";
 import {
-  IndexStateDot,
+  HealthDot,
   PageTypeChip,
   formatLargeNumber,
 } from "./_utils";
@@ -1356,7 +1356,7 @@ export function PageTreeView({
                           )}
                           <div className="flex items-center gap-2 min-w-0">
                             {isPillar ? <PillarMark /> : <SpokeMark dim={!isVisualFocus} />}
-                            <IndexStateDot state={node.indexState} size={6} />
+                            <HealthDot page={node} size={6} />
                             {/* 子页数 chip 已删 —— 与右上角"→ N 网址" CTA 概念冲突（都表达"卡下面有多少"）
                                 统一用 CTA 一个数字作为"子树规模"指示器，URL 行只承担"我是谁"的语义 */}
                             {node.url === "/" && <HomeIcon size={11} className="shrink-0 text-manor-brassDim" />}
@@ -1956,7 +1956,7 @@ export function PageTreeView({
                             {/* url 行 */}
                             <div className="flex items-center gap-2 min-w-0">
                               {focusIsPillar ? <PillarMark /> : <SpokeMark dim={false} />}
-                              <IndexStateDot state={focusNode.indexState} size={6} />
+                              <HealthDot page={focusNode} size={6} />
                               {/* 子页数 chip 已删 —— 与右上角 CTA 概念冲突，统一用 CTA 表达"子树规模" */}
                               {focusNode.url === "/" && <HomeIcon size={11} className="shrink-0 text-manor-brassDim" />}
                               <span
@@ -2148,7 +2148,7 @@ export function PageTreeView({
                         {/* url 行 */}
                         <div className="flex items-center gap-2 min-w-0">
                           {isPillar ? <PillarMark /> : <SpokeMark dim={!isSel} />}
-                          <IndexStateDot state={node.indexState} size={6} />
+                          <HealthDot page={node} size={6} />
                           {node.url === "/" && <HomeIcon size={11} className="shrink-0 text-manor-brassDim" />}
                           <span
                             className="flex-1 min-w-0 truncate text-[14px] font-semibold text-[#FBF1D9]"

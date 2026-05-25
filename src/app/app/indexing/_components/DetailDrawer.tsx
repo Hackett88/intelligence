@@ -1,14 +1,16 @@
 "use client";
 
 import * as React from "react";
-import { X, ExternalLink } from "lucide-react";
+import { X, ExternalLink, AlertTriangle, Info } from "lucide-react";
 import { Sparkline } from "../../keywords/_components/_utils";
 import type { PageDetail, QueryRow } from "./_mock";
 import type { TimeWindow } from "./FilterBar";
+import { isAssetUrl } from "@/lib/gsc/classify";
 import {
   MARKET_LABELS,
   PageTypeChip,
   IndexStateChip,
+  HealthChip,
   formatPosition,
   formatCtr,
   formatLargeNumber,
@@ -232,6 +234,88 @@ function MiniSegmented({
 // Query rank table (内联 — 不需要 useReactTable 这种重武器)
 // ───────────────────────────────────────────────────────────────────────────
 
+// ── 无关键词数据的页面 → 分类标注 ─────────────────────────────────────────────
+// GSC 单页 query 视图给不出明细的页分三类（依据 batch#4 实测 128 页分布）：
+//   1) 资源文件：命中静态资源/CDN 路径，本不该被当页面收录 → 应 noindex/屏蔽
+//   2) 目录/分页页：聚合/分页类，天然无独立关键词 → 正常
+//   3) 低曝光被隐藏：有曝光但低于 GSC 隐私阈值，query 被隐藏 → 非问题，月度全量重试
+// 资源正则与健康/周期分类共用同一份（classify.ts），避免两处口径漂移。
+
+type NoDataKind = "asset" | "listing" | "lowImpr";
+interface NoDataTag {
+  kind: NoDataKind;
+  label: string; // 短标签（记号）
+  latin: string;
+  hint: string; // 详细说明
+  tone: "warn" | "neutral";
+}
+
+function classifyNoKeywordData(page: { fullUrl: string; pageType: string }): NoDataTag {
+  if (isAssetUrl(page.fullUrl)) {
+    return {
+      kind: "asset",
+      label: "资源文件 · 建议屏蔽",
+      latin: "RES · NON PAGINA",
+      hint: "URL 命中静态资源 / CDN 路径，本不该作为页面被收录。建议加 noindex 或在 robots 屏蔽，避免占用抓取预算。",
+      tone: "warn",
+    };
+  }
+  if (
+    page.pageType === "博客目录" ||
+    page.pageType === "品类列表页" ||
+    /[?&]page=/.test(page.fullUrl)
+  ) {
+    return {
+      kind: "listing",
+      label: "目录/分页页 · 正常无词",
+      latin: "INDEX · PAGINARUM",
+      hint: "聚合 / 分页类页面，通常没有独立的关键词排名，属正常现象，一般无需处理。",
+      tone: "neutral",
+    };
+  }
+  return {
+    kind: "lowImpr",
+    label: "低曝光 · GSC 暂未提供",
+    latin: "INFRA · LIMEN",
+    hint: "该页有曝光、但 GSC 未给出关键词明细 —— 多因曝光量低于 Google 的隐私阈值被隐藏，并非页面本身的问题。下次月度全量会自动重试。",
+    tone: "neutral",
+  };
+}
+
+// 段头小记号（一眼识别）
+function NoDataChip({ tag }: { tag: NoDataTag }) {
+  const warn = tag.tone === "warn";
+  return (
+    <span
+      title={tag.hint}
+      className={[
+        "inline-flex items-center px-1.5 py-0.5 rounded border text-[9.5px] whitespace-nowrap",
+        warn
+          ? "border-amber-500/45 text-amber-300/90 bg-amber-500/10"
+          : "border-manor-brass/30 text-manor-inkDim",
+      ].join(" ")}
+    >
+      {tag.label}
+    </span>
+  );
+}
+
+// 区块内详细说明
+function NoKeywordCallout({ tag }: { tag: NoDataTag }) {
+  const warn = tag.tone === "warn";
+  const Icon = warn ? AlertTriangle : Info;
+  return (
+    <div
+      className="flex flex-col items-center text-center py-5 px-3 gap-2"
+      style={{ fontFamily: "var(--font-serif), 'EB Garamond', serif" }}
+    >
+      <Icon size={18} className={warn ? "text-amber-500/90" : "text-manor-brassHi/70"} />
+      <span className="font-sc tracking-[0.2em] text-manor-inkFaint text-[9px]">〔{tag.latin}〕</span>
+      <p className="text-manor-inkDim text-[11.5px] leading-snug max-w-[300px]">{tag.hint}</p>
+    </div>
+  );
+}
+
 function QueryRankTable({ rows }: { rows: QueryRow[] }) {
   if (rows.length === 0) {
     return (
@@ -289,8 +373,25 @@ function QueryRankTable({ rows }: { rows: QueryRow[] }) {
 // Main drawer
 // ───────────────────────────────────────────────────────────────────────────
 
-export function DetailDrawer({ page, timeWindow, onTimeWindowChange, onClose }: DetailDrawerProps) {
+export function DetailDrawer({
+  page,
+  timeWindow,
+  onTimeWindowChange,
+  onClose,
+}: DetailDrawerProps) {
   if (!page) return null;
+
+  // 主关键词：页面级抓取拿不到（GSC 网页视图无 query 维度），用已加载的关键词
+  // 排名第一条兜底补上 —— 抓到了就显示，没抓到/加载中仍回落到 page.topQuery。
+  const effectiveTopQuery =
+    page.queries[0]?.query ??
+    (page.topQuery && page.topQuery !== "—" ? page.topQuery : null);
+
+  // 真实页 + 无关键词数据 → 分类标注（资源页 / 目录页 / 低曝光被隐藏）
+  const noDataTag =
+    !page.isSynthetic && page.queries.length === 0
+      ? classifyNoKeywordData(page)
+      : null;
 
   const marketLabel = page.market
     ? MARKET_LABELS[page.market.toLowerCase()] ?? page.market.toUpperCase()
@@ -360,10 +461,8 @@ export function DetailDrawer({ page, timeWindow, onTimeWindowChange, onClose }: 
             }
           />
           <Field label="页面类型" value={<PageTypeChip value={page.pageType} />} />
-          <Field
-            label="主关键词"
-            value={page.topQuery === "—" ? null : page.topQuery}
-          />
+          <Field label="主关键词" value={effectiveTopQuery} />
+          <Field label="页面健康" value={<HealthChip page={page} />} />
           <Field label="收录状态" value={<IndexStateChip state={page.indexState} />} />
           <div className="col-span-2">
             <Field
@@ -444,8 +543,16 @@ export function DetailDrawer({ page, timeWindow, onTimeWindowChange, onClose }: 
         </Section>
 
         {/* 页面关键词排名 */}
-        <Section title="页面关键词排名" grid={false}>
-          <QueryRankTable rows={page.queries} />
+        <Section
+          title="页面关键词排名"
+          grid={false}
+          extra={noDataTag ? <NoDataChip tag={noDataTag} /> : undefined}
+        >
+          {noDataTag ? (
+            <NoKeywordCallout tag={noDataTag} />
+          ) : (
+            <QueryRankTable rows={page.queries} />
+          )}
         </Section>
 
         {/* 关联词库 */}

@@ -4,6 +4,7 @@
 import { db } from "@/db/client";
 import { gscSyncLog, gscPages } from "@/db/schema";
 import type { NewGscSyncLog, NewGscPage, GscSyncLog, GscPage } from "@/db/schema";
+import type { QueryRow } from "@/app/app/indexing/_components/_mock";
 import { eq, desc, and, sql } from "drizzle-orm";
 
 // 清理时区：按 Asia/Shanghai 划分自然日。改时区改这里一处即可。
@@ -12,6 +13,7 @@ const PRUNE_TIMEZONE = "Asia/Shanghai";
 export interface BatchMeta {
   property?: string;
   freshnessText?: string;
+  mode?: "full" | "daily" | "weekly"; // full=月度全量；weekly=周更；daily=日更。默认 full。
   totalPages: number;
   totalClicks: number;
   totalImpressions: number;
@@ -34,6 +36,7 @@ export interface RealPageRecord {
   position: number;
   indexState: string;
   trend12m: number[];
+  queries: QueryRow[];
   isPillar: boolean;
   sortOrder: number;
 }
@@ -54,6 +57,7 @@ export async function saveBatch(meta: BatchMeta, pages: RealPageRecord[]): Promi
       .insert(gscSyncLog)
       .values({
         status: "pending",
+        mode: meta.mode ?? "full",
         property: meta.property,
         freshnessText: meta.freshnessText,
       } satisfies NewGscSyncLog)
@@ -77,6 +81,7 @@ export async function saveBatch(meta: BatchMeta, pages: RealPageRecord[]): Promi
         position: p.position,
         indexState: p.indexState,
         trend12m: p.trend12m,
+        queries: p.queries,
         isPillar: p.isPillar,
         sortOrder: p.sortOrder,
       }));
@@ -99,15 +104,16 @@ export async function saveBatch(meta: BatchMeta, pages: RealPageRecord[]): Promi
       })
       .where(eq(gscSyncLog.id, batchId));
 
-    // 4) 同日去重：每个自然日（按 PRUNE_TIMEZONE）只保留 id 最大的 ok batch。
-    //    error 行不动 — 留作故障诊断历史。pages 通过 FK CASCADE 一起删。
+    // 4) 同日去重：每个自然日（按 PRUNE_TIMEZONE）+ 每种 mode 各保留 id 最大的 ok batch。
+    //    按 (date, mode) 分组 —— 否则同一天先 full 后 daily 会把 full 删掉，daily 模式
+    //    就找不到全量基准了。error 行不动（留作故障历史）。pages 通过 FK CASCADE 一起删。
     await tx.execute(sql`
       DELETE FROM gsc_sync_log
       WHERE status = 'ok'
         AND id NOT IN (
           SELECT MAX(id) FROM gsc_sync_log
           WHERE status = 'ok'
-          GROUP BY (started_at AT TIME ZONE ${PRUNE_TIMEZONE})::date
+          GROUP BY (started_at AT TIME ZONE ${PRUNE_TIMEZONE})::date, mode
         )
     `);
 
@@ -162,6 +168,61 @@ export async function loadLatestBatch(): Promise<LoadedBatch | null> {
   };
 }
 
+/**
+ * 日更 / 周更增量用：取最近一次 **full** 成功批次的"每页关键词数"基准。
+ *   · keywordCounts：URL → 上次全量抓到的关键词条数（用于 classifyCadence 分档）。
+ *   · allUrls：上次全量见过的所有页 → 用于识别"新页"（不在此集合 = 新出现）。
+ * 没有任何 full 批次（首次使用）→ 返回 null，调用方应退化为全量。
+ */
+export async function loadLatestFullBatchBaseline(): Promise<
+  { keywordCounts: Map<string, number>; allUrls: Set<string> } | null
+> {
+  const [latestFull] = await db
+    .select({ id: gscSyncLog.id })
+    .from(gscSyncLog)
+    .where(and(eq(gscSyncLog.status, "ok"), eq(gscSyncLog.mode, "full")))
+    .orderBy(desc(gscSyncLog.startedAt))
+    .limit(1);
+  if (!latestFull) return null;
+
+  const rows = await db
+    .select({ fullUrl: gscPages.fullUrl, queries: gscPages.queries })
+    .from(gscPages)
+    .where(eq(gscPages.batchId, latestFull.id));
+
+  const keywordCounts = new Map<string, number>();
+  const allUrls = new Set<string>();
+  for (const r of rows) {
+    allUrls.add(r.fullUrl);
+    keywordCounts.set(r.fullUrl, Array.isArray(r.queries) ? r.queries.length : 0);
+  }
+  return { keywordCounts, allUrls };
+}
+
+/** 各模式最近一次成功同步的完成时间（弹窗"上次全量/周更/日更"提示用）。 */
+export async function loadLastSyncByMode(): Promise<{
+  full: string | null;
+  weekly: string | null;
+  daily: string | null;
+}> {
+  const rows = await db
+    .select({ mode: gscSyncLog.mode, ts: sql<Date>`MAX(COALESCE(${gscSyncLog.completedAt}, ${gscSyncLog.startedAt}))` })
+    .from(gscSyncLog)
+    .where(eq(gscSyncLog.status, "ok"))
+    .groupBy(gscSyncLog.mode);
+  const out: { full: string | null; weekly: string | null; daily: string | null } = {
+    full: null,
+    weekly: null,
+    daily: null,
+  };
+  for (const r of rows) {
+    if (r.mode === "full" || r.mode === "weekly" || r.mode === "daily") {
+      out[r.mode] = r.ts ? new Date(r.ts).toISOString() : null;
+    }
+  }
+  return out;
+}
+
 /** 取指定 batch（含 pages） */
 export async function loadBatchById(batchId: number): Promise<LoadedBatch | null> {
   const [log] = await db.select().from(gscSyncLog).where(eq(gscSyncLog.id, batchId)).limit(1);
@@ -189,6 +250,7 @@ function toRealPageRecord(row: GscPage): RealPageRecord {
     indexState: row.indexState,
     // jsonb 列出来已经是 unknown，强转
     trend12m: Array.isArray(row.trend12m) ? (row.trend12m as number[]) : [],
+    queries: Array.isArray(row.queries) ? (row.queries as QueryRow[]) : [],
     isPillar: row.isPillar,
     sortOrder: row.sortOrder,
   };
