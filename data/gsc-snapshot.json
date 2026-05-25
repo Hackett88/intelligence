@@ -1,16 +1,16 @@
 {
   "version": 1,
-  "fetchedAt": "2026-05-24T15:17:17.674Z",
+  "fetchedAt": "2026-05-25T05:38:28.244Z",
   "propertyResourceId": "sc-domain:weslamic.com",
-  "freshnessText": "上次更新日期：4小时前",
+  "freshnessText": "上次更新日期：3.5小时前",
   "stats": {
     "totalPages": 259,
-    "totalClicks": 7840,
-    "totalImpressions": 540000,
+    "totalClicks": 7980,
+    "totalImpressions": 547000,
     "avgCtr": 0.015,
-    "avgPosition": 6.6,
+    "avgPosition": 6.7,
     "top10Pages": 227,
-    "lastSync": "2026-05-24T15:17:17.674Z"
+    "lastSync": "2026-05-25T05:38:28.244Z"
   },
   "pages": [
     {
@@ -21,8 +21,8 @@
       "pageType": "博客文章",
       "cluster": "knowledge-dhikr",
       "topQuery": "—",
-      "clicks": 3189,
-      "impressions": 239861,
+      "clicks": 3245,
+      "impressions": 243732,
       "ctr": 0.013000000000000001,
       "position": 7.8,
       "indexState": "indexed",
@@ -40,7 +40,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0261",
       "sortOrder": 0
     },
@@ -52,9 +52,9 @@
       "pageType": "首页",
       "cluster": "brand",
       "topQuery": "—",
-      "clicks": 1112,
-      "impressions": 12587,
-      "ctr": 0.08797902597918487,
+      "clicks": 1129,
+      "impressions": 12887,
+      "ctr": 0.08797951423915575,
       "position": 5.1,
       "indexState": "indexed",
       "trend12m": [
@@ -71,19 +71,51 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "sortOrder": 1
     },
     {
       "id": "pg_0003",
+      "url": "/collections/zikr-ring",
+      "fullUrl": "https://www.weslamic.com/collections/zikr-ring",
+      "market": "us",
+      "pageType": "品类列表页",
+      "cluster": "zikr-ring",
+      "topQuery": "—",
+      "clicks": 592,
+      "impressions": 8697,
+      "ctr": 0.068,
+      "position": 5.2,
+      "indexState": "indexed",
+      "trend12m": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0042",
+      "isPillar": true,
+      "sortOrder": 2
+    },
+    {
+      "id": "pg_0004",
       "url": "/blogs/muslim/what-is-an-appropriate-gift-to-give-a-muslim",
       "fullUrl": "https://www.weslamic.com/blogs/muslim/what-is-an-appropriate-gift-to-give-a-muslim",
       "market": "us",
       "pageType": "博客文章",
       "cluster": "scene-gift",
       "topQuery": "—",
-      "clicks": 584,
-      "impressions": 75097,
+      "clicks": 590,
+      "impressions": 75497,
       "ctr": 0.008,
       "position": 4.2,
       "indexState": "indexed",
@@ -101,40 +133,8 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0175",
-      "sortOrder": 2
-    },
-    {
-      "id": "pg_0004",
-      "url": "/collections/zikr-ring",
-      "fullUrl": "https://www.weslamic.com/collections/zikr-ring",
-      "market": "us",
-      "pageType": "品类列表页",
-      "cluster": "zikr-ring",
-      "topQuery": "—",
-      "clicks": 580,
-      "impressions": 8556,
-      "ctr": 0.068,
-      "position": 5.3,
-      "indexState": "indexed",
-      "trend12m": [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0
-      ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0043",
-      "isPillar": true,
       "sortOrder": 3
     },
     {
@@ -145,9 +145,9 @@
       "pageType": "产品详情页",
       "cluster": "zikr-ring",
       "topQuery": "—",
-      "clicks": 238,
-      "impressions": 6845,
-      "ctr": 0.035,
+      "clicks": 256,
+      "impressions": 7147,
+      "ctr": 0.036000000000000004,
       "position": 5.3,
       "indexState": "indexed",
       "trend12m": [
@@ -164,7 +164,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0291",
       "sortOrder": 4
     },
@@ -176,9 +176,9 @@
       "pageType": "博客文章",
       "cluster": "scene-gift",
       "topQuery": "—",
-      "clicks": 193,
-      "impressions": 10424,
-      "ctr": 0.019,
+      "clicks": 194,
+      "impressions": 10522,
+      "ctr": 0.018000000000000002,
       "position": 7,
       "indexState": "indexed",
       "trend12m": [
@@ -195,7 +195,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0281",
       "sortOrder": 5
     },
@@ -207,9 +207,9 @@
       "pageType": "首页",
       "cluster": "brand",
       "topQuery": "—",
-      "clicks": 149,
-      "impressions": 1530,
-      "ctr": 0.097,
+      "clicks": 153,
+      "impressions": 1547,
+      "ctr": 0.09900000000000002,
       "position": 5.2,
       "indexState": "indexed",
       "trend12m": [
@@ -226,7 +226,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "sortOrder": 6
     },
     {
@@ -238,8 +238,8 @@
       "cluster": "brand",
       "topQuery": "—",
       "clicks": 140,
-      "impressions": 1623,
-      "ctr": 0.08600000000000001,
+      "impressions": 1653,
+      "ctr": 0.08500000000000002,
       "position": 7.2,
       "indexState": "indexed",
       "trend12m": [
@@ -256,7 +256,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "sortOrder": 7
     },
     {
@@ -267,9 +267,9 @@
       "pageType": "产品详情页",
       "cluster": "zikr-ring",
       "topQuery": "—",
-      "clicks": 128,
-      "impressions": 4942,
-      "ctr": 0.026000000000000002,
+      "clicks": 130,
+      "impressions": 5054,
+      "ctr": 0.026000000000000006,
       "position": 5.8,
       "indexState": "indexed",
       "trend12m": [
@@ -286,7 +286,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0291",
       "sortOrder": 8
     },
@@ -298,10 +298,10 @@
       "pageType": "博客文章",
       "cluster": "scene-gift",
       "topQuery": "—",
-      "clicks": 122,
-      "impressions": 10674,
+      "clicks": 124,
+      "impressions": 10785,
       "ctr": 0.011000000000000001,
-      "position": 4.6,
+      "position": 4.7,
       "indexState": "indexed",
       "trend12m": [
         0,
@@ -317,7 +317,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0274",
       "sortOrder": 9
     },
@@ -330,7 +330,7 @@
       "cluster": "knowledge-dhikr",
       "topQuery": "—",
       "clicks": 108,
-      "impressions": 18469,
+      "impressions": 18636,
       "ctr": 0.006,
       "position": 5.8,
       "indexState": "indexed",
@@ -348,8 +348,8 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0204",
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0206",
       "sortOrder": 10
     },
     {
@@ -360,8 +360,8 @@
       "pageType": "博客文章",
       "cluster": "knowledge-dhikr",
       "topQuery": "—",
-      "clicks": 97,
-      "impressions": 6102,
+      "clicks": 101,
+      "impressions": 6212,
       "ctr": 0.016,
       "position": 6.3,
       "indexState": "indexed",
@@ -379,51 +379,20 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0281",
       "sortOrder": 11
     },
     {
       "id": "pg_0013",
-      "url": "/pages/itasbih-manual",
-      "fullUrl": "https://www.weslamic.com/pages/itasbih-manual",
-      "market": "us",
-      "pageType": "落地页",
-      "cluster": "itasbih-app",
-      "topQuery": "—",
-      "clicks": 88,
-      "impressions": 2569,
-      "ctr": 0.034,
-      "position": 5,
-      "indexState": "indexed",
-      "trend12m": [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0
-      ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0290",
-      "sortOrder": 12
-    },
-    {
-      "id": "pg_0014",
       "url": "/fr/blogs/muslim/suggestions-and-trends-for-muslim-boy-name",
       "fullUrl": "https://www.weslamic.com/fr/blogs/muslim/suggestions-and-trends-for-muslim-boy-name",
       "market": "fr",
       "pageType": "博客文章",
       "cluster": "knowledge-dhikr",
       "topQuery": "—",
-      "clicks": 87,
-      "impressions": 7963,
+      "clicks": 89,
+      "impressions": 8109,
       "ctr": 0.011000000000000001,
       "position": 8.9,
       "indexState": "indexed",
@@ -441,22 +410,22 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0281",
-      "sortOrder": 13
+      "sortOrder": 12
     },
     {
-      "id": "pg_0015",
-      "url": "/tr/collections/zikr-ring",
-      "fullUrl": "https://www.weslamic.com/tr/collections/zikr-ring",
-      "market": "tr",
-      "pageType": "品类列表页",
-      "cluster": "zikr-ring",
+      "id": "pg_0014",
+      "url": "/pages/itasbih-manual",
+      "fullUrl": "https://www.weslamic.com/pages/itasbih-manual",
+      "market": "us",
+      "pageType": "落地页",
+      "cluster": "itasbih-app",
       "topQuery": "—",
-      "clicks": 73,
-      "impressions": 1131,
-      "ctr": 0.065,
-      "position": 8,
+      "clicks": 89,
+      "impressions": 2602,
+      "ctr": 0.034,
+      "position": 5,
       "indexState": "indexed",
       "trend12m": [
         0,
@@ -472,7 +441,38 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0290",
+      "sortOrder": 13
+    },
+    {
+      "id": "pg_0015",
+      "url": "/tr/collections/zikr-ring",
+      "fullUrl": "https://www.weslamic.com/tr/collections/zikr-ring",
+      "market": "tr",
+      "pageType": "品类列表页",
+      "cluster": "zikr-ring",
+      "topQuery": "—",
+      "clicks": 74,
+      "impressions": 1141,
+      "ctr": 0.065,
+      "position": 7.9,
+      "indexState": "indexed",
+      "trend12m": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0080",
       "isPillar": true,
       "sortOrder": 14
@@ -485,9 +485,9 @@
       "pageType": "博客文章",
       "cluster": "zikr-ring",
       "topQuery": "—",
-      "clicks": 72,
-      "impressions": 9764,
-      "ctr": 0.007,
+      "clicks": 73,
+      "impressions": 9846,
+      "ctr": 0.006999999999999999,
       "position": 5.4,
       "indexState": "indexed",
       "trend12m": [
@@ -504,51 +504,21 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0175",
       "sortOrder": 15
     },
     {
       "id": "pg_0017",
-      "url": "/tr",
-      "fullUrl": "https://www.weslamic.com/tr",
-      "market": "tr",
-      "pageType": "首页",
-      "cluster": "brand",
-      "topQuery": "—",
-      "clicks": 61,
-      "impressions": 450,
-      "ctr": 0.136,
-      "position": 4,
-      "indexState": "indexed",
-      "trend12m": [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0
-      ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "sortOrder": 16
-    },
-    {
-      "id": "pg_0018",
       "url": "/products/weslamic-itasbih-fit-smart-dhikr-with-health-tracking",
       "fullUrl": "https://www.weslamic.com/products/weslamic-itasbih-fit-smart-dhikr-with-health-tracking",
       "market": "us",
       "pageType": "产品详情页",
       "cluster": "itasbih-app",
       "topQuery": "—",
-      "clicks": 59,
-      "impressions": 854,
-      "ctr": 0.069,
+      "clicks": 62,
+      "impressions": 867,
+      "ctr": 0.07200000000000001,
       "position": 4.8,
       "indexState": "indexed",
       "trend12m": [
@@ -565,8 +535,38 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0291",
+      "sortOrder": 16
+    },
+    {
+      "id": "pg_0018",
+      "url": "/tr",
+      "fullUrl": "https://www.weslamic.com/tr",
+      "market": "tr",
+      "pageType": "首页",
+      "cluster": "brand",
+      "topQuery": "—",
+      "clicks": 61,
+      "impressions": 456,
+      "ctr": 0.134,
+      "position": 4,
+      "indexState": "indexed",
+      "trend12m": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "sortOrder": 17
     },
     {
@@ -578,7 +578,7 @@
       "cluster": "knowledge-dhikr",
       "topQuery": "—",
       "clicks": 55,
-      "impressions": 27468,
+      "impressions": 27575,
       "ctr": 0.002,
       "position": 4.5,
       "indexState": "indexed",
@@ -596,51 +596,20 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0175",
       "sortOrder": 18
     },
     {
       "id": "pg_0020",
-      "url": "/ar/blogs/muslim/what-are-the-major-muslim-holidays",
-      "fullUrl": "https://www.weslamic.com/ar/blogs/muslim/what-are-the-major-muslim-holidays",
-      "market": "sa",
-      "pageType": "博客文章",
-      "cluster": "knowledge-dhikr",
-      "topQuery": "—",
-      "clicks": 49,
-      "impressions": 11292,
-      "ctr": 0.004,
-      "position": 5.8,
-      "indexState": "indexed",
-      "trend12m": [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0
-      ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0261",
-      "sortOrder": 19
-    },
-    {
-      "id": "pg_0021",
       "url": "/ar/collections/zikr-ring",
       "fullUrl": "https://www.weslamic.com/ar/collections/zikr-ring",
       "market": "sa",
       "pageType": "品类列表页",
       "cluster": "zikr-ring",
       "topQuery": "—",
-      "clicks": 49,
-      "impressions": 709,
+      "clicks": 50,
+      "impressions": 721,
       "ctr": 0.069,
       "position": 4,
       "indexState": "indexed",
@@ -658,9 +627,40 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0262",
       "isPillar": true,
+      "sortOrder": 19
+    },
+    {
+      "id": "pg_0021",
+      "url": "/ar/blogs/muslim/what-are-the-major-muslim-holidays",
+      "fullUrl": "https://www.weslamic.com/ar/blogs/muslim/what-are-the-major-muslim-holidays",
+      "market": "sa",
+      "pageType": "博客文章",
+      "cluster": "knowledge-dhikr",
+      "topQuery": "—",
+      "clicks": 49,
+      "impressions": 11478,
+      "ctr": 0.004,
+      "position": 5.9,
+      "indexState": "indexed",
+      "trend12m": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0261",
       "sortOrder": 20
     },
     {
@@ -671,8 +671,8 @@
       "pageType": "落地页",
       "cluster": "brand",
       "topQuery": "—",
-      "clicks": 47,
-      "impressions": 1700,
+      "clicks": 49,
+      "impressions": 1720,
       "ctr": 0.027999999999999997,
       "position": 3.2,
       "indexState": "indexed",
@@ -690,7 +690,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0290",
       "sortOrder": 21
     },
@@ -703,8 +703,8 @@
       "cluster": "zikr-ring",
       "topQuery": "—",
       "clicks": 42,
-      "impressions": 1422,
-      "ctr": 0.03,
+      "impressions": 1445,
+      "ctr": 0.028999999999999995,
       "position": 5.6,
       "indexState": "indexed",
       "trend12m": [
@@ -721,7 +721,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0291",
       "sortOrder": 22
     },
@@ -734,9 +734,9 @@
       "cluster": "knowledge-dhikr",
       "topQuery": "—",
       "clicks": 35,
-      "impressions": 18350,
+      "impressions": 18564,
       "ctr": 0.002,
-      "position": 9.4,
+      "position": 9.5,
       "indexState": "indexed",
       "trend12m": [
         0,
@@ -752,7 +752,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0175",
       "sortOrder": 23
     },
@@ -765,7 +765,7 @@
       "cluster": "knowledge-dhikr",
       "topQuery": "—",
       "clicks": 32,
-      "impressions": 4741,
+      "impressions": 4796,
       "ctr": 0.006999999999999999,
       "position": 6.1,
       "indexState": "indexed",
@@ -783,7 +783,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0274",
       "sortOrder": 24
     },
@@ -796,9 +796,9 @@
       "cluster": "zikr-ring",
       "topQuery": "—",
       "clicks": 30,
-      "impressions": 1518,
-      "ctr": 0.02,
-      "position": 7.8,
+      "impressions": 1544,
+      "ctr": 0.019,
+      "position": 7.7,
       "indexState": "indexed",
       "trend12m": [
         0,
@@ -814,7 +814,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0284",
       "sortOrder": 25
     },
@@ -827,7 +827,7 @@
       "cluster": "knowledge-dhikr",
       "topQuery": "—",
       "clicks": 28,
-      "impressions": 5666,
+      "impressions": 5808,
       "ctr": 0.005,
       "position": 7.4,
       "indexState": "indexed",
@@ -845,7 +845,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0281",
       "sortOrder": 26
     },
@@ -858,7 +858,7 @@
       "cluster": "scene-gift",
       "topQuery": "—",
       "clicks": 27,
-      "impressions": 7255,
+      "impressions": 7287,
       "ctr": 0.004,
       "position": 2.5,
       "indexState": "indexed",
@@ -876,7 +876,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0257",
       "sortOrder": 27
     },
@@ -889,8 +889,8 @@
       "cluster": "brand",
       "topQuery": "—",
       "clicks": 26,
-      "impressions": 365,
-      "ctr": 0.071,
+      "impressions": 369,
+      "ctr": 0.07,
       "position": 3.9,
       "indexState": "indexed",
       "trend12m": [
@@ -907,11 +907,42 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "sortOrder": 28
     },
     {
       "id": "pg_0030",
+      "url": "/blogs/faith-tech/bring-the-mosque-home-smart-azan-speakers",
+      "fullUrl": "https://www.weslamic.com/blogs/faith-tech/bring-the-mosque-home-smart-azan-speakers",
+      "market": "us",
+      "pageType": "博客文章",
+      "cluster": "knowledge-dhikr",
+      "topQuery": "—",
+      "clicks": 24,
+      "impressions": 2363,
+      "ctr": 0.01,
+      "position": 7.2,
+      "indexState": "indexed",
+      "trend12m": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0144",
+      "sortOrder": 29
+    },
+    {
+      "id": "pg_0031",
       "url": "/blogs/muslim/suggestions-and-trends-for-muslim-boy-name",
       "fullUrl": "https://www.weslamic.com/blogs/muslim/suggestions-and-trends-for-muslim-boy-name",
       "market": "us",
@@ -919,7 +950,7 @@
       "cluster": "knowledge-dhikr",
       "topQuery": "—",
       "clicks": 23,
-      "impressions": 14562,
+      "impressions": 14636,
       "ctr": 0.002,
       "position": 3.3,
       "indexState": "indexed",
@@ -937,12 +968,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0175",
-      "sortOrder": 29
+      "sortOrder": 30
     },
     {
-      "id": "pg_0031",
+      "id": "pg_0032",
       "url": "/pages/contact-us",
       "fullUrl": "https://www.weslamic.com/pages/contact-us",
       "market": "us",
@@ -950,9 +981,9 @@
       "cluster": "brand",
       "topQuery": "—",
       "clicks": 23,
-      "impressions": 417,
+      "impressions": 422,
       "ctr": 0.055,
-      "position": 5.5,
+      "position": 5.4,
       "indexState": "indexed",
       "trend12m": [
         0,
@@ -968,43 +999,43 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0290",
-      "sortOrder": 30
-    },
-    {
-      "id": "pg_0032",
-      "url": "/blogs/faith-tech/bring-the-mosque-home-smart-azan-speakers",
-      "fullUrl": "https://www.weslamic.com/blogs/faith-tech/bring-the-mosque-home-smart-azan-speakers",
-      "market": "us",
-      "pageType": "博客文章",
-      "cluster": "knowledge-dhikr",
-      "topQuery": "—",
-      "clicks": 22,
-      "impressions": 2334,
-      "ctr": 0.009000000000000001,
-      "position": 7.2,
-      "indexState": "indexed",
-      "trend12m": [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0
-      ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0143",
       "sortOrder": 31
     },
     {
       "id": "pg_0033",
+      "url": "/ar/products/zikr-ring-itasbih-salam",
+      "fullUrl": "https://www.weslamic.com/ar/products/zikr-ring-itasbih-salam",
+      "market": "sa",
+      "pageType": "产品详情页",
+      "cluster": "zikr-ring",
+      "topQuery": "—",
+      "clicks": 21,
+      "impressions": 559,
+      "ctr": 0.038,
+      "position": 6.8,
+      "indexState": "indexed",
+      "trend12m": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0265",
+      "sortOrder": 32
+    },
+    {
+      "id": "pg_0034",
       "url": "/tr/blogs/lifestyle/why-muslims-pray-5-times-a-day",
       "fullUrl": "https://www.weslamic.com/tr/blogs/lifestyle/why-muslims-pray-5-times-a-day",
       "market": "tr",
@@ -1012,9 +1043,9 @@
       "cluster": "knowledge-dhikr",
       "topQuery": "—",
       "clicks": 20,
-      "impressions": 3889,
+      "impressions": 3937,
       "ctr": 0.005,
-      "position": 5.8,
+      "position": 5.9,
       "indexState": "indexed",
       "trend12m": [
         0,
@@ -1030,12 +1061,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0293",
-      "sortOrder": 32
+      "sortOrder": 33
     },
     {
-      "id": "pg_0034",
+      "id": "pg_0035",
       "url": "/de",
       "fullUrl": "https://www.weslamic.com/de",
       "market": "de",
@@ -1043,9 +1074,9 @@
       "cluster": "brand",
       "topQuery": "—",
       "clicks": 20,
-      "impressions": 467,
-      "ctr": 0.043,
-      "position": 6.2,
+      "impressions": 478,
+      "ctr": 0.042,
+      "position": 6.1,
       "indexState": "indexed",
       "trend12m": [
         0,
@@ -1061,11 +1092,11 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "sortOrder": 33
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "sortOrder": 34
     },
     {
-      "id": "pg_0035",
+      "id": "pg_0036",
       "url": "/ar/blogs/muslim/what-is-an-appropriate-gift-to-give-a-muslim",
       "fullUrl": "https://www.weslamic.com/ar/blogs/muslim/what-is-an-appropriate-gift-to-give-a-muslim",
       "market": "sa",
@@ -1073,7 +1104,7 @@
       "cluster": "scene-gift",
       "topQuery": "—",
       "clicks": 19,
-      "impressions": 2108,
+      "impressions": 2121,
       "ctr": 0.009000000000000001,
       "position": 6.3,
       "indexState": "indexed",
@@ -1091,12 +1122,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0261",
-      "sortOrder": 34
+      "sortOrder": 35
     },
     {
-      "id": "pg_0036",
+      "id": "pg_0037",
       "url": "/de/collections/zikr-ring",
       "fullUrl": "https://www.weslamic.com/de/collections/zikr-ring",
       "market": "de",
@@ -1104,8 +1135,8 @@
       "cluster": "zikr-ring",
       "topQuery": "—",
       "clicks": 19,
-      "impressions": 898,
-      "ctr": 0.021,
+      "impressions": 910,
+      "ctr": 0.020999999999999998,
       "position": 6.6,
       "indexState": "indexed",
       "trend12m": [
@@ -1122,23 +1153,23 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0275",
       "isPillar": true,
-      "sortOrder": 35
+      "sortOrder": 36
     },
     {
-      "id": "pg_0037",
-      "url": "/ar/products/zikr-ring-itasbih-salam",
-      "fullUrl": "https://www.weslamic.com/ar/products/zikr-ring-itasbih-salam",
-      "market": "sa",
-      "pageType": "产品详情页",
-      "cluster": "zikr-ring",
+      "id": "pg_0038",
+      "url": "/fr/pages/itasbih-manual",
+      "fullUrl": "https://www.weslamic.com/fr/pages/itasbih-manual",
+      "market": "fr",
+      "pageType": "落地页",
+      "cluster": "itasbih-app",
       "topQuery": "—",
-      "clicks": 19,
-      "impressions": 547,
-      "ctr": 0.035,
-      "position": 6.9,
+      "clicks": 17,
+      "impressions": 285,
+      "ctr": 0.05999999999999999,
+      "position": 4.2,
       "indexState": "indexed",
       "trend12m": [
         0,
@@ -1154,12 +1185,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0265",
-      "sortOrder": 36
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0283",
+      "sortOrder": 37
     },
     {
-      "id": "pg_0038",
+      "id": "pg_0039",
       "url": "/id/pages/itasbih-manual",
       "fullUrl": "https://www.weslamic.com/id/pages/itasbih-manual",
       "market": "id",
@@ -1167,8 +1198,8 @@
       "cluster": "itasbih-app",
       "topQuery": "—",
       "clicks": 17,
-      "impressions": 283,
-      "ctr": 0.060000000000000005,
+      "impressions": 284,
+      "ctr": 0.06,
       "position": 3.9,
       "indexState": "indexed",
       "trend12m": [
@@ -1185,82 +1216,20 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0288",
-      "sortOrder": 37
-    },
-    {
-      "id": "pg_0039",
-      "url": "/fr/pages/itasbih-manual",
-      "fullUrl": "https://www.weslamic.com/fr/pages/itasbih-manual",
-      "market": "fr",
-      "pageType": "落地页",
-      "cluster": "itasbih-app",
-      "topQuery": "—",
-      "clicks": 17,
-      "impressions": 280,
-      "ctr": 0.06099999999999999,
-      "position": 4.1,
-      "indexState": "indexed",
-      "trend12m": [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0
-      ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0283",
       "sortOrder": 38
     },
     {
       "id": "pg_0040",
-      "url": "/tr/blogs/muslim/what-are-the-major-muslim-holidays",
-      "fullUrl": "https://www.weslamic.com/tr/blogs/muslim/what-are-the-major-muslim-holidays",
-      "market": "tr",
-      "pageType": "博客文章",
-      "cluster": "knowledge-dhikr",
-      "topQuery": "—",
-      "clicks": 15,
-      "impressions": 3113,
-      "ctr": 0.005,
-      "position": 6.6,
-      "indexState": "indexed",
-      "trend12m": [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0
-      ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0195",
-      "sortOrder": 39
-    },
-    {
-      "id": "pg_0041",
       "url": "/id/blogs/muslim/what-are-the-major-muslim-holidays",
       "fullUrl": "https://www.weslamic.com/id/blogs/muslim/what-are-the-major-muslim-holidays",
       "market": "id",
       "pageType": "博客文章",
       "cluster": "knowledge-dhikr",
       "topQuery": "—",
-      "clicks": 14,
-      "impressions": 17069,
+      "clicks": 16,
+      "impressions": 17409,
       "ctr": 0.001,
       "position": 8.2,
       "indexState": "indexed",
@@ -1278,83 +1247,21 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0257",
-      "sortOrder": 40
+      "sortOrder": 39
     },
     {
-      "id": "pg_0042",
-      "url": "/tr/products/zikr-ring-itasbih-salam",
-      "fullUrl": "https://www.weslamic.com/tr/products/zikr-ring-itasbih-salam",
+      "id": "pg_0041",
+      "url": "/tr/blogs/muslim/what-are-the-major-muslim-holidays",
+      "fullUrl": "https://www.weslamic.com/tr/blogs/muslim/what-are-the-major-muslim-holidays",
       "market": "tr",
-      "pageType": "产品详情页",
-      "cluster": "zikr-ring",
-      "topQuery": "—",
-      "clicks": 14,
-      "impressions": 295,
-      "ctr": 0.047,
-      "position": 5.1,
-      "indexState": "indexed",
-      "trend12m": [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0
-      ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0296",
-      "sortOrder": 41
-    },
-    {
-      "id": "pg_0043",
-      "url": "/collections",
-      "fullUrl": "https://www.weslamic.com/collections",
-      "market": "us",
-      "pageType": "品类列表页",
-      "cluster": "brand",
-      "topQuery": "—",
-      "clicks": 13,
-      "impressions": 1025,
-      "ctr": 0.013000000000000001,
-      "position": 2.9,
-      "indexState": "indexed",
-      "trend12m": [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0
-      ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0002",
-      "sortOrder": 42
-    },
-    {
-      "id": "pg_0044",
-      "url": "/fr/blogs/muslim/what-does-the-zikr-ring-do",
-      "fullUrl": "https://www.weslamic.com/fr/blogs/muslim/what-does-the-zikr-ring-do",
-      "market": "fr",
       "pageType": "博客文章",
-      "cluster": "zikr-ring",
+      "cluster": "knowledge-dhikr",
       "topQuery": "—",
-      "clicks": 13,
-      "impressions": 947,
-      "ctr": 0.013999999999999999,
+      "clicks": 16,
+      "impressions": 3154,
+      "ctr": 0.005,
       "position": 6.6,
       "indexState": "indexed",
       "trend12m": [
@@ -1371,12 +1278,136 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0196",
+      "sortOrder": 40
+    },
+    {
+      "id": "pg_0042",
+      "url": "/collections",
+      "fullUrl": "https://www.weslamic.com/collections",
+      "market": "us",
+      "pageType": "品类列表页",
+      "cluster": "brand",
+      "topQuery": "—",
+      "clicks": 14,
+      "impressions": 1035,
+      "ctr": 0.013999999999999999,
+      "position": 2.9,
+      "indexState": "indexed",
+      "trend12m": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0002",
+      "sortOrder": 41
+    },
+    {
+      "id": "pg_0043",
+      "url": "/tr/products/zikr-ring-itasbih-salam",
+      "fullUrl": "https://www.weslamic.com/tr/products/zikr-ring-itasbih-salam",
+      "market": "tr",
+      "pageType": "产品详情页",
+      "cluster": "zikr-ring",
+      "topQuery": "—",
+      "clicks": 14,
+      "impressions": 304,
+      "ctr": 0.046,
+      "position": 5.1,
+      "indexState": "indexed",
+      "trend12m": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0296",
+      "sortOrder": 42
+    },
+    {
+      "id": "pg_0044",
+      "url": "/fr/blogs/muslim/what-does-the-zikr-ring-do",
+      "fullUrl": "https://www.weslamic.com/fr/blogs/muslim/what-does-the-zikr-ring-do",
+      "market": "fr",
+      "pageType": "博客文章",
+      "cluster": "zikr-ring",
+      "topQuery": "—",
+      "clicks": 13,
+      "impressions": 963,
+      "ctr": 0.013000000000000001,
+      "position": 6.6,
+      "indexState": "indexed",
+      "trend12m": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0281",
       "sortOrder": 43
     },
     {
       "id": "pg_0045",
+      "url": "/ar/blogs/lifestyle/why-muslims-pray-5-times-a-day",
+      "fullUrl": "https://www.weslamic.com/ar/blogs/lifestyle/why-muslims-pray-5-times-a-day",
+      "market": "sa",
+      "pageType": "博客文章",
+      "cluster": "knowledge-dhikr",
+      "topQuery": "—",
+      "clicks": 12,
+      "impressions": 3903,
+      "ctr": 0.003,
+      "position": 7.1,
+      "indexState": "indexed",
+      "trend12m": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0213",
+      "sortOrder": 44
+    },
+    {
+      "id": "pg_0046",
       "url": "/de/collections/islamic-nfc-wristband",
       "fullUrl": "https://www.weslamic.com/de/collections/islamic-nfc-wristband",
       "market": "de",
@@ -1402,40 +1433,9 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0275",
       "isPillar": true,
-      "sortOrder": 44
-    },
-    {
-      "id": "pg_0046",
-      "url": "/ar/blogs/lifestyle/why-muslims-pray-5-times-a-day",
-      "fullUrl": "https://www.weslamic.com/ar/blogs/lifestyle/why-muslims-pray-5-times-a-day",
-      "market": "sa",
-      "pageType": "博客文章",
-      "cluster": "knowledge-dhikr",
-      "topQuery": "—",
-      "clicks": 11,
-      "impressions": 3829,
-      "ctr": 0.003,
-      "position": 7.1,
-      "indexState": "indexed",
-      "trend12m": [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0
-      ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0212",
       "sortOrder": 45
     },
     {
@@ -1447,7 +1447,7 @@
       "cluster": "zikr-ring",
       "topQuery": "—",
       "clicks": 11,
-      "impressions": 526,
+      "impressions": 531,
       "ctr": 0.021,
       "position": 6.1,
       "indexState": "indexed",
@@ -1465,7 +1465,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0284",
       "sortOrder": 46
     },
@@ -1496,13 +1496,76 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0239",
       "isPillar": true,
       "sortOrder": 47
     },
     {
       "id": "pg_0049",
+      "url": "/tr/blogs/muslim/what-is-an-appropriate-gift-to-give-a-muslim",
+      "fullUrl": "https://www.weslamic.com/tr/blogs/muslim/what-is-an-appropriate-gift-to-give-a-muslim",
+      "market": "tr",
+      "pageType": "博客文章",
+      "cluster": "scene-gift",
+      "topQuery": "—",
+      "clicks": 10,
+      "impressions": 1034,
+      "ctr": 0.01,
+      "position": 8.1,
+      "indexState": "indexed",
+      "trend12m": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0196",
+      "sortOrder": 48
+    },
+    {
+      "id": "pg_0050",
+      "url": "/fr/collections/zikr-ring",
+      "fullUrl": "https://www.weslamic.com/fr/collections/zikr-ring",
+      "market": "fr",
+      "pageType": "品类列表页",
+      "cluster": "zikr-ring",
+      "topQuery": "—",
+      "clicks": 10,
+      "impressions": 570,
+      "ctr": 0.018000000000000002,
+      "position": 7.4,
+      "indexState": "indexed",
+      "trend12m": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0239",
+      "isPillar": true,
+      "sortOrder": 49
+    },
+    {
+      "id": "pg_0051",
       "url": "/id/products/zikr-ring",
       "fullUrl": "https://www.weslamic.com/id/products/zikr-ring",
       "market": "id",
@@ -1510,7 +1573,7 @@
       "cluster": "zikr-ring",
       "topQuery": "—",
       "clicks": 10,
-      "impressions": 368,
+      "impressions": 371,
       "ctr": 0.027000000000000003,
       "position": 5.4,
       "indexState": "indexed",
@@ -1528,71 +1591,8 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0289",
-      "sortOrder": 48
-    },
-    {
-      "id": "pg_0050",
-      "url": "/tr/blogs/muslim/what-is-an-appropriate-gift-to-give-a-muslim",
-      "fullUrl": "https://www.weslamic.com/tr/blogs/muslim/what-is-an-appropriate-gift-to-give-a-muslim",
-      "market": "tr",
-      "pageType": "博客文章",
-      "cluster": "scene-gift",
-      "topQuery": "—",
-      "clicks": 9,
-      "impressions": 1020,
-      "ctr": 0.009000000000000001,
-      "position": 8.1,
-      "indexState": "indexed",
-      "trend12m": [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0
-      ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0195",
-      "sortOrder": 49
-    },
-    {
-      "id": "pg_0051",
-      "url": "/fr/collections/zikr-ring",
-      "fullUrl": "https://www.weslamic.com/fr/collections/zikr-ring",
-      "market": "fr",
-      "pageType": "品类列表页",
-      "cluster": "zikr-ring",
-      "topQuery": "—",
-      "clicks": 9,
-      "impressions": 564,
-      "ctr": 0.016,
-      "position": 7.4,
-      "indexState": "indexed",
-      "trend12m": [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0
-      ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0239",
-      "isPillar": true,
       "sortOrder": 50
     },
     {
@@ -1604,7 +1604,7 @@
       "cluster": "brand",
       "topQuery": "—",
       "clicks": 9,
-      "impressions": 261,
+      "impressions": 262,
       "ctr": 0.034,
       "position": 3.2,
       "indexState": "indexed",
@@ -1622,7 +1622,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0283",
       "sortOrder": 51
     },
@@ -1635,7 +1635,7 @@
       "cluster": "brand",
       "topQuery": "—",
       "clicks": 8,
-      "impressions": 679,
+      "impressions": 684,
       "ctr": 0.012,
       "position": 3.3,
       "indexState": "indexed",
@@ -1653,8 +1653,8 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0043",
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0042",
       "isPillar": true,
       "sortOrder": 52
     },
@@ -1667,9 +1667,9 @@
       "cluster": "knowledge-dhikr",
       "topQuery": "—",
       "clicks": 8,
-      "impressions": 423,
-      "ctr": 0.018999999999999996,
-      "position": 12.8,
+      "impressions": 438,
+      "ctr": 0.018000000000000002,
+      "position": 13.1,
       "indexState": "indexed",
       "trend12m": [
         0,
@@ -1685,7 +1685,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0274",
       "sortOrder": 53
     },
@@ -1716,7 +1716,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0278",
       "sortOrder": 54
     },
@@ -1729,7 +1729,7 @@
       "cluster": "zikr-ring",
       "topQuery": "—",
       "clicks": 7,
-      "impressions": 595,
+      "impressions": 598,
       "ctr": 0.012,
       "position": 5.8,
       "indexState": "indexed",
@@ -1747,8 +1747,8 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0144",
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0145",
       "sortOrder": 55
     },
     {
@@ -1760,7 +1760,7 @@
       "cluster": "knowledge-dhikr",
       "topQuery": "—",
       "clicks": 7,
-      "impressions": 557,
+      "impressions": 559,
       "ctr": 0.013000000000000001,
       "position": 6.5,
       "indexState": "indexed",
@@ -1778,8 +1778,8 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0202",
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0204",
       "sortOrder": 56
     },
     {
@@ -1791,8 +1791,8 @@
       "cluster": "zikr-ring",
       "topQuery": "—",
       "clicks": 7,
-      "impressions": 292,
-      "ctr": 0.024,
+      "impressions": 298,
+      "ctr": 0.023,
       "position": 5.5,
       "indexState": "indexed",
       "trend12m": [
@@ -1809,7 +1809,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0274",
       "sortOrder": 57
     },
@@ -1822,7 +1822,7 @@
       "cluster": "knowledge-dhikr",
       "topQuery": "—",
       "clicks": 6,
-      "impressions": 2590,
+      "impressions": 2615,
       "ctr": 0.002,
       "position": 20,
       "indexState": "indexed",
@@ -1840,7 +1840,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0274",
       "sortOrder": 58
     },
@@ -1853,7 +1853,7 @@
       "cluster": "knowledge-dhikr",
       "topQuery": "—",
       "clicks": 6,
-      "impressions": 2199,
+      "impressions": 2231,
       "ctr": 0.003,
       "position": 6.3,
       "indexState": "indexed",
@@ -1871,7 +1871,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0257",
       "sortOrder": 59
     },
@@ -1884,9 +1884,9 @@
       "cluster": "knowledge-dhikr",
       "topQuery": "—",
       "clicks": 6,
-      "impressions": 383,
-      "ctr": 0.016,
-      "position": 12.1,
+      "impressions": 401,
+      "ctr": 0.015,
+      "position": 12,
       "indexState": "indexed",
       "trend12m": [
         0,
@@ -1902,8 +1902,8 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0195",
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0196",
       "sortOrder": 60
     },
     {
@@ -1915,8 +1915,8 @@
       "cluster": "itasbih-app",
       "topQuery": "—",
       "clicks": 6,
-      "impressions": 321,
-      "ctr": 0.019,
+      "impressions": 328,
+      "ctr": 0.018000000000000002,
       "position": 5.2,
       "indexState": "indexed",
       "trend12m": [
@@ -1933,7 +1933,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0291",
       "sortOrder": 61
     },
@@ -1946,7 +1946,7 @@
       "cluster": "brand",
       "topQuery": "—",
       "clicks": 6,
-      "impressions": 130,
+      "impressions": 131,
       "ctr": 0.046,
       "position": 5.6,
       "indexState": "indexed",
@@ -1964,8 +1964,8 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0043",
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0042",
       "isPillar": true,
       "sortOrder": 62
     },
@@ -1978,8 +1978,8 @@
       "cluster": "itasbih-app",
       "topQuery": "—",
       "clicks": 6,
-      "impressions": 30,
-      "ctr": 0.2,
+      "impressions": 32,
+      "ctr": 0.188,
       "position": 2.4,
       "indexState": "indexed",
       "trend12m": [
@@ -1996,7 +1996,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0264",
       "sortOrder": 63
     },
@@ -2009,9 +2009,9 @@
       "cluster": "zikr-ring",
       "topQuery": "—",
       "clicks": 5,
-      "impressions": 370,
-      "ctr": 0.013999999999999999,
-      "position": 6.4,
+      "impressions": 379,
+      "ctr": 0.013000000000000001,
+      "position": 6.3,
       "indexState": "indexed",
       "trend12m": [
         0,
@@ -2027,8 +2027,8 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0143",
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0144",
       "sortOrder": 64
     },
     {
@@ -2040,7 +2040,7 @@
       "cluster": "zikr-ring",
       "topQuery": "—",
       "clicks": 5,
-      "impressions": 314,
+      "impressions": 318,
       "ctr": 0.016,
       "position": 4.9,
       "indexState": "indexed",
@@ -2058,7 +2058,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0289",
       "sortOrder": 65
     },
@@ -2071,8 +2071,8 @@
       "cluster": "brand",
       "topQuery": "—",
       "clicks": 5,
-      "impressions": 112,
-      "ctr": 0.045,
+      "impressions": 113,
+      "ctr": 0.044000000000000004,
       "position": 3.5,
       "indexState": "indexed",
       "trend12m": [
@@ -2089,12 +2089,43 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0291",
       "sortOrder": 66
     },
     {
       "id": "pg_0068",
+      "url": "/pages/local-store-locations",
+      "fullUrl": "https://www.weslamic.com/pages/local-store-locations",
+      "market": "us",
+      "pageType": "落地页",
+      "cluster": "brand",
+      "topQuery": "—",
+      "clicks": 5,
+      "impressions": 58,
+      "ctr": 0.086,
+      "position": 5,
+      "indexState": "indexed",
+      "trend12m": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0290",
+      "sortOrder": 67
+    },
+    {
+      "id": "pg_0069",
       "url": "/pages/about-us",
       "fullUrl": "https://www.weslamic.com/pages/about-us",
       "market": "us",
@@ -2102,7 +2133,7 @@
       "cluster": "brand",
       "topQuery": "—",
       "clicks": 4,
-      "impressions": 1009,
+      "impressions": 1021,
       "ctr": 0.004,
       "position": 2.5,
       "indexState": "indexed",
@@ -2120,12 +2151,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0290",
-      "sortOrder": 67
+      "sortOrder": 68
     },
     {
-      "id": "pg_0069",
+      "id": "pg_0070",
       "url": "/tr/blogs/muslim/what-does-the-zikr-ring-do",
       "fullUrl": "https://www.weslamic.com/tr/blogs/muslim/what-does-the-zikr-ring-do",
       "market": "tr",
@@ -2133,7 +2164,7 @@
       "cluster": "zikr-ring",
       "topQuery": "—",
       "clicks": 4,
-      "impressions": 752,
+      "impressions": 762,
       "ctr": 0.005,
       "position": 6.3,
       "indexState": "indexed",
@@ -2151,12 +2182,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0195",
-      "sortOrder": 68
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0196",
+      "sortOrder": 69
     },
     {
-      "id": "pg_0070",
+      "id": "pg_0071",
       "url": "/ar/products/zikr-ring",
       "fullUrl": "https://www.weslamic.com/ar/products/zikr-ring",
       "market": "sa",
@@ -2164,9 +2195,9 @@
       "cluster": "zikr-ring",
       "topQuery": "—",
       "clicks": 4,
-      "impressions": 208,
+      "impressions": 210,
       "ctr": 0.019,
-      "position": 11.4,
+      "position": 11.3,
       "indexState": "indexed",
       "trend12m": [
         0,
@@ -2182,12 +2213,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0265",
-      "sortOrder": 69
+      "sortOrder": 70
     },
     {
-      "id": "pg_0071",
+      "id": "pg_0072",
       "url": "/collections/azan-clock",
       "fullUrl": "https://www.weslamic.com/collections/azan-clock",
       "market": "us",
@@ -2195,9 +2226,9 @@
       "cluster": "brand",
       "topQuery": "—",
       "clicks": 4,
-      "impressions": 161,
+      "impressions": 163,
       "ctr": 0.025,
-      "position": 6.2,
+      "position": 6.1,
       "indexState": "indexed",
       "trend12m": [
         0,
@@ -2213,13 +2244,13 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0043",
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0042",
       "isPillar": true,
-      "sortOrder": 70
+      "sortOrder": 71
     },
     {
-      "id": "pg_0072",
+      "id": "pg_0073",
       "url": "/de/blogs/faith-tech/bring-the-mosque-home-smart-azan-speakers",
       "fullUrl": "https://www.weslamic.com/de/blogs/faith-tech/bring-the-mosque-home-smart-azan-speakers",
       "market": "de",
@@ -2245,39 +2276,8 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0172",
-      "sortOrder": 71
-    },
-    {
-      "id": "pg_0073",
-      "url": "/pages/local-store-locations",
-      "fullUrl": "https://www.weslamic.com/pages/local-store-locations",
-      "market": "us",
-      "pageType": "落地页",
-      "cluster": "brand",
-      "topQuery": "—",
-      "clicks": 4,
-      "impressions": 57,
-      "ctr": 0.07,
-      "position": 5.1,
-      "indexState": "indexed",
-      "trend12m": [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0
-      ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0290",
       "sortOrder": 72
     },
     {
@@ -2307,7 +2307,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0295",
       "sortOrder": 73
     },
@@ -2320,7 +2320,7 @@
       "cluster": "knowledge-dhikr",
       "topQuery": "—",
       "clicks": 3,
-      "impressions": 256,
+      "impressions": 257,
       "ctr": 0.012,
       "position": 6.2,
       "indexState": "indexed",
@@ -2338,8 +2338,8 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0113",
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0114",
       "sortOrder": 74
     },
     {
@@ -2369,7 +2369,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0264",
       "sortOrder": 75
     },
@@ -2400,8 +2400,8 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0195",
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0196",
       "sortOrder": 76
     },
     {
@@ -2431,7 +2431,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0278",
       "sortOrder": 77
     },
@@ -2462,8 +2462,8 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0144",
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0145",
       "sortOrder": 78
     },
     {
@@ -2493,8 +2493,8 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0017",
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0018",
       "sortOrder": 79
     },
     {
@@ -2506,9 +2506,9 @@
       "cluster": "knowledge-dhikr",
       "topQuery": "—",
       "clicks": 3,
-      "impressions": 36,
-      "ctr": 0.083,
-      "position": 5.7,
+      "impressions": 37,
+      "ctr": 0.081,
+      "position": 5.8,
       "indexState": "indexed",
       "trend12m": [
         0,
@@ -2524,8 +2524,8 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0107",
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0108",
       "sortOrder": 80
     },
     {
@@ -2555,7 +2555,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0293",
       "sortOrder": 81
     },
@@ -2568,7 +2568,7 @@
       "cluster": "brand",
       "topQuery": "—",
       "clicks": 2,
-      "impressions": 453,
+      "impressions": 459,
       "ctr": 0.004,
       "position": 3.3,
       "indexState": "indexed",
@@ -2586,7 +2586,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0290",
       "sortOrder": 82
     },
@@ -2599,8 +2599,8 @@
       "cluster": "itasbih-app",
       "topQuery": "—",
       "clicks": 2,
-      "impressions": 332,
-      "ctr": 0.006,
+      "impressions": 335,
+      "ctr": 0.006000000000000001,
       "position": 4.2,
       "indexState": "indexed",
       "trend12m": [
@@ -2617,7 +2617,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0291",
       "sortOrder": 83
     },
@@ -2630,7 +2630,7 @@
       "cluster": "zikr-ring",
       "topQuery": "—",
       "clicks": 2,
-      "impressions": 267,
+      "impressions": 268,
       "ctr": 0.006999999999999999,
       "position": 6,
       "indexState": "indexed",
@@ -2648,7 +2648,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0284",
       "sortOrder": 84
     },
@@ -2661,8 +2661,8 @@
       "cluster": "zikr-ring",
       "topQuery": "—",
       "clicks": 2,
-      "impressions": 263,
-      "ctr": 0.008,
+      "impressions": 268,
+      "ctr": 0.006999999999999999,
       "position": 6.5,
       "indexState": "indexed",
       "trend12m": [
@@ -2679,8 +2679,8 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0132",
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0134",
       "isPillar": true,
       "sortOrder": 85
     },
@@ -2711,7 +2711,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0262",
       "isPillar": true,
       "sortOrder": 86
@@ -2725,9 +2725,9 @@
       "cluster": "brand",
       "topQuery": "—",
       "clicks": 2,
-      "impressions": 105,
+      "impressions": 107,
       "ctr": 0.019,
-      "position": 5,
+      "position": 5.1,
       "indexState": "indexed",
       "trend12m": [
         0,
@@ -2743,7 +2743,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0290",
       "sortOrder": 87
     },
@@ -2756,9 +2756,9 @@
       "cluster": "zikr-ring",
       "topQuery": "—",
       "clicks": 2,
-      "impressions": 92,
-      "ctr": 0.022,
-      "position": 5,
+      "impressions": 94,
+      "ctr": 0.021,
+      "position": 5.1,
       "indexState": "indexed",
       "trend12m": [
         0,
@@ -2774,7 +2774,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0296",
       "sortOrder": 88
     },
@@ -2787,8 +2787,8 @@
       "cluster": "tasbih",
       "topQuery": "—",
       "clicks": 2,
-      "impressions": 75,
-      "ctr": 0.027000000000000003,
+      "impressions": 77,
+      "ctr": 0.026000000000000002,
       "position": 6.6,
       "indexState": "indexed",
       "trend12m": [
@@ -2805,8 +2805,8 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0168",
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0161",
       "sortOrder": 89
     },
     {
@@ -2818,8 +2818,8 @@
       "cluster": "islamic-jewelry",
       "topQuery": "—",
       "clicks": 2,
-      "impressions": 42,
-      "ctr": 0.048,
+      "impressions": 43,
+      "ctr": 0.047,
       "position": 5.3,
       "indexState": "indexed",
       "trend12m": [
@@ -2836,12 +2836,43 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0291",
       "sortOrder": 90
     },
     {
       "id": "pg_0092",
+      "url": "/id/blogs/faith-tech/ar-%D8%AE%D8%A7%D8%AA%D9%85-%D8%A7%D9%84%D8%B0%D9%83%D8%B1-%D8%A7%D9%84%D8%B0%D9%83%D9%8A",
+      "fullUrl": "https://www.weslamic.com/id/blogs/faith-tech/ar-خاتم-الذكر-الذكي",
+      "market": "id",
+      "pageType": "博客文章",
+      "cluster": "knowledge-dhikr",
+      "topQuery": "—",
+      "clicks": 2,
+      "impressions": 16,
+      "ctr": 0.125,
+      "position": 7.9,
+      "indexState": "indexed",
+      "trend12m": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0114",
+      "sortOrder": 91
+    },
+    {
+      "id": "pg_0093",
       "url": "/ar/products/weslamic-itasbih-fit-smart-dhikr-with-health-tracking",
       "fullUrl": "https://www.weslamic.com/ar/products/weslamic-itasbih-fit-smart-dhikr-with-health-tracking",
       "market": "sa",
@@ -2867,39 +2898,8 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0265",
-      "sortOrder": 91
-    },
-    {
-      "id": "pg_0093",
-      "url": "/id/blogs/faith-tech/ar-%D8%AE%D8%A7%D8%AA%D9%85-%D8%A7%D9%84%D8%B0%D9%83%D8%B1-%D8%A7%D9%84%D8%B0%D9%83%D9%8A",
-      "fullUrl": "https://www.weslamic.com/id/blogs/faith-tech/ar-خاتم-الذكر-الذكي",
-      "market": "id",
-      "pageType": "博客文章",
-      "cluster": "knowledge-dhikr",
-      "topQuery": "—",
-      "clicks": 2,
-      "impressions": 15,
-      "ctr": 0.133,
-      "position": 7.9,
-      "indexState": "indexed",
-      "trend12m": [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0
-      ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0113",
       "sortOrder": 92
     },
     {
@@ -2911,9 +2911,9 @@
       "cluster": "islamic-jewelry",
       "topQuery": "—",
       "clicks": 2,
-      "impressions": 9,
-      "ctr": 0.222,
-      "position": 4.4,
+      "impressions": 10,
+      "ctr": 0.2,
+      "position": 4.6,
       "indexState": "indexed",
       "trend12m": [
         0,
@@ -2929,7 +2929,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0290",
       "sortOrder": 93
     },
@@ -2960,7 +2960,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0288",
       "sortOrder": 94
     },
@@ -2973,8 +2973,8 @@
       "cluster": "zikr-ring",
       "topQuery": "—",
       "clicks": 1,
-      "impressions": 206,
-      "ctr": 0.005,
+      "impressions": 209,
+      "ctr": 0.004999999999999999,
       "position": 5.8,
       "indexState": "indexed",
       "trend12m": [
@@ -2991,7 +2991,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0257",
       "sortOrder": 95
     },
@@ -3022,7 +3022,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0280",
       "sortOrder": 96
     },
@@ -3035,7 +3035,7 @@
       "cluster": "zikr-ring",
       "topQuery": "—",
       "clicks": 1,
-      "impressions": 123,
+      "impressions": 127,
       "ctr": 0.008,
       "position": 5.8,
       "indexState": "indexed",
@@ -3053,7 +3053,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0296",
       "sortOrder": 97
     },
@@ -3084,8 +3084,8 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0202",
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0204",
       "sortOrder": 98
     },
     {
@@ -3115,7 +3115,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0266",
       "sortOrder": 99
     },
@@ -3146,7 +3146,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0290",
       "sortOrder": 100
     },
@@ -3177,7 +3177,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0290",
       "sortOrder": 101
     },
@@ -3208,12 +3208,74 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0107",
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0108",
       "sortOrder": 102
     },
     {
       "id": "pg_0104",
+      "url": "/fr/blogs/weslamic/weslamic-partner",
+      "fullUrl": "https://www.weslamic.com/fr/blogs/weslamic/weslamic-partner",
+      "market": "fr",
+      "pageType": "博客文章",
+      "cluster": "knowledge-dhikr",
+      "topQuery": "—",
+      "clicks": 1,
+      "impressions": 12,
+      "ctr": 0.083,
+      "position": 6,
+      "indexState": "indexed",
+      "trend12m": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0282",
+      "sortOrder": 103
+    },
+    {
+      "id": "pg_0105",
+      "url": "/tr/products/weslamic-itasbih-fit-smart-dhikr-with-health-tracking",
+      "fullUrl": "https://www.weslamic.com/tr/products/weslamic-itasbih-fit-smart-dhikr-with-health-tracking",
+      "market": "tr",
+      "pageType": "产品详情页",
+      "cluster": "itasbih-app",
+      "topQuery": "—",
+      "clicks": 1,
+      "impressions": 11,
+      "ctr": 0.09099999999999998,
+      "position": 6.9,
+      "indexState": "indexed",
+      "trend12m": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0296",
+      "sortOrder": 104
+    },
+    {
+      "id": "pg_0106",
       "url": "/ar/blogs/muslim/what-does-the-zikr-ring-do",
       "fullUrl": "https://www.weslamic.com/ar/blogs/muslim/what-does-the-zikr-ring-do",
       "market": "sa",
@@ -3239,43 +3301,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0261",
-      "sortOrder": 103
+      "sortOrder": 105
     },
     {
-      "id": "pg_0105",
-      "url": "/fr/blogs/weslamic/weslamic-partner",
-      "fullUrl": "https://www.weslamic.com/fr/blogs/weslamic/weslamic-partner",
-      "market": "fr",
-      "pageType": "博客文章",
-      "cluster": "knowledge-dhikr",
-      "topQuery": "—",
-      "clicks": 1,
-      "impressions": 10,
-      "ctr": 0.1,
-      "position": 5.8,
-      "indexState": "indexed",
-      "trend12m": [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0
-      ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0282",
-      "sortOrder": 104
-    },
-    {
-      "id": "pg_0106",
+      "id": "pg_0107",
       "url": "/tr/pages/weslamic-ring-sizer",
       "fullUrl": "https://www.weslamic.com/tr/pages/weslamic-ring-sizer",
       "market": "tr",
@@ -3301,12 +3332,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0295",
-      "sortOrder": 105
+      "sortOrder": 106
     },
     {
-      "id": "pg_0107",
+      "id": "pg_0108",
       "url": "/tr/blogs/faith-tech",
       "fullUrl": "https://www.weslamic.com/tr/blogs/faith-tech",
       "market": "tr",
@@ -3332,12 +3363,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0292",
-      "sortOrder": 106
+      "sortOrder": 107
     },
     {
-      "id": "pg_0108",
+      "id": "pg_0109",
       "url": "/id/collections/all",
       "fullUrl": "https://www.weslamic.com/id/collections/all",
       "market": "id",
@@ -3363,13 +3394,13 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0132",
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0134",
       "isPillar": true,
-      "sortOrder": 107
+      "sortOrder": 108
     },
     {
-      "id": "pg_0109",
+      "id": "pg_0110",
       "url": "/tr/products/weslamic-nurdio-s1",
       "fullUrl": "https://www.weslamic.com/tr/products/weslamic-nurdio-s1",
       "market": "tr",
@@ -3395,12 +3426,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0296",
-      "sortOrder": 108
+      "sortOrder": 109
     },
     {
-      "id": "pg_0110",
+      "id": "pg_0111",
       "url": "/ar/products/2026ramadan-gift-set-itasbih-relation-new-package",
       "fullUrl": "https://www.weslamic.com/ar/products/2026ramadan-gift-set-itasbih-relation-new-package",
       "market": "sa",
@@ -3426,12 +3457,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0265",
-      "sortOrder": 109
+      "sortOrder": 110
     },
     {
-      "id": "pg_0111",
+      "id": "pg_0112",
       "url": "/pages/zikr-ring-wholesale",
       "fullUrl": "https://www.weslamic.com/pages/zikr-ring-wholesale",
       "market": "us",
@@ -3457,12 +3488,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0290",
-      "sortOrder": 110
+      "sortOrder": 111
     },
     {
-      "id": "pg_0112",
+      "id": "pg_0113",
       "url": "/de/products/weslamic-itasbih-lavender-style",
       "fullUrl": "https://www.weslamic.com/de/products/weslamic-itasbih-lavender-style",
       "market": "de",
@@ -3488,12 +3519,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0278",
-      "sortOrder": 111
+      "sortOrder": 112
     },
     {
-      "id": "pg_0113",
+      "id": "pg_0114",
       "url": "/id/blogs/faith-tech",
       "fullUrl": "https://www.weslamic.com/id/blogs/faith-tech?page=2",
       "market": "id",
@@ -3519,12 +3550,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0285",
-      "sortOrder": 112
+      "sortOrder": 113
     },
     {
-      "id": "pg_0114",
+      "id": "pg_0115",
       "url": "/de/blogs/b2b",
       "fullUrl": "https://www.weslamic.com/de/blogs/b2b",
       "market": "de",
@@ -3550,12 +3581,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0273",
-      "sortOrder": 113
+      "sortOrder": 114
     },
     {
-      "id": "pg_0115",
+      "id": "pg_0116",
       "url": "/de/pages/terms-of-service",
       "fullUrl": "https://www.weslamic.com/de/pages/terms-of-service",
       "market": "de",
@@ -3581,12 +3612,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0277",
-      "sortOrder": 114
+      "sortOrder": 115
     },
     {
-      "id": "pg_0116",
+      "id": "pg_0117",
       "url": "/id/pages/store-locator-1",
       "fullUrl": "https://www.weslamic.com/id/pages/store-locator-1",
       "market": "id",
@@ -3612,12 +3643,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0288",
-      "sortOrder": 115
+      "sortOrder": 116
     },
     {
-      "id": "pg_0117",
+      "id": "pg_0118",
       "url": "/blogs/lifestyle/why-muslims-pray-5-times-a-day",
       "fullUrl": "https://www.weslamic.com/blogs/lifestyle/why-muslims-pray-5-times-a-day",
       "market": "us",
@@ -3625,7 +3656,7 @@
       "cluster": "knowledge-dhikr",
       "topQuery": "—",
       "clicks": 0,
-      "impressions": 342,
+      "impressions": 344,
       "ctr": 0,
       "position": 13.3,
       "indexState": "indexed",
@@ -3643,12 +3674,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0168",
-      "sortOrder": 116
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0161",
+      "sortOrder": 117
     },
     {
-      "id": "pg_0118",
+      "id": "pg_0119",
       "url": "/id/blogs/muslim/what-do-muslims-say-when-they-pray-understanding-the-language-of-salah",
       "fullUrl": "https://www.weslamic.com/id/blogs/muslim/what-do-muslims-say-when-they-pray-understanding-the-language-of-salah",
       "market": "id",
@@ -3656,7 +3687,7 @@
       "cluster": "knowledge-dhikr",
       "topQuery": "—",
       "clicks": 0,
-      "impressions": 168,
+      "impressions": 170,
       "ctr": 0,
       "position": 8.3,
       "indexState": "indexed",
@@ -3674,12 +3705,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0257",
-      "sortOrder": 117
+      "sortOrder": 118
     },
     {
-      "id": "pg_0119",
+      "id": "pg_0120",
       "url": "/customer_authentication/redirect",
       "fullUrl": "https://www.weslamic.com/customer_authentication/redirect?locale=en&region_country=US",
       "market": "us",
@@ -3687,9 +3718,9 @@
       "cluster": "brand",
       "topQuery": "—",
       "clicks": 0,
-      "impressions": 156,
+      "impressions": 161,
       "ctr": 0,
-      "position": 2.9,
+      "position": 2.8,
       "indexState": "indexed",
       "trend12m": [
         0,
@@ -3705,12 +3736,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0272",
-      "sortOrder": 118
+      "sortOrder": 119
     },
     {
-      "id": "pg_0120",
+      "id": "pg_0121",
       "url": "/id/products/smart-zikr-ring-itasbih-relation",
       "fullUrl": "https://www.weslamic.com/id/products/smart-zikr-ring-itasbih-relation",
       "market": "id",
@@ -3718,7 +3749,7 @@
       "cluster": "zikr-ring",
       "topQuery": "—",
       "clicks": 0,
-      "impressions": 106,
+      "impressions": 107,
       "ctr": 0,
       "position": 6,
       "indexState": "indexed",
@@ -3736,12 +3767,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0289",
-      "sortOrder": 119
+      "sortOrder": 120
     },
     {
-      "id": "pg_0121",
+      "id": "pg_0122",
       "url": "/tr/pages/weslamic-app-1",
       "fullUrl": "https://www.weslamic.com/tr/pages/weslamic-app-1",
       "market": "tr",
@@ -3749,9 +3780,9 @@
       "cluster": "brand",
       "topQuery": "—",
       "clicks": 0,
-      "impressions": 86,
+      "impressions": 90,
       "ctr": 0,
-      "position": 7.4,
+      "position": 7.8,
       "indexState": "indexed",
       "trend12m": [
         0,
@@ -3767,12 +3798,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0295",
-      "sortOrder": 120
+      "sortOrder": 121
     },
     {
-      "id": "pg_0122",
+      "id": "pg_0123",
       "url": "/fr/blogs/lifestyle/why-muslims-pray-5-times-a-day",
       "fullUrl": "https://www.weslamic.com/fr/blogs/lifestyle/why-muslims-pray-5-times-a-day",
       "market": "fr",
@@ -3798,12 +3829,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0280",
-      "sortOrder": 121
+      "sortOrder": 122
     },
     {
-      "id": "pg_0123",
+      "id": "pg_0124",
       "url": "/ar/blogs/muslim/what-do-muslims-say-when-they-pray-understanding-the-language-of-salah",
       "fullUrl": "https://www.weslamic.com/ar/blogs/muslim/what-do-muslims-say-when-they-pray-understanding-the-language-of-salah",
       "market": "sa",
@@ -3829,12 +3860,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0261",
-      "sortOrder": 122
+      "sortOrder": 123
     },
     {
-      "id": "pg_0124",
+      "id": "pg_0125",
       "url": "/blogs/faith-tech/wudu-waterproof-smart-dhikr-ring-guide",
       "fullUrl": "https://www.weslamic.com/blogs/faith-tech/wudu-waterproof-smart-dhikr-ring-guide",
       "market": "us",
@@ -3842,9 +3873,9 @@
       "cluster": "knowledge-dhikr",
       "topQuery": "—",
       "clicks": 0,
-      "impressions": 39,
+      "impressions": 40,
       "ctr": 0,
-      "position": 4.8,
+      "position": 5,
       "indexState": "indexed",
       "trend12m": [
         0,
@@ -3860,12 +3891,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0143",
-      "sortOrder": 123
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0144",
+      "sortOrder": 124
     },
     {
-      "id": "pg_0125",
+      "id": "pg_0126",
       "url": "/id/blogs/faith-tech/wudu-waterproof-smart-dhikr-ring-guide",
       "fullUrl": "https://www.weslamic.com/id/blogs/faith-tech/wudu-waterproof-smart-dhikr-ring-guide",
       "market": "id",
@@ -3873,7 +3904,7 @@
       "cluster": "knowledge-dhikr",
       "topQuery": "—",
       "clicks": 0,
-      "impressions": 35,
+      "impressions": 36,
       "ctr": 0,
       "position": 5.3,
       "indexState": "indexed",
@@ -3891,12 +3922,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0113",
-      "sortOrder": 124
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0114",
+      "sortOrder": 125
     },
     {
-      "id": "pg_0126",
+      "id": "pg_0127",
       "url": "/pages/shipping-policy",
       "fullUrl": "https://www.weslamic.com/pages/shipping-policy",
       "market": "us",
@@ -3922,12 +3953,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0290",
-      "sortOrder": 125
+      "sortOrder": 126
     },
     {
-      "id": "pg_0127",
+      "id": "pg_0128",
       "url": "/ar/pages/learn",
       "fullUrl": "https://www.weslamic.com/ar/pages/learn",
       "market": "sa",
@@ -3953,12 +3984,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0264",
-      "sortOrder": 126
+      "sortOrder": 127
     },
     {
-      "id": "pg_0128",
+      "id": "pg_0129",
       "url": "/de/products/zikr-ring-itasbih-salam",
       "fullUrl": "https://www.weslamic.com/de/products/zikr-ring-itasbih-salam",
       "market": "de",
@@ -3984,12 +4015,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0278",
-      "sortOrder": 127
+      "sortOrder": 128
     },
     {
-      "id": "pg_0129",
+      "id": "pg_0130",
       "url": "/tr/products/weslamic-itasbih-lavender-style",
       "fullUrl": "https://www.weslamic.com/tr/products/weslamic-itasbih-lavender-style",
       "market": "tr",
@@ -4015,12 +4046,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0296",
-      "sortOrder": 128
+      "sortOrder": 129
     },
     {
-      "id": "pg_0130",
+      "id": "pg_0131",
       "url": "/ar/blogs/faith-tech/bring-the-mosque-home-smart-azan-speakers",
       "fullUrl": "https://www.weslamic.com/ar/blogs/faith-tech/bring-the-mosque-home-smart-azan-speakers",
       "market": "sa",
@@ -4046,12 +4077,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0207",
-      "sortOrder": 129
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0208",
+      "sortOrder": 130
     },
     {
-      "id": "pg_0131",
+      "id": "pg_0132",
       "url": "/ar/collections/zikr-ring/products/zikr-ring-itasbih-salam",
       "fullUrl": "https://www.weslamic.com/ar/collections/zikr-ring/products/zikr-ring-itasbih-salam",
       "market": "sa",
@@ -4077,12 +4108,43 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0263",
-      "sortOrder": 130
+      "sortOrder": 131
     },
     {
-      "id": "pg_0132",
+      "id": "pg_0133",
+      "url": "/de/products/weslamic-itasbih-fit-smart-dhikr-with-health-tracking",
+      "fullUrl": "https://www.weslamic.com/de/products/weslamic-itasbih-fit-smart-dhikr-with-health-tracking",
+      "market": "de",
+      "pageType": "产品详情页",
+      "cluster": "itasbih-app",
+      "topQuery": "—",
+      "clicks": 0,
+      "impressions": 21,
+      "ctr": 0,
+      "position": 7.1,
+      "indexState": "indexed",
+      "trend12m": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0278",
+      "sortOrder": 132
+    },
+    {
+      "id": "pg_0134",
       "url": "/id/collections",
       "fullUrl": "https://www.weslamic.com/id/collections",
       "market": "id",
@@ -4108,12 +4170,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0029",
-      "sortOrder": 131
+      "sortOrder": 133
     },
     {
-      "id": "pg_0133",
+      "id": "pg_0135",
       "url": "/id/collections/zikr-ring/products/weslamic-itasbih-fit-smart-dhikr-with-health-tracking",
       "fullUrl": "https://www.weslamic.com/id/collections/zikr-ring/products/weslamic-itasbih-fit-smart-dhikr-with-health-tracking",
       "market": "id",
@@ -4139,43 +4201,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0287",
-      "sortOrder": 132
+      "sortOrder": 134
     },
     {
-      "id": "pg_0134",
-      "url": "/de/products/weslamic-itasbih-fit-smart-dhikr-with-health-tracking",
-      "fullUrl": "https://www.weslamic.com/de/products/weslamic-itasbih-fit-smart-dhikr-with-health-tracking",
-      "market": "de",
-      "pageType": "产品详情页",
-      "cluster": "itasbih-app",
-      "topQuery": "—",
-      "clicks": 0,
-      "impressions": 19,
-      "ctr": 0,
-      "position": 7.2,
-      "indexState": "indexed",
-      "trend12m": [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0
-      ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0278",
-      "sortOrder": 133
-    },
-    {
-      "id": "pg_0135",
+      "id": "pg_0136",
       "url": "/ar/blogs/lifestyle/smart-dhikr-ring-for-muslim-women-digital-tasbih-ring-dhikr-jewelry",
       "fullUrl": "https://www.weslamic.com/ar/blogs/lifestyle/smart-dhikr-ring-for-muslim-women-digital-tasbih-ring-dhikr-jewelry",
       "market": "sa",
@@ -4201,12 +4232,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0212",
-      "sortOrder": 134
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0213",
+      "sortOrder": 135
     },
     {
-      "id": "pg_0136",
+      "id": "pg_0137",
       "url": "/blogs/faith-tech/ar-%D8%AE%D8%A7%D8%AA%D9%85-%D8%A7%D9%84%D8%B0%D9%83%D8%B1-%D8%A7%D9%84%D8%B0%D9%83%D9%8A",
       "fullUrl": "https://www.weslamic.com/blogs/faith-tech/ar-خاتم-الذكر-الذكي",
       "market": "us",
@@ -4232,12 +4263,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0143",
-      "sortOrder": 135
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0144",
+      "sortOrder": 136
     },
     {
-      "id": "pg_0137",
+      "id": "pg_0138",
       "url": "/tr/collections/islamic-nfc-wristband",
       "fullUrl": "https://www.weslamic.com/tr/collections/islamic-nfc-wristband",
       "market": "tr",
@@ -4263,13 +4294,13 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0080",
       "isPillar": true,
-      "sortOrder": 136
+      "sortOrder": 137
     },
     {
-      "id": "pg_0138",
+      "id": "pg_0139",
       "url": "/pages/refund-policy",
       "fullUrl": "https://www.weslamic.com/pages/refund-policy",
       "market": "us",
@@ -4295,12 +4326,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0290",
-      "sortOrder": 137
+      "sortOrder": 138
     },
     {
-      "id": "pg_0139",
+      "id": "pg_0140",
       "url": "/ar/collections/islamic-nfc-wristband",
       "fullUrl": "https://www.weslamic.com/ar/collections/islamic-nfc-wristband",
       "market": "sa",
@@ -4326,13 +4357,13 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0262",
       "isPillar": true,
-      "sortOrder": 138
+      "sortOrder": 139
     },
     {
-      "id": "pg_0140",
+      "id": "pg_0141",
       "url": "/tr/blogs/b2b",
       "fullUrl": "https://www.weslamic.com/tr/blogs/b2b",
       "market": "tr",
@@ -4358,12 +4389,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0292",
-      "sortOrder": 139
+      "sortOrder": 140
     },
     {
-      "id": "pg_0141",
+      "id": "pg_0142",
       "url": "/tr/blogs/wholesale",
       "fullUrl": "https://www.weslamic.com/tr/blogs/wholesale",
       "market": "tr",
@@ -4389,12 +4420,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0292",
-      "sortOrder": 140
+      "sortOrder": 141
     },
     {
-      "id": "pg_0142",
+      "id": "pg_0143",
       "url": "/tr/blogs/faith-tech/smart-zikr-ring",
       "fullUrl": "https://www.weslamic.com/tr/blogs/faith-tech/smart-zikr-ring",
       "market": "tr",
@@ -4420,12 +4451,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0107",
-      "sortOrder": 141
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0108",
+      "sortOrder": 142
     },
     {
-      "id": "pg_0143",
+      "id": "pg_0144",
       "url": "/blogs/faith-tech",
       "fullUrl": "https://www.weslamic.com/blogs/faith-tech?page=2",
       "market": "us",
@@ -4451,12 +4482,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0266",
-      "sortOrder": 142
+      "sortOrder": 143
     },
     {
-      "id": "pg_0144",
+      "id": "pg_0145",
       "url": "/fr/blogs/faith-tech",
       "fullUrl": "https://www.weslamic.com/fr/blogs/faith-tech",
       "market": "fr",
@@ -4482,12 +4513,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0279",
-      "sortOrder": 143
+      "sortOrder": 144
     },
     {
-      "id": "pg_0145",
+      "id": "pg_0146",
       "url": "/id/pages/weslamic-app-1",
       "fullUrl": "https://www.weslamic.com/id/pages/weslamic-app-1",
       "market": "id",
@@ -4513,12 +4544,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0288",
-      "sortOrder": 144
+      "sortOrder": 145
     },
     {
-      "id": "pg_0146",
+      "id": "pg_0147",
       "url": "/id/products/weslamic-itasbih-fit-smart-dhikr-with-health-tracking",
       "fullUrl": "https://www.weslamic.com/id/products/weslamic-itasbih-fit-smart-dhikr-with-health-tracking",
       "market": "id",
@@ -4544,12 +4575,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0289",
-      "sortOrder": 145
+      "sortOrder": 146
     },
     {
-      "id": "pg_0147",
+      "id": "pg_0148",
       "url": "/blogs/weslamic",
       "fullUrl": "https://www.weslamic.com/blogs/weslamic",
       "market": "us",
@@ -4575,12 +4606,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0266",
-      "sortOrder": 146
+      "sortOrder": 147
     },
     {
-      "id": "pg_0148",
+      "id": "pg_0149",
       "url": "/id/blogs/weslamic/weslamic-partner",
       "fullUrl": "https://www.weslamic.com/id/blogs/weslamic/weslamic-partner",
       "market": "id",
@@ -4606,12 +4637,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0286",
-      "sortOrder": 147
+      "sortOrder": 148
     },
     {
-      "id": "pg_0149",
+      "id": "pg_0150",
       "url": "/pages/payment-policy",
       "fullUrl": "https://www.weslamic.com/pages/payment-policy",
       "market": "us",
@@ -4637,12 +4668,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0290",
-      "sortOrder": 148
+      "sortOrder": 149
     },
     {
-      "id": "pg_0150",
+      "id": "pg_0151",
       "url": "/fr/products/weslamic-itasbih-fit-smart-dhikr-with-health-tracking",
       "fullUrl": "https://www.weslamic.com/fr/products/weslamic-itasbih-fit-smart-dhikr-with-health-tracking",
       "market": "fr",
@@ -4668,12 +4699,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0284",
-      "sortOrder": 149
+      "sortOrder": 150
     },
     {
-      "id": "pg_0151",
+      "id": "pg_0152",
       "url": "/de/blogs/faith-tech/smart-zikr-ring",
       "fullUrl": "https://www.weslamic.com/de/blogs/faith-tech/smart-zikr-ring",
       "market": "de",
@@ -4699,12 +4730,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0172",
-      "sortOrder": 150
+      "sortOrder": 151
     },
     {
-      "id": "pg_0152",
+      "id": "pg_0153",
       "url": "/blogs/weslamic/weslamic-partner",
       "fullUrl": "https://www.weslamic.com/blogs/weslamic/weslamic-partner",
       "market": "us",
@@ -4730,12 +4761,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0147",
-      "sortOrder": 151
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0148",
+      "sortOrder": 152
     },
     {
-      "id": "pg_0153",
+      "id": "pg_0154",
       "url": "/tr/blogs/faith-tech/bring-the-mosque-home-smart-azan-speakers",
       "fullUrl": "https://www.weslamic.com/tr/blogs/faith-tech/bring-the-mosque-home-smart-azan-speakers",
       "market": "tr",
@@ -4761,12 +4792,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0107",
-      "sortOrder": 152
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0108",
+      "sortOrder": 153
     },
     {
-      "id": "pg_0154",
+      "id": "pg_0155",
       "url": "/pages/faqs",
       "fullUrl": "https://www.weslamic.com/pages/faqs",
       "market": "us",
@@ -4792,12 +4823,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0290",
-      "sortOrder": 153
+      "sortOrder": 154
     },
     {
-      "id": "pg_0155",
+      "id": "pg_0156",
       "url": "/pages/community",
       "fullUrl": "https://www.weslamic.com/pages/community",
       "market": "us",
@@ -4823,12 +4854,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0290",
-      "sortOrder": 154
+      "sortOrder": 155
     },
     {
-      "id": "pg_0156",
+      "id": "pg_0157",
       "url": "/ar/blogs/faith-tech/wudu-waterproof-smart-dhikr-ring-guide",
       "fullUrl": "https://www.weslamic.com/ar/blogs/faith-tech/wudu-waterproof-smart-dhikr-ring-guide",
       "market": "sa",
@@ -4854,12 +4885,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0207",
-      "sortOrder": 155
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0208",
+      "sortOrder": 156
     },
     {
-      "id": "pg_0157",
+      "id": "pg_0158",
       "url": "/de/blogs/faith-tech/ar-%D8%AE%D8%A7%D8%AA%D9%85-%D8%A7%D9%84%D8%B0%D9%83%D8%B1-%D8%A7%D9%84%D8%B0%D9%83%D9%8A",
       "fullUrl": "https://www.weslamic.com/de/blogs/faith-tech/ar-خاتم-الذكر-الذكي",
       "market": "de",
@@ -4885,12 +4916,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0172",
-      "sortOrder": 156
+      "sortOrder": 157
     },
     {
-      "id": "pg_0158",
+      "id": "pg_0159",
       "url": "/id/blogs/lifestyle/smart-dhikr-ring-for-muslim-women-digital-tasbih-ring-dhikr-jewelry",
       "fullUrl": "https://www.weslamic.com/id/blogs/lifestyle/smart-dhikr-ring-for-muslim-women-digital-tasbih-ring-dhikr-jewelry",
       "market": "id",
@@ -4916,12 +4947,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0202",
-      "sortOrder": 157
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0204",
+      "sortOrder": 158
     },
     {
-      "id": "pg_0159",
+      "id": "pg_0160",
       "url": "/fr/blogs/faith-tech/bring-the-mosque-home-smart-azan-speakers",
       "fullUrl": "https://www.weslamic.com/fr/blogs/faith-tech/bring-the-mosque-home-smart-azan-speakers",
       "market": "fr",
@@ -4947,22 +4978,22 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0144",
-      "sortOrder": 158
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0145",
+      "sortOrder": 159
     },
     {
-      "id": "pg_0160",
-      "url": "/tr/products/weslamic-itasbih-fit-smart-dhikr-with-health-tracking",
-      "fullUrl": "https://www.weslamic.com/tr/products/weslamic-itasbih-fit-smart-dhikr-with-health-tracking",
-      "market": "tr",
-      "pageType": "产品详情页",
-      "cluster": "itasbih-app",
+      "id": "pg_0161",
+      "url": "/blogs/lifestyle",
+      "fullUrl": "https://www.weslamic.com/blogs/lifestyle",
+      "market": "us",
+      "pageType": "博客目录",
+      "cluster": "knowledge-dhikr",
       "topQuery": "—",
       "clicks": 0,
       "impressions": 7,
       "ctr": 0,
-      "position": 7.1,
+      "position": 6.4,
       "indexState": "indexed",
       "trend12m": [
         0,
@@ -4978,12 +5009,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0296",
-      "sortOrder": 159
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0266",
+      "sortOrder": 160
     },
     {
-      "id": "pg_0161",
+      "id": "pg_0162",
       "url": "/de/blogs/lifestyle/smart-dhikr-ring-for-muslim-women-digital-tasbih-ring-dhikr-jewelry",
       "fullUrl": "https://www.weslamic.com/de/blogs/lifestyle/smart-dhikr-ring-for-muslim-women-digital-tasbih-ring-dhikr-jewelry",
       "market": "de",
@@ -5009,12 +5040,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0204",
-      "sortOrder": 160
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0206",
+      "sortOrder": 161
     },
     {
-      "id": "pg_0162",
+      "id": "pg_0163",
       "url": "/id/blogs/faith-tech/id-cincin-dzikir-pintar",
       "fullUrl": "https://www.weslamic.com/id/blogs/faith-tech/id-cincin-dzikir-pintar",
       "market": "id",
@@ -5040,12 +5071,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0113",
-      "sortOrder": 161
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0114",
+      "sortOrder": 162
     },
     {
-      "id": "pg_0163",
+      "id": "pg_0164",
       "url": "/ar/cart",
       "fullUrl": "https://www.weslamic.com/ar/cart",
       "market": "sa",
@@ -5071,12 +5102,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0007",
-      "sortOrder": 162
+      "sortOrder": 163
     },
     {
-      "id": "pg_0164",
+      "id": "pg_0165",
       "url": "/id/blogs/faith-tech/smart-zikr-ring",
       "fullUrl": "https://www.weslamic.com/id/blogs/faith-tech/smart-zikr-ring",
       "market": "id",
@@ -5102,12 +5133,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0113",
-      "sortOrder": 163
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0114",
+      "sortOrder": 164
     },
     {
-      "id": "pg_0165",
+      "id": "pg_0166",
       "url": "/de/blogs/faith-tech/wudu-waterproof-smart-dhikr-ring-guide",
       "fullUrl": "https://www.weslamic.com/de/blogs/faith-tech/wudu-waterproof-smart-dhikr-ring-guide",
       "market": "de",
@@ -5133,12 +5164,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0172",
-      "sortOrder": 164
+      "sortOrder": 165
     },
     {
-      "id": "pg_0166",
+      "id": "pg_0167",
       "url": "/blogs/b2b",
       "fullUrl": "https://www.weslamic.com/blogs/b2b",
       "market": "us",
@@ -5164,12 +5195,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0266",
-      "sortOrder": 165
+      "sortOrder": 166
     },
     {
-      "id": "pg_0167",
+      "id": "pg_0168",
       "url": "/fr/products/2026ramadan-gift-set-itasbih-relation-new-package",
       "fullUrl": "https://www.weslamic.com/fr/products/2026ramadan-gift-set-itasbih-relation-new-package",
       "market": "fr",
@@ -5195,39 +5226,8 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0284",
-      "sortOrder": 166
-    },
-    {
-      "id": "pg_0168",
-      "url": "/blogs/lifestyle",
-      "fullUrl": "https://www.weslamic.com/blogs/lifestyle",
-      "market": "us",
-      "pageType": "博客目录",
-      "cluster": "knowledge-dhikr",
-      "topQuery": "—",
-      "clicks": 0,
-      "impressions": 6,
-      "ctr": 0,
-      "position": 6.2,
-      "indexState": "indexed",
-      "trend12m": [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0
-      ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0266",
       "sortOrder": 167
     },
     {
@@ -5257,7 +5257,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0277",
       "sortOrder": 168
     },
@@ -5288,7 +5288,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0277",
       "sortOrder": 169
     },
@@ -5319,8 +5319,8 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0143",
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0144",
       "sortOrder": 170
     },
     {
@@ -5350,7 +5350,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0273",
       "sortOrder": 171
     },
@@ -5381,7 +5381,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0270",
       "sortOrder": 172
     },
@@ -5412,7 +5412,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0280",
       "sortOrder": 173
     },
@@ -5443,7 +5443,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0266",
       "sortOrder": 174
     },
@@ -5474,7 +5474,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0296",
       "sortOrder": 175
     },
@@ -5505,7 +5505,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0290",
       "sortOrder": 176
     },
@@ -5536,7 +5536,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0269",
       "sortOrder": 177
     },
@@ -5567,7 +5567,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0284",
       "sortOrder": 178
     },
@@ -5598,8 +5598,8 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0168",
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0161",
       "sortOrder": 179
     },
     {
@@ -5629,7 +5629,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0275",
       "isPillar": true,
       "sortOrder": 180
@@ -5661,7 +5661,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0289",
       "sortOrder": 181
     },
@@ -5692,7 +5692,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0278",
       "sortOrder": 182
     },
@@ -5723,7 +5723,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0290",
       "sortOrder": 183
     },
@@ -5754,7 +5754,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0288",
       "sortOrder": 184
     },
@@ -5785,7 +5785,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0080",
       "isPillar": true,
       "sortOrder": 185
@@ -5817,7 +5817,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0295",
       "sortOrder": 186
     },
@@ -5848,7 +5848,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0264",
       "sortOrder": 187
     },
@@ -5879,12 +5879,43 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0264",
       "sortOrder": 188
     },
     {
       "id": "pg_0190",
+      "url": "/id/products/weslamic-itasbih-lavender-style",
+      "fullUrl": "https://www.weslamic.com/id/products/weslamic-itasbih-lavender-style",
+      "market": "id",
+      "pageType": "产品详情页",
+      "cluster": "itasbih-app",
+      "topQuery": "—",
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 8.7,
+      "indexState": "indexed",
+      "trend12m": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0289",
+      "sortOrder": 189
+    },
+    {
+      "id": "pg_0191",
       "url": "/ar/pages/shipping-policy",
       "fullUrl": "https://www.weslamic.com/ar/pages/shipping-policy",
       "market": "sa",
@@ -5910,12 +5941,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0264",
-      "sortOrder": 189
+      "sortOrder": 190
     },
     {
-      "id": "pg_0191",
+      "id": "pg_0192",
       "url": "/ar/products/nfc-hadith-bracelet",
       "fullUrl": "https://www.weslamic.com/ar/products/nfc-hadith-bracelet",
       "market": "sa",
@@ -5941,12 +5972,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0265",
-      "sortOrder": 190
+      "sortOrder": 191
     },
     {
-      "id": "pg_0192",
+      "id": "pg_0193",
       "url": "/blogs/faith-tech/%D8%A3%D9%87%D9%85%D9%8A%D8%A9-%D8%A7%D9%84%D9%88%D8%B6%D9%88%D8%A1-%D9%88%D8%AE%D8%A7%D8%AA%D9%85-%D8%A7%D9%84%D8%B0%D9%83%D8%B1-%D8%A7%D9%84%D8%B0%D9%83%D9%8A",
       "fullUrl": "https://www.weslamic.com/blogs/faith-tech/أهمية-الوضوء-وخاتم-الذكر-الذكي",
       "market": "us",
@@ -5972,12 +6003,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0143",
-      "sortOrder": 191
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0144",
+      "sortOrder": 192
     },
     {
-      "id": "pg_0193",
+      "id": "pg_0194",
       "url": "/fr/blogs/faith-tech/ar-%D8%AE%D8%A7%D8%AA%D9%85-%D8%A7%D9%84%D8%B0%D9%83%D8%B1-%D8%A7%D9%84%D8%B0%D9%83%D9%8A",
       "fullUrl": "https://www.weslamic.com/fr/blogs/faith-tech/ar-خاتم-الذكر-الذكي",
       "market": "fr",
@@ -6003,12 +6034,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0144",
-      "sortOrder": 192
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0145",
+      "sortOrder": 193
     },
     {
-      "id": "pg_0194",
+      "id": "pg_0195",
       "url": "/blogs/gifting",
       "fullUrl": "https://www.weslamic.com/blogs/gifting",
       "market": "us",
@@ -6034,12 +6065,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0266",
-      "sortOrder": 193
+      "sortOrder": 194
     },
     {
-      "id": "pg_0195",
+      "id": "pg_0196",
       "url": "/tr/blogs/muslim",
       "fullUrl": "https://www.weslamic.com/tr/blogs/muslim",
       "market": "tr",
@@ -6065,12 +6096,43 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0292",
-      "sortOrder": 194
+      "sortOrder": 195
     },
     {
-      "id": "pg_0196",
+      "id": "pg_0197",
+      "url": "/id/pages/local-store-locations",
+      "fullUrl": "https://www.weslamic.com/id/pages/local-store-locations",
+      "market": "id",
+      "pageType": "落地页",
+      "cluster": "brand",
+      "topQuery": "—",
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 1.5,
+      "indexState": "indexed",
+      "trend12m": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0288",
+      "sortOrder": 196
+    },
+    {
+      "id": "pg_0198",
       "url": "/ar/blogs/wholesale",
       "fullUrl": "https://www.weslamic.com/ar/blogs/wholesale",
       "market": "sa",
@@ -6096,12 +6158,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0260",
-      "sortOrder": 195
+      "sortOrder": 197
     },
     {
-      "id": "pg_0197",
+      "id": "pg_0199",
       "url": "/ar/blogs/b2b",
       "fullUrl": "https://www.weslamic.com/ar/blogs/b2b",
       "market": "sa",
@@ -6127,12 +6189,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0260",
-      "sortOrder": 196
+      "sortOrder": 198
     },
     {
-      "id": "pg_0198",
+      "id": "pg_0200",
       "url": "/fr/pages/about-us",
       "fullUrl": "https://www.weslamic.com/fr/pages/about-us",
       "market": "fr",
@@ -6158,12 +6220,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0283",
-      "sortOrder": 197
+      "sortOrder": 199
     },
     {
-      "id": "pg_0199",
+      "id": "pg_0201",
       "url": "/id/pages/faithcreator",
       "fullUrl": "https://www.weslamic.com/id/pages/faithcreator",
       "market": "id",
@@ -6189,12 +6251,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0288",
-      "sortOrder": 198
+      "sortOrder": 200
     },
     {
-      "id": "pg_0200",
+      "id": "pg_0202",
       "url": "/ar/blogs/faith-tech/id-cincin-dzikir-pintar",
       "fullUrl": "https://www.weslamic.com/ar/blogs/faith-tech/id-cincin-dzikir-pintar",
       "market": "sa",
@@ -6220,12 +6282,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0207",
-      "sortOrder": 199
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0208",
+      "sortOrder": 201
     },
     {
-      "id": "pg_0201",
+      "id": "pg_0203",
       "url": "/tr/pages/zikr-ring-wholesale",
       "fullUrl": "https://www.weslamic.com/tr/pages/zikr-ring-wholesale",
       "market": "tr",
@@ -6251,12 +6313,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0295",
-      "sortOrder": 200
+      "sortOrder": 202
     },
     {
-      "id": "pg_0202",
+      "id": "pg_0204",
       "url": "/id/blogs/lifestyle",
       "fullUrl": "https://www.weslamic.com/id/blogs/lifestyle",
       "market": "id",
@@ -6282,12 +6344,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0285",
-      "sortOrder": 201
+      "sortOrder": 203
     },
     {
-      "id": "pg_0203",
+      "id": "pg_0205",
       "url": "/ar/pages/contact-us",
       "fullUrl": "https://www.weslamic.com/ar/pages/contact-us",
       "market": "sa",
@@ -6313,12 +6375,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0264",
-      "sortOrder": 202
+      "sortOrder": 204
     },
     {
-      "id": "pg_0204",
+      "id": "pg_0206",
       "url": "/de/blogs/lifestyle",
       "fullUrl": "https://www.weslamic.com/de/blogs/lifestyle",
       "market": "de",
@@ -6344,12 +6406,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0273",
-      "sortOrder": 203
+      "sortOrder": 205
     },
     {
-      "id": "pg_0205",
+      "id": "pg_0207",
       "url": "/id/pages/weslamic-ring-sizer",
       "fullUrl": "https://www.weslamic.com/id/pages/weslamic-ring-sizer",
       "market": "id",
@@ -6375,43 +6437,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0288",
-      "sortOrder": 204
+      "sortOrder": 206
     },
     {
-      "id": "pg_0206",
-      "url": "/id/products/weslamic-itasbih-lavender-style",
-      "fullUrl": "https://www.weslamic.com/id/products/weslamic-itasbih-lavender-style",
-      "market": "id",
-      "pageType": "产品详情页",
-      "cluster": "itasbih-app",
-      "topQuery": "—",
-      "clicks": 0,
-      "impressions": 2,
-      "ctr": 0,
-      "position": 7,
-      "indexState": "indexed",
-      "trend12m": [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0
-      ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0289",
-      "sortOrder": 205
-    },
-    {
-      "id": "pg_0207",
+      "id": "pg_0208",
       "url": "/ar/blogs/faith-tech",
       "fullUrl": "https://www.weslamic.com/ar/blogs/faith-tech",
       "market": "sa",
@@ -6437,12 +6468,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0260",
-      "sortOrder": 206
+      "sortOrder": 207
     },
     {
-      "id": "pg_0208",
+      "id": "pg_0209",
       "url": "/id/pages/terms-of-service",
       "fullUrl": "https://www.weslamic.com/id/pages/terms-of-service",
       "market": "id",
@@ -6468,12 +6499,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0288",
-      "sortOrder": 207
+      "sortOrder": 208
     },
     {
-      "id": "pg_0209",
+      "id": "pg_0210",
       "url": "/tr/blogs/weslamic/weslamic-partner",
       "fullUrl": "https://www.weslamic.com/tr/blogs/weslamic/weslamic-partner",
       "market": "tr",
@@ -6499,12 +6530,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0294",
-      "sortOrder": 208
+      "sortOrder": 209
     },
     {
-      "id": "pg_0210",
+      "id": "pg_0211",
       "url": "/ar/pages/community",
       "fullUrl": "https://www.weslamic.com/ar/pages/community",
       "market": "sa",
@@ -6530,12 +6561,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0264",
-      "sortOrder": 209
+      "sortOrder": 210
     },
     {
-      "id": "pg_0211",
+      "id": "pg_0212",
       "url": "/de/pages/partner",
       "fullUrl": "https://www.weslamic.com/de/pages/partner",
       "market": "de",
@@ -6561,12 +6592,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0277",
-      "sortOrder": 210
+      "sortOrder": 211
     },
     {
-      "id": "pg_0212",
+      "id": "pg_0213",
       "url": "/ar/blogs/lifestyle",
       "fullUrl": "https://www.weslamic.com/ar/blogs/lifestyle",
       "market": "sa",
@@ -6592,12 +6623,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0260",
-      "sortOrder": 211
+      "sortOrder": 212
     },
     {
-      "id": "pg_0213",
+      "id": "pg_0214",
       "url": "/tr/pages/product-policy",
       "fullUrl": "https://www.weslamic.com/tr/pages/product-policy",
       "market": "tr",
@@ -6623,12 +6654,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0295",
-      "sortOrder": 212
+      "sortOrder": 213
     },
     {
-      "id": "pg_0214",
+      "id": "pg_0215",
       "url": "/id/cart",
       "fullUrl": "https://www.weslamic.com/id/cart",
       "market": "id",
@@ -6654,12 +6685,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0029",
-      "sortOrder": 213
+      "sortOrder": 214
     },
     {
-      "id": "pg_0215",
+      "id": "pg_0216",
       "url": "/ar/collections/azan-clock",
       "fullUrl": "https://www.weslamic.com/ar/collections/azan-clock",
       "market": "sa",
@@ -6685,13 +6716,13 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0262",
       "isPillar": true,
-      "sortOrder": 214
+      "sortOrder": 215
     },
     {
-      "id": "pg_0216",
+      "id": "pg_0217",
       "url": "/de/pages/faithcreator",
       "fullUrl": "https://www.weslamic.com/de/pages/faithcreator",
       "market": "de",
@@ -6717,12 +6748,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0277",
-      "sortOrder": 215
+      "sortOrder": 216
     },
     {
-      "id": "pg_0217",
+      "id": "pg_0218",
       "url": "/de/pages/shipping-policy",
       "fullUrl": "https://www.weslamic.com/de/pages/shipping-policy",
       "market": "de",
@@ -6748,12 +6779,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0277",
-      "sortOrder": 216
+      "sortOrder": 217
     },
     {
-      "id": "pg_0218",
+      "id": "pg_0219",
       "url": "/de/products/2026ramadan-gift-set-itasbih-relation-new-package",
       "fullUrl": "https://www.weslamic.com/de/products/2026ramadan-gift-set-itasbih-relation-new-package",
       "market": "de",
@@ -6779,12 +6810,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0278",
-      "sortOrder": 217
+      "sortOrder": 218
     },
     {
-      "id": "pg_0219",
+      "id": "pg_0220",
       "url": "/de/products/weslamic-nurdio-s1",
       "fullUrl": "https://www.weslamic.com/de/products/weslamic-nurdio-s1",
       "market": "de",
@@ -6810,12 +6841,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0278",
-      "sortOrder": 218
+      "sortOrder": 219
     },
     {
-      "id": "pg_0220",
+      "id": "pg_0221",
       "url": "/fr/cart",
       "fullUrl": "https://www.weslamic.com/fr/cart",
       "market": "fr",
@@ -6841,12 +6872,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0008",
-      "sortOrder": 219
+      "sortOrder": 220
     },
     {
-      "id": "pg_0221",
+      "id": "pg_0222",
       "url": "/fr/collections/azan-clock",
       "fullUrl": "https://www.weslamic.com/fr/collections/azan-clock",
       "market": "fr",
@@ -6872,13 +6903,13 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0239",
       "isPillar": true,
-      "sortOrder": 220
+      "sortOrder": 221
     },
     {
-      "id": "pg_0222",
+      "id": "pg_0223",
       "url": "/id/collections/islamic-nfc-wristband",
       "fullUrl": "https://www.weslamic.com/id/collections/islamic-nfc-wristband",
       "market": "id",
@@ -6904,13 +6935,13 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0132",
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0134",
       "isPillar": true,
-      "sortOrder": 221
+      "sortOrder": 222
     },
     {
-      "id": "pg_0223",
+      "id": "pg_0224",
       "url": "/tr/pages/about-us",
       "fullUrl": "https://www.weslamic.com/tr/pages/about-us",
       "market": "tr",
@@ -6936,12 +6967,12 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0295",
-      "sortOrder": 222
+      "sortOrder": 223
     },
     {
-      "id": "pg_0224",
+      "id": "pg_0225",
       "url": "/ar/products/weslamic-itasbih-lavender-style",
       "fullUrl": "https://www.weslamic.com/ar/products/weslamic-itasbih-lavender-style",
       "market": "sa",
@@ -6967,39 +6998,8 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0265",
-      "sortOrder": 223
-    },
-    {
-      "id": "pg_0225",
-      "url": "/id/pages/local-store-locations",
-      "fullUrl": "https://www.weslamic.com/id/pages/local-store-locations",
-      "market": "id",
-      "pageType": "落地页",
-      "cluster": "brand",
-      "topQuery": "—",
-      "clicks": 0,
-      "impressions": 1,
-      "ctr": 0,
-      "position": 2,
-      "indexState": "indexed",
-      "trend12m": [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0
-      ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0288",
       "sortOrder": 224
     },
     {
@@ -7029,7 +7029,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0288",
       "sortOrder": 225
     },
@@ -7060,7 +7060,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0264",
       "sortOrder": 226
     },
@@ -7091,7 +7091,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0265",
       "sortOrder": 227
     },
@@ -7122,7 +7122,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0270",
       "sortOrder": 228
     },
@@ -7153,7 +7153,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0265",
       "sortOrder": 229
     },
@@ -7184,7 +7184,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0277",
       "sortOrder": 230
     },
@@ -7215,8 +7215,8 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0144",
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0145",
       "sortOrder": 231
     },
     {
@@ -7246,7 +7246,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0284",
       "sortOrder": 232
     },
@@ -7277,7 +7277,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0289",
       "sortOrder": 233
     },
@@ -7308,8 +7308,8 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0132",
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0134",
       "isPillar": true,
       "sortOrder": 234
     },
@@ -7340,7 +7340,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0270",
       "sortOrder": 235
     },
@@ -7371,7 +7371,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0276",
       "sortOrder": 236
     },
@@ -7402,7 +7402,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0270",
       "sortOrder": 237
     },
@@ -7433,7 +7433,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0008",
       "sortOrder": 238
     },
@@ -7464,7 +7464,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0239",
       "isPillar": true,
       "sortOrder": 239
@@ -7496,7 +7496,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0296",
       "sortOrder": 240
     },
@@ -7527,8 +7527,8 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0207",
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0208",
       "sortOrder": 241
     },
     {
@@ -7558,7 +7558,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0270",
       "sortOrder": 242
     },
@@ -7589,8 +7589,8 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0107",
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0108",
       "sortOrder": 243
     },
     {
@@ -7620,7 +7620,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0289",
       "sortOrder": 244
     },
@@ -7651,7 +7651,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0295",
       "sortOrder": 245
     },
@@ -7682,7 +7682,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0270",
       "sortOrder": 246
     },
@@ -7713,7 +7713,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0264",
       "sortOrder": 247
     },
@@ -7744,7 +7744,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0270",
       "sortOrder": 248
     },
@@ -7775,7 +7775,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0293",
       "sortOrder": 249
     },
@@ -7806,7 +7806,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0080",
       "isPillar": true,
       "sortOrder": 250
@@ -7838,8 +7838,8 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0113",
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0114",
       "sortOrder": 251
     },
     {
@@ -7869,7 +7869,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0270",
       "sortOrder": 252
     },
@@ -7900,7 +7900,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0269",
       "sortOrder": 253
     },
@@ -7931,7 +7931,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0295",
       "sortOrder": 254
     },
@@ -7962,7 +7962,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0271",
       "sortOrder": 255
     },
@@ -7993,7 +7993,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0285",
       "sortOrder": 256
     },
@@ -8024,7 +8024,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0295",
       "sortOrder": 257
     },
@@ -8055,8 +8055,8 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0017",
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0018",
       "sortOrder": 258
     },
     {
@@ -8086,7 +8086,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0007",
       "sortOrder": 259,
       "isSynthetic": true
@@ -8097,7 +8097,7 @@
       "fullUrl": "https://www.weslamic.com/ar/blogs/muslim",
       "market": "sa",
       "pageType": "博客目录",
-      "cluster": "brand",
+      "cluster": "knowledge-dhikr",
       "topQuery": "—",
       "clicks": 0,
       "impressions": 0,
@@ -8118,7 +8118,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0260",
       "sortOrder": 260,
       "isSynthetic": true
@@ -8150,7 +8150,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0007",
       "sortOrder": 261,
       "isSynthetic": true
@@ -8160,8 +8160,8 @@
       "url": "/ar/collections/zikr-ring/products",
       "fullUrl": "https://www.weslamic.com/ar/collections/zikr-ring/products",
       "market": "sa",
-      "pageType": "产品详情页",
-      "cluster": "brand",
+      "pageType": "品类列表页",
+      "cluster": "zikr-ring",
       "topQuery": "—",
       "clicks": 0,
       "impressions": 0,
@@ -8182,8 +8182,8 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0021",
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0020",
       "sortOrder": 262,
       "isSynthetic": true
     },
@@ -8214,7 +8214,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0007",
       "sortOrder": 263,
       "isSynthetic": true
@@ -8224,7 +8224,7 @@
       "url": "/ar/products",
       "fullUrl": "https://www.weslamic.com/ar/products",
       "market": "sa",
-      "pageType": "产品详情页",
+      "pageType": "落地页",
       "cluster": "brand",
       "topQuery": "—",
       "clicks": 0,
@@ -8246,7 +8246,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0007",
       "sortOrder": 264,
       "isSynthetic": true
@@ -8278,7 +8278,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0002",
       "sortOrder": 265,
       "isSynthetic": true
@@ -8310,7 +8310,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0002",
       "sortOrder": 266,
       "isSynthetic": true
@@ -8342,7 +8342,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0267",
       "sortOrder": 267,
       "isSynthetic": true
@@ -8374,7 +8374,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0268",
       "sortOrder": 268,
       "isSynthetic": true
@@ -8406,7 +8406,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0268",
       "sortOrder": 269,
       "isSynthetic": true
@@ -8438,7 +8438,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0270",
       "sortOrder": 270,
       "isSynthetic": true
@@ -8470,7 +8470,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0002",
       "sortOrder": 271,
       "isSynthetic": true
@@ -8502,8 +8502,8 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0034",
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0035",
       "sortOrder": 272,
       "isSynthetic": true
     },
@@ -8513,7 +8513,7 @@
       "fullUrl": "https://www.weslamic.com/de/blogs/muslim",
       "market": "de",
       "pageType": "博客目录",
-      "cluster": "brand",
+      "cluster": "knowledge-dhikr",
       "topQuery": "—",
       "clicks": 0,
       "impressions": 0,
@@ -8534,7 +8534,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0273",
       "sortOrder": 273,
       "isSynthetic": true
@@ -8566,8 +8566,8 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0034",
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0035",
       "sortOrder": 274,
       "isSynthetic": true
     },
@@ -8576,8 +8576,8 @@
       "url": "/de/collections/zikr-ring/products",
       "fullUrl": "https://www.weslamic.com/de/collections/zikr-ring/products",
       "market": "de",
-      "pageType": "产品详情页",
-      "cluster": "brand",
+      "pageType": "品类列表页",
+      "cluster": "zikr-ring",
       "topQuery": "—",
       "clicks": 0,
       "impressions": 0,
@@ -8598,8 +8598,8 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0036",
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0037",
       "sortOrder": 275,
       "isSynthetic": true
     },
@@ -8630,8 +8630,8 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0034",
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0035",
       "sortOrder": 276,
       "isSynthetic": true
     },
@@ -8640,7 +8640,7 @@
       "url": "/de/products",
       "fullUrl": "https://www.weslamic.com/de/products",
       "market": "de",
-      "pageType": "产品详情页",
+      "pageType": "落地页",
       "cluster": "brand",
       "topQuery": "—",
       "clicks": 0,
@@ -8662,8 +8662,8 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0034",
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0035",
       "sortOrder": 277,
       "isSynthetic": true
     },
@@ -8694,7 +8694,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0008",
       "sortOrder": 278,
       "isSynthetic": true
@@ -8705,7 +8705,7 @@
       "fullUrl": "https://www.weslamic.com/fr/blogs/lifestyle",
       "market": "fr",
       "pageType": "博客目录",
-      "cluster": "brand",
+      "cluster": "knowledge-dhikr",
       "topQuery": "—",
       "clicks": 0,
       "impressions": 0,
@@ -8726,7 +8726,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0279",
       "sortOrder": 279,
       "isSynthetic": true
@@ -8737,7 +8737,7 @@
       "fullUrl": "https://www.weslamic.com/fr/blogs/muslim",
       "market": "fr",
       "pageType": "博客目录",
-      "cluster": "brand",
+      "cluster": "knowledge-dhikr",
       "topQuery": "—",
       "clicks": 0,
       "impressions": 0,
@@ -8758,7 +8758,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0279",
       "sortOrder": 280,
       "isSynthetic": true
@@ -8769,7 +8769,7 @@
       "fullUrl": "https://www.weslamic.com/fr/blogs/weslamic",
       "market": "fr",
       "pageType": "博客目录",
-      "cluster": "brand",
+      "cluster": "knowledge-dhikr",
       "topQuery": "—",
       "clicks": 0,
       "impressions": 0,
@@ -8790,7 +8790,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0279",
       "sortOrder": 281,
       "isSynthetic": true
@@ -8822,7 +8822,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0008",
       "sortOrder": 282,
       "isSynthetic": true
@@ -8832,7 +8832,7 @@
       "url": "/fr/products",
       "fullUrl": "https://www.weslamic.com/fr/products",
       "market": "fr",
-      "pageType": "产品详情页",
+      "pageType": "落地页",
       "cluster": "brand",
       "topQuery": "—",
       "clicks": 0,
@@ -8854,7 +8854,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0008",
       "sortOrder": 283,
       "isSynthetic": true
@@ -8886,7 +8886,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0029",
       "sortOrder": 284,
       "isSynthetic": true
@@ -8897,7 +8897,7 @@
       "fullUrl": "https://www.weslamic.com/id/blogs/weslamic",
       "market": "id",
       "pageType": "博客目录",
-      "cluster": "brand",
+      "cluster": "knowledge-dhikr",
       "topQuery": "—",
       "clicks": 0,
       "impressions": 0,
@@ -8918,7 +8918,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0285",
       "sortOrder": 285,
       "isSynthetic": true
@@ -8928,8 +8928,8 @@
       "url": "/id/collections/zikr-ring/products",
       "fullUrl": "https://www.weslamic.com/id/collections/zikr-ring/products",
       "market": "id",
-      "pageType": "产品详情页",
-      "cluster": "brand",
+      "pageType": "品类列表页",
+      "cluster": "zikr-ring",
       "topQuery": "—",
       "clicks": 0,
       "impressions": 0,
@@ -8950,7 +8950,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0086",
       "sortOrder": 286,
       "isSynthetic": true
@@ -8982,7 +8982,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0029",
       "sortOrder": 287,
       "isSynthetic": true
@@ -8992,7 +8992,7 @@
       "url": "/id/products",
       "fullUrl": "https://www.weslamic.com/id/products",
       "market": "id",
-      "pageType": "产品详情页",
+      "pageType": "落地页",
       "cluster": "brand",
       "topQuery": "—",
       "clicks": 0,
@@ -9014,7 +9014,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0029",
       "sortOrder": 288,
       "isSynthetic": true
@@ -9046,7 +9046,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0002",
       "sortOrder": 289,
       "isSynthetic": true
@@ -9056,7 +9056,7 @@
       "url": "/products",
       "fullUrl": "https://www.weslamic.com/products",
       "market": "us",
-      "pageType": "产品详情页",
+      "pageType": "落地页",
       "cluster": "brand",
       "topQuery": "—",
       "clicks": 0,
@@ -9078,7 +9078,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0002",
       "sortOrder": 290,
       "isSynthetic": true
@@ -9110,8 +9110,8 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0017",
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0018",
       "sortOrder": 291,
       "isSynthetic": true
     },
@@ -9121,7 +9121,7 @@
       "fullUrl": "https://www.weslamic.com/tr/blogs/lifestyle",
       "market": "tr",
       "pageType": "博客目录",
-      "cluster": "brand",
+      "cluster": "knowledge-dhikr",
       "topQuery": "—",
       "clicks": 0,
       "impressions": 0,
@@ -9142,7 +9142,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0292",
       "sortOrder": 292,
       "isSynthetic": true
@@ -9153,7 +9153,7 @@
       "fullUrl": "https://www.weslamic.com/tr/blogs/weslamic",
       "market": "tr",
       "pageType": "博客目录",
-      "cluster": "brand",
+      "cluster": "knowledge-dhikr",
       "topQuery": "—",
       "clicks": 0,
       "impressions": 0,
@@ -9174,7 +9174,7 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
+      "lastSync": "2026-05-25T05:38:28.244Z",
       "parentId": "pg_0292",
       "sortOrder": 293,
       "isSynthetic": true
@@ -9206,8 +9206,8 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0017",
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0018",
       "sortOrder": 294,
       "isSynthetic": true
     },
@@ -9216,7 +9216,7 @@
       "url": "/tr/products",
       "fullUrl": "https://www.weslamic.com/tr/products",
       "market": "tr",
-      "pageType": "产品详情页",
+      "pageType": "落地页",
       "cluster": "brand",
       "topQuery": "—",
       "clicks": 0,
@@ -9238,8 +9238,8 @@
         0,
         0
       ],
-      "lastSync": "2026-05-24T15:17:17.674Z",
-      "parentId": "pg_0017",
+      "lastSync": "2026-05-25T05:38:28.244Z",
+      "parentId": "pg_0018",
       "sortOrder": 295,
       "isSynthetic": true
     }

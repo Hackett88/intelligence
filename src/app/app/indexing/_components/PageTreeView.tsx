@@ -246,12 +246,15 @@ export function PageTreeView({
   // ─── 列布局 ───
   // 所有非根、非空列都走 8 棱柱模式；N=0 显示"叶子"提示；Logo 单独 root 模式
   // height 取自 nodeH 派生（FIXED_CANVAS_CONTENT_H）—— 由 renderCanvas 注入
-  type ColLayout = { mode: "root" | "prism" | "empty"; count: number };
+  type ColLayout = { mode: "root" | "prism" | "flat" | "empty"; count: number };
   const computeLayouts = (): ColLayout[] =>
     columns.map((col) => {
       if (col.isSiteRoot) return { mode: "root", count: 1 };
       const N = col.nodes.length;
       if (N === 0) return { mode: "empty", count: 0 };
+      // 卡片数 < 3（1 或 2 张）走平铺：没有"无限循环"的素材，做成滚轮只会让同几张卡
+      // 循环重复，反而别扭。直接平铺 —— 单卡居中对齐中轴，双卡上下排列留间距。
+      if (N < 3) return { mode: "flat", count: N };
       return { mode: "prism", count: N };
     });
 
@@ -308,28 +311,12 @@ export function PageTreeView({
     return map;
   }, [columns, path]);
 
-  // R96 一致性规则：原"焦点卡有子页 → 自动展开新转轮"只对 C1 触发了一次（onSiteRootClick / rotateCylinder
-  // 都只 push 一级），导致 C2 默认焦点哪怕有 4 个子页，C3 也不会自动出现 —— 必须点 CTA 才显示。
-  // 修复方案：所有 setPath 之后顺着"下一列默认焦点 = nodes[0]"链路级联展开，直到 nodes[0] 是叶子。
-  // 用 ref 取 childrenMap 最新值，让 rotateCylinder 闭包也能用。SAFETY=8 防失控（横向滚动可容纳）。
-  const cascadePath = (basePath: string[]): string[] => {
-    const out = [...basePath];
-    const SAFETY = 8;
-    const cm = childrenMapRef.current;
-    while (out.length < SAFETY + 1) {
-      const lastPid = out[out.length - 1];
-      if (!lastPid || lastPid === ROOT_OPEN_MARKER || lastPid === SITE_ROOT_ID) break;
-      // children(lastPid) 就是"下一列"的 nodes —— 它们的 nodes[0] 是该列默认焦点
-      const colNodes = cm.get(lastPid) ?? [];
-      if (colNodes.length === 0) break;
-      const firstFocus = colNodes[0];
-      // 默认焦点本身有子页，再下一列才有意义被自动展开
-      const firstFocusHasKids = (cm.get(firstFocus.id) ?? []).length > 0;
-      if (!firstFocusHasKids) break;
-      out.push(firstFocus.id);
-    }
-    return out;
-  };
+  // R114 纵深精确控制 —— 取消"默认焦点链递归级联"（原 R96 行为）。
+  // 旧逻辑顺着每列 nodes[0] 一路下钻到叶子：点一次卡片会瞬间炸开很多层转轮，界面剧烈跳动。
+  // 新逻辑"原样返回"：path 末元素的直接子页由 columns 派生自动形成【恰好一层】预览转轮，
+  // 预览转轮焦点卡不发亮；要继续下钻必须逐层点击焦点卡片（每点一次只多展开一层），
+  // 这样纵深完全由用户点击精确控制。保留函数签名，所有调用点无需改动。
+  const cascadePath = (basePath: string[]): string[] => [...basePath];
 
   const getCyl = (colKey: string, count: number): CylState => {
     const s = cyls[colKey];
@@ -434,6 +421,10 @@ export function PageTreeView({
             setPath([SITE_ROOT_ID, ROOT_OPEN_MARKER]);
           } else {
             setPath((prev) => prev.slice(0, colIdx));
+            // R112：深层焦点滚到叶子（无子页）→ 让标题栏 badge 跟随该叶子（子树=自身，总数 1）
+            if (nextNode && (scope.kind !== "subtree" || scope.pageId !== nextNode.id)) {
+              onScopeChange({ kind: "subtree", pageId: nextNode.id });
+            }
           }
           // 清掉右侧旧列的 cyls / busyRef，避免"重新展开同名列时焦点错乱 / 卡 busy"
           setCyls((prev) => {
@@ -513,8 +504,11 @@ export function PageTreeView({
       const firstRootHasKids =
         firstRoot && (childrenMap.get(firstRoot.id) ?? []).length > 0;
       if (firstRoot && firstRootHasKids) {
-        // R96 一致性：跟"焦点 rotate 到有子页 → 级联展开下游列"同规则
+        // R114：展开 Logo = 默认选中第一张一级页 —— 点亮它（scope=firstRoot）+ 弹出其子转轮【一层】预览。
+        // 不再深层递归级联（cascadePath 已改为只展开一层）。skip 一次 scope→path 回灌避免覆盖 path。
+        skipNextScopeToPathSync.current = true;
         setPath(cascadePath([SITE_ROOT_ID, firstRoot.id]));
+        onScopeChange({ kind: "subtree", pageId: firstRoot.id });
       } else {
         setPath([SITE_ROOT_ID, ROOT_OPEN_MARKER]);
       }
@@ -696,23 +690,20 @@ export function PageTreeView({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [expanded, scope, path]);
 
-  // ─── 标题栏 CTA 跟随"最右一列棱柱的焦点节点" ───
-  // 数字语义统一为"直接子页数"(kids.length) —— 与卡片右上角数字框对齐
-  // 例：C2 焦点 = /collections/tasbih（直接 2 子页）→ CTA "2 网址"
-  //     用 aggregateSubtree.pages（含自身+后代=3）会与卡片数字框 2 不一致，故弃用
-  // 叶子焦点（kids=0）→ CTA 隐藏，由"详情 →"按钮承担入口
-  const lastColInfo = (() => {
-    const lastCol = columns[columns.length - 1];
-    if (!lastCol || lastCol.isSiteRoot || lastCol.nodes.length === 0) return null;
-    const cyl = cyls[lastCol.key];
-    const N = lastCol.nodes.length;
-    const expected = colExpectedFocus[lastCol.key] ?? 0;
-    const focusIdx = cyl ? (((cyl.focus % N) + N) % N) : (((expected % N) + N) % N);
-    const node = lastCol.nodes[focusIdx];
+  // ─── 标题栏 CTA 跟随"用户当前聚焦的卡片"(scope.pageId) ───
+  // R112：与卡片右上角数字框（= 直接子页数 kids.length，语义"下钻一层"）刻意区分 ——
+  //   这里显示该节点整棵子树下被索引的【网址总数】：aggregateSubtree.pages，
+  //   含节点自身（若是真实页）+ 全部真实后代，口径与列表视图 scopedReal 完全一致。
+  //   点 badge 切到列表即可看到这 N 条 URL 的逐行明细。
+  // 解决的问题："卡片只露直接子页数（如 / 显示 6），子树真实规模被藏起来"——
+  //   现在"点哪张卡片 → 右上角就显示这张卡片名下的总链接数"。
+  // scope=all（未聚焦 / Logo 收起）时 badge 隐藏，显示占位引导。
+  const focusedScopeInfo = (() => {
+    if (scope.kind !== "subtree") return null;
+    const node = byId.get(scope.pageId);
     if (!node) return null;
-    const kids = childrenMap.get(node.id) ?? [];
-    if (kids.length === 0) return null;
-    return { node, count: kids.length };
+    const agg = aggregateSubtree(node.id, childrenMap, byId);
+    return { node, count: agg.pages };
   })();
 
   // ─── 标题栏（主视图 + 弹层共用） ───
@@ -764,23 +755,24 @@ export function PageTreeView({
         <span className="opacity-60">·</span>
         <span>{isModal ? "ESC / 点击外部关闭" : "点节点 → 探索下钻 · ←→ 翻面 · 焦点卡右侧 → 网址列表"}</span>
       </span>
-      {/* 显式 CTA：跟随"最右一列棱柱的焦点节点"动态显示其子树 URL 数
-          wheel / 点卡焦点切换都立刻同步 → 用户始终看到"最深一列正在看的那张卡"的网址规模 */}
-      {lastColInfo && onRequestListView && (
+      {/* 显式 CTA：跟随"用户当前聚焦的卡片"(scope.pageId) 动态显示其整棵子树的网址总数
+          点卡 / wheel 焦点切换都立刻同步 → 用户始终看到"正在看的那张卡"名下的真实网址规模
+          数字 = aggregateSubtree.pages（含自身 + 全部真实后代），与点进去的列表条数一致 */}
+      {focusedScopeInfo && onRequestListView && (
         <button
           type="button"
-          onClick={() => onRequestListView(lastColInfo.node.id)}
-          title={`查看「${lastColInfo.node.url || "/"}」的 ${lastColInfo.count} 个直接子页（切换到列表视图）`}
+          onClick={() => onRequestListView(focusedScopeInfo.node.id)}
+          title={`查看「${focusedScopeInfo.node.url || "/"}」子树下被索引的全部 ${focusedScopeInfo.count} 个网址（切换到列表视图）`}
           className="ml-1 inline-flex items-center gap-1.5 h-6 px-2 rounded border border-manor-brassHi/55 bg-[rgba(20,42,28,.92)] text-manor-brassHi text-[10.5px] tracking-[0.12em] hover:border-manor-brassHi hover:bg-[rgba(36,68,42,.96)] hover:shadow-[0_0_10px_-2px_rgba(239,216,154,.85)] transition-colors"
           style={{ fontFamily: "var(--font-sc), 'Cormorant SC', serif" }}
         >
           <ListChecks size={11} strokeWidth={2.2} />
-          <span className="tabular-nums">{lastColInfo.count}</span>
+          <span className="tabular-nums">{focusedScopeInfo.count}</span>
           <span aria-hidden="true">网址 →</span>
         </button>
       )}
       {/* Logo 未展开（无棱柱列）时的占位引导，提醒用户先打开 Logo 才能产生焦点 → 解锁 CTA */}
-      {!lastColInfo && onRequestListView && (
+      {!focusedScopeInfo && onRequestListView && (
         <span
           className="ml-1 hidden md:inline-flex items-center gap-1 h-6 px-2 rounded border border-dashed border-manor-brass/25 text-manor-inkFaint text-[10.5px] tracking-[0.08em] italic select-none"
           style={{ fontFamily: "var(--font-serif), 'EB Garamond', serif" }}
@@ -882,12 +874,18 @@ export function PageTreeView({
 
     const layouts = computeLayouts();
     const gap = COL_GAP(isBig);
+    // 平铺列卡片之间的纵向间距（双卡时生效）
+    const flatGap = isBig ? 24 : 16;
     const colXAt = (i: number): number => PAD_X + i * (COL_WIDTH + gap);
     const canvasW = PAD_X * 2 + columns.length * COL_WIDTH + Math.max(0, columns.length - 1) * gap;
     const canvasH = PAD_TOP + fixedContentH + PAD_BOTTOM;
     const colHeight = (i: number): number => {
-      const m = layouts[i].mode;
-      return m === "root" ? rootDefaultH : m === "prism" ? prismWindowH : nodeH;
+      const L = layouts[i];
+      if (L.mode === "root") return rootDefaultH;
+      if (L.mode === "prism") return prismWindowH;
+      // 平铺：N 张卡片各 nodeH 高 + (N-1) 道间距；整体在固定画布内垂直居中
+      if (L.mode === "flat") return L.count * nodeH + Math.max(0, L.count - 1) * flatGap;
+      return nodeH;
     };
     const colContentTopY = (i: number): number =>
       PAD_TOP + (fixedContentH - colHeight(i)) / 2;
@@ -902,9 +900,9 @@ export function PageTreeView({
     const colHasFocus = (colIdx: number): boolean => {
       if (columns[colIdx].isSiteRoot) return true;
       if (columns[colIdx].nodes.length === 0) return false;
-      // path 显式选中 OR 棱柱已展开（默认焦点=0）
+      // path 显式选中 OR 棱柱/平铺已展开（默认焦点=0）
       const pIdx = columns[colIdx].nodes.findIndex((n) => n.id === path[colIdx]);
-      return pIdx >= 0 || layouts[colIdx].mode === "prism";
+      return pIdx >= 0 || layouts[colIdx].mode === "prism" || layouts[colIdx].mode === "flat";
     };
 
     // 主连线：父列焦点 → 子列焦点（仅一条，避免 3D 旋转下连线视觉错乱）
@@ -1133,8 +1131,8 @@ export function PageTreeView({
                 );
               })()}
 
-              {/* C1+：8 棱柱节点容器（任意 N >= 1 都走棱柱） */}
-              {!col.isSiteRoot && col.nodes.length > 0 && (
+              {/* C1+：8 棱柱节点容器（N >= 3 走棱柱滚轮；N < 3 改走下方平铺分支） */}
+              {!col.isSiteRoot && layout.mode === "prism" && (
                 <div
                   key={`${col.key}-anim`}
                   className="column-anim absolute focus:outline-none"
@@ -1190,6 +1188,10 @@ export function PageTreeView({
                         ? { pages: 1, clicks: node.clicks, impressions: node.impressions }
                         : aggregateSubtree(node.id, childrenMap, byId);
                       const isVisualFocus = slotOffset === 0;
+                      // R113：发亮（金边 + 外发光）只给"用户点击 / 滚轮选中的那张卡"(node.id === scope.pageId)。
+                      // 级联自动展开列的焦点卡只居中可读、不发亮 —— 任一时刻全树最多一张卡在亮。
+                      const isSelected =
+                        isVisualFocus && scope.kind === "subtree" && scope.pageId === node.id;
                       // 内容密度按"离焦距离"递进 —— 棱柱透视投影会把远槽位压扁，
                       // 强行塞两行会重叠糊作一团。距焦点越远，内容越精简：
                       //   0  →  完整双行（chip 前置 + CLK/IMP 数字栏）
@@ -1199,18 +1201,18 @@ export function PageTreeView({
                       const showMetricsRow = dist === 0;
                       const showPageType = dist <= 1;
 
-                      let borderCls = "border-manor-brassDim/70";
-                      let bgCls = "bg-[rgba(34,60,42,.97)]";
-                      if (isPillar) {
-                        borderCls = "border-manor-brassHi/80 border-[1.5px]";
-                        bgCls = "bg-[rgba(58,88,52,.97)]";
-                      } else if (isSubHub) {
-                        borderCls = "border-manor-brassDim/75";
-                      }
-                      const selectedCls = isVisualFocus
-                        // 焦点态背景从原亮绿改为更深绿 — 浅色字对比度↑、金光晕从 44px 收紧到 30px 防"光斑遮卡"
-                        ? "border-manor-brassHi! shadow-[0_0_0_2px_rgba(239,216,154,.95),0_0_30px_-4px_rgba(239,216,154,.85)] bg-[rgba(28,52,32,1)]!"
-                        : "hover:border-manor-brassHi/80";
+                      // R115：pillar 不再用更亮的底色/边框。当整列都是 pillar（如 /collections/* 内容页，
+                      // inferIsPillar 把品类列表页全判为枢纽）时，那套高亮底色会让整列与其它转轮"变色"，
+                      // 破坏一致性。pillar 身份改为只靠左侧菱形 PillarMark 标识，卡片底色/边框与普通节点统一。
+                      const borderCls = isSubHub ? "border-manor-brassDim/75" : "border-manor-brassDim/70";
+                      const bgCls = "bg-[rgba(34,60,42,.97)]";
+                      const selectedCls = !isVisualFocus
+                        ? "hover:border-manor-brassHi/80"
+                        : isSelected
+                          // 选中态：粗金边 + 30px 外发光（光晕从 44px 收紧防"光斑遮卡"）+ 深绿底
+                          ? "border-manor-brassHi! shadow-[0_0_0_2px_rgba(239,216,154,.95),0_0_30px_-4px_rgba(239,216,154,.85)] bg-[rgba(28,52,32,1)]!"
+                          // 自动焦点（级联展开）：仅深绿底居中，保留各自 borderCls 自然边，不加金边/发光
+                          : "bg-[rgba(28,52,32,1)]!";
                       const isFlashing = localFlashId === node.id;
                       const flashCls = isFlashing ? "ptv-node-flash" : "";
 
@@ -1466,6 +1468,10 @@ export function PageTreeView({
                     const focusKids = focusNode ? (childrenMap.get(focusNode.id) ?? []) : [];
                     const focusIsLeaf = focusKids.length === 0;
                     const focusIsPillar = !!focusNode?.isPillar;
+                    // R113：焦点卡的"发亮"装饰（底部回弹光 R37 + 赤道反光带 R47）只给选中卡，
+                    // 自动焦点列保持平整不发亮。
+                    const focusIsSelected =
+                      !!focusNode && scope.kind === "subtree" && scope.pageId === focusNode.id;
                     const focusSubAgg = focusNode
                       ? (focusIsLeaf
                           ? { pages: 1, clicks: focusNode.clicks, impressions: focusNode.impressions }
@@ -1623,6 +1629,8 @@ export function PageTreeView({
                             marginTop: -nodeH * 0.7,
                             background:
                               "radial-gradient(ellipse at 42% 90%, rgba(212,179,111,0.18) 0%, rgba(212,179,111,0.06) 35%, transparent 65%)",
+                            // R113：底部回弹光属于"发亮"，仅选中卡片显示；自动焦点隐藏
+                            display: focusIsSelected ? undefined : "none",
                             mixBlendMode: "screen",
                             zIndex: 4,
                           }}
@@ -1711,6 +1719,8 @@ export function PageTreeView({
                             // R83 焊缝语义：反光线 + 朝焦点中心方向 1px 暗凹痕，
                             // 让焦点卡与邻面 "焊" 在一起而非 "飘" 在容器里
                             boxShadow: "0 0 7px rgba(255,246,210,0.55), 0 1px 0 rgba(0,0,0,0.45)",
+                            // R113：赤道反光带也属"发亮"，仅选中卡片显示；自动焦点隐藏
+                            display: focusIsSelected ? undefined : "none",
                             zIndex: 9,
                           }}
                         />
@@ -2018,6 +2028,195 @@ export function PageTreeView({
                       </>
                     );
                   })()}
+                </div>
+              )}
+
+              {/* C1+：平铺节点容器（N < 3）—— 不做滚轮，直接平铺。
+                  单卡：colHeight = nodeH，由 colContentTopY 居中 → 自然对齐中轴。
+                  双卡：上下排列 + flatGap 间距，整体在固定画布内垂直居中。
+                  卡片视觉与棱柱焦点卡一致（金边发亮只给被点击/选中的那张，R113）。 */}
+              {!col.isSiteRoot && layout.mode === "flat" && (
+                <div
+                  key={`${col.key}-flat`}
+                  className="column-anim absolute"
+                  style={{ left: 0, top: contentTop, width: COL_WIDTH, height: colH }}
+                >
+                  {col.nodes.map((node, nodeIdx) => {
+                    const kids = childrenMap.get(node.id) ?? [];
+                    const isLeaf = kids.length === 0;
+                    const isPillar = !!node.isPillar;
+                    const isSubHub = !isLeaf && !isPillar;
+                    const subAgg = isLeaf
+                      ? { pages: 1, clicks: node.clicks, impressions: node.impressions }
+                      : aggregateSubtree(node.id, childrenMap, byId);
+                    // R113：金边外发光只给被点击/选中（scope.pageId）的那张卡
+                    const isSel =
+                      scope.kind === "subtree" && scope.pageId === node.id;
+                    const borderCls = isSubHub
+                      ? "border-manor-brassDim/75"
+                      : "border-manor-brassDim/70";
+                    const selectedCls = isSel
+                      ? "border-manor-brassHi! shadow-[0_0_0_2px_rgba(239,216,154,.95),0_0_30px_-4px_rgba(239,216,154,.85)] bg-[rgba(28,52,32,1)]!"
+                      : "bg-[rgba(34,60,42,.97)] hover:border-manor-brassHi/80";
+                    const flashCls = localFlashId === node.id ? "ptv-node-flash" : "";
+                    const titleText = isLeaf
+                      ? "叶子页 · 点击查看 URL 详情"
+                      : `${kids.length} 个子页 · 点击下钻；查看本层所有网址请点右侧 → 网址`;
+                    return (
+                      <button
+                        key={`${col.key}-flat-${node.id}`}
+                        type="button"
+                        // 平铺卡片始终"完整可见"，点击语义等同棱柱焦点卡（isVisualFocus=true）：
+                        // 有子页 → 下钻并点亮；叶子 → 点亮 + 揭示「详情 →」二段确认
+                        onClick={() => onNodeClick(i, nodeIdx, node, col.key, true)}
+                        title={titleText}
+                        className={[
+                          "group text-left flex flex-col justify-center px-3.5 pr-20 border rounded-md overflow-hidden absolute",
+                          "transition-[border-color,box-shadow,background-color] duration-200",
+                          borderCls,
+                          selectedCls,
+                          flashCls,
+                        ].join(" ")}
+                        style={{
+                          left: 0,
+                          top: nodeIdx * (nodeH + flatGap),
+                          width: COL_WIDTH,
+                          height: nodeH,
+                        }}
+                      >
+                        {/* 右上角 CTA：非叶子 → 子页数下钻胶囊；叶子 + 已揭示 → 详情胶囊；否则装饰箭头 */}
+                        {!isLeaf ? (
+                          <span
+                            role="button"
+                            tabIndex={0}
+                            onClick={(e) => handleDrillIntoChildren(e, node, i)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleDrillIntoChildren(e, node, i);
+                              }
+                            }}
+                            title={`下钻 · ${kids.length} 个直接子页`}
+                            data-cta-pill="true"
+                            className="ptv-cta-pulse absolute right-1.5 top-1 inline-flex items-center justify-center min-w-[28px] h-6 px-2 rounded-[3px] border border-manor-brassHi/70 bg-[rgba(20,42,28,.92)] text-manor-brassHi text-[12px] font-semibold tabular-nums hover:border-manor-brassHi hover:bg-[rgba(36,68,42,.96)] hover:shadow-[0_0_14px_-2px_rgba(239,216,154,.95)] transition-colors cursor-pointer select-none"
+                            style={{ fontFamily: "var(--font-serif), 'EB Garamond', serif" }}
+                          >
+                            {kids.length}
+                          </span>
+                        ) : isLeaf && pendingActionId === node.id ? (
+                          <span
+                            role="button"
+                            tabIndex={0}
+                            onClick={(e) => { setPendingActionId(null); handleRequestListView(e, node); }}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setPendingActionId(null);
+                                handleRequestListView(e as unknown as React.MouseEvent, node);
+                              }
+                            }}
+                            title="查看本页详情 → 切到列表视图（抽屉只能从列表网址行打开）"
+                            data-cta-pill="true"
+                            className="ptv-cta-pulse absolute right-1.5 top-1 inline-flex items-center gap-1 px-2 h-6 rounded-[3px] border border-manor-brassHi/70 bg-[rgba(20,42,28,.92)] text-manor-brassHi text-[10.5px] tracking-[0.12em] hover:border-manor-brassHi hover:bg-[rgba(36,68,42,.96)] hover:shadow-[0_0_14px_-2px_rgba(239,216,154,.95)] transition-colors cursor-pointer select-none"
+                            style={{ fontFamily: "var(--font-sc), 'Cormorant SC', serif" }}
+                          >
+                            <span aria-hidden="true">详情</span>
+                            <span aria-hidden="true" className="ptv-cta-arrow">→</span>
+                          </span>
+                        ) : (
+                          <span
+                            aria-hidden="true"
+                            className="absolute right-0 top-0 bottom-0 flex items-center justify-center"
+                            style={{ width: 24 }}
+                          >
+                            <span
+                              style={{
+                                fontFamily: "var(--font-sc), 'Cormorant SC', serif",
+                                fontSize: 13,
+                                lineHeight: 1,
+                                letterSpacing: "0.18em",
+                                color: isLeaf ? "rgba(248,230,176,1)" : "rgba(212,179,111,.85)",
+                                display: "inline-block",
+                              }}
+                            >
+                              {isLeaf ? "◦" : "▸"}
+                            </span>
+                          </span>
+                        )}
+                        {/* url 行 */}
+                        <div className="flex items-center gap-2 min-w-0">
+                          {isPillar ? <PillarMark /> : <SpokeMark dim={!isSel} />}
+                          <IndexStateDot state={node.indexState} size={6} />
+                          {node.url === "/" && <HomeIcon size={11} className="shrink-0 text-manor-brassDim" />}
+                          <span
+                            className="flex-1 min-w-0 truncate text-[14px] font-semibold text-[#FBF1D9]"
+                            style={{
+                              textShadow: "0 1px 0 rgba(0,0,0,0.7), 0 0 2px rgba(0,0,0,0.5)",
+                              letterSpacing: "0.01em",
+                            }}
+                          >
+                            {node.url || "/"}
+                          </span>
+                        </div>
+                        {/* metrics 行：CLK / IMP / CTR（子树聚合，CTR = 点击/曝光） */}
+                        <div
+                          className="flex items-center gap-1.5 mt-1 min-w-0"
+                          style={{ fontFamily: "var(--font-serif), 'EB Garamond', serif" }}
+                        >
+                          <span className="shrink-0">
+                            <PageTypeChip value={node.pageType} size="sm" />
+                          </span>
+                          <span className="flex-1 min-w-0" />
+                          <span
+                            className="shrink-0 inline-flex items-baseline gap-[2px] tabular-nums text-[#F0E2B5]"
+                            style={{ textShadow: "0 1px 0 rgba(0,0,0,0.7)" }}
+                          >
+                            <span
+                              className="text-manor-brassHi/85 tracking-[0.10em] font-semibold"
+                              style={{ fontFamily: "var(--font-sc), 'Cormorant SC', serif", fontSize: 8.5 }}
+                            >
+                              CLK
+                            </span>
+                            <span className="text-[11px] font-semibold">
+                              {subAgg.clicks > 0 ? subAgg.clicks.toLocaleString() : "—"}
+                            </span>
+                          </span>
+                          <span aria-hidden="true" className="shrink-0 text-manor-brass/40 text-[9px]">·</span>
+                          <span
+                            className="shrink-0 inline-flex items-baseline gap-[2px] tabular-nums text-[#D9C9A0]"
+                            style={{ textShadow: "0 1px 0 rgba(0,0,0,0.7)" }}
+                          >
+                            <span
+                              className="text-manor-brassHi/75 tracking-[0.10em] font-semibold"
+                              style={{ fontFamily: "var(--font-sc), 'Cormorant SC', serif", fontSize: 8.5 }}
+                            >
+                              IMP
+                            </span>
+                            <span className="text-[11px] font-semibold">
+                              {subAgg.impressions > 0 ? formatLargeNumber(subAgg.impressions) : "—"}
+                            </span>
+                          </span>
+                          <span aria-hidden="true" className="shrink-0 text-manor-brass/40 text-[9px]">·</span>
+                          <span
+                            className="shrink-0 inline-flex items-baseline gap-[2px] tabular-nums text-[#C8B68A]"
+                            style={{ textShadow: "0 1px 0 rgba(0,0,0,0.7)" }}
+                          >
+                            <span
+                              className="text-manor-brassHi/70 tracking-[0.10em] font-semibold"
+                              style={{ fontFamily: "var(--font-sc), 'Cormorant SC', serif", fontSize: 8.5 }}
+                            >
+                              CTR
+                            </span>
+                            <span className="text-[11px] font-semibold">
+                              {subAgg.impressions > 0 ? `${(subAgg.clicks / subAgg.impressions * 100).toFixed(1)}%` : "—"}
+                            </span>
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               )}
 

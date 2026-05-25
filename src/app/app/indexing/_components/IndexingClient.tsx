@@ -309,6 +309,31 @@ export function IndexingClient({ initialData, stats, lastSyncMeta }: IndexingCli
     [scoped]
   );
 
+  // 顶部 SummaryBar 跟随当前"发亮卡片"(scope) 实时变动：
+  //   · scope=all   → 用权威全站汇总（snapshot.summary 口径，与原行为一致）
+  //   · scope=子树  → 按该子树的真实页 (scopedReal) 实时重算，口径与列表视图完全一致，
+  //                   也与树视图发亮卡片的 CLK/IMP/CTR(=点击/曝光) 对应。
+  const scopedStats: IndexingStats = useMemo(() => {
+    if (scope.kind === "all") return stats;
+    const rows = scopedReal;
+    const n = rows.length;
+    const totalClicks = rows.reduce((s, p) => s + p.clicks, 0);
+    const totalImpressions = rows.reduce((s, p) => s + p.impressions, 0);
+    return {
+      totalPages: n,
+      totalClicks,
+      totalImpressions,
+      // CTR 用加权口径（总点击/总曝光），与发亮卡片 CTR、GSC 全站 CTR 同义
+      avgCtr: totalImpressions > 0 ? totalClicks / totalImpressions : 0,
+      // 平均排名沿用 transform 的简单均值口径
+      avgPosition: n
+        ? parseFloat((rows.reduce((s, p) => s + p.position, 0) / n).toFixed(1))
+        : 0,
+      top10Pages: rows.filter((p) => p.position > 0 && p.position <= 10).length,
+      lastSync: stats.lastSync,
+    };
+  }, [scope, scopedReal, stats]);
+
   useEffect(() => {
     setCurrentPage(1);
   }, [scopedReal]);
@@ -468,7 +493,7 @@ export function IndexingClient({ initialData, stats, lastSyncMeta }: IndexingCli
         {/* 统计指标 */}
         <div className="px-5 py-3 border-b border-manor-brass/15 bg-manor-bg2 shrink-0">
           <SummaryBar
-            stats={stats}
+            stats={scopedStats}
             onCardClick={(key) => {
               // 联动筛选：top10 → position 1-10；其它卡先不联动
               if (key === "top10Pages") {
