@@ -5,7 +5,7 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { BaroqueCorners, Monogram } from "@/components/ManorOrnaments";
+import { BaroqueCorners } from "@/components/ManorOrnaments";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -34,16 +34,31 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-manor-void paper-grain">
+    <div
+      className="flex min-h-screen items-center justify-center bg-manor-void paper-grain bg-cover bg-center bg-no-repeat"
+      style={{ backgroundImage: "url(/login-bg.webp)" }}
+    >
       <div
         className="relative w-full max-w-sm glass-panel-brass p-10"
         style={{ borderRadius: 6 }}
       >
         <BaroqueCorners size={22} />
 
-        {/* Monogram crest */}
+        {/* Brand crest — 与首页顶栏同一枚 logo（brand-logo.png + 金色辉光） */}
         <div className="flex justify-center mb-5">
-          <Monogram size={70} />
+          <span className="brand-crest brass-aura" style={{ width: 64, height: 64 }}>
+            <img
+              src="/brand-logo.png"
+              alt="WESLAMIC"
+              width={60}
+              height={60}
+              style={{
+                display: "block",
+                filter:
+                  "drop-shadow(0 0 6px rgba(239,216,154,0.6)) drop-shadow(0 0 12px rgba(239,216,154,0.25))",
+              }}
+            />
+          </span>
         </div>
 
         <div className="text-center">
@@ -51,7 +66,7 @@ export default function LoginPage() {
             className="text-brass-gradient text-2xl font-semibold tracking-[0.18em] font-sc"
             style={{ fontFamily: "var(--font-sc), 'Cormorant SC', serif" }}
           >
-            WESLAMIC HALL
+            WESLAMIC
           </h1>
           <div className="flex justify-center my-3 opacity-70">
             <svg width="100" height="8" aria-hidden="true">
@@ -62,7 +77,7 @@ export default function LoginPage() {
             className="text-xs text-manor-inkDim italic tracking-wider"
             style={{ fontFamily: "var(--font-serif), 'EB Garamond', serif" }}
           >
-            SEO Intelligence · Anno MMXXVI
+            SEO Intelligence
           </p>
         </div>
 
