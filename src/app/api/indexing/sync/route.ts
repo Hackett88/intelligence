@@ -15,6 +15,7 @@ import { auth } from "@/lib/auth";
 import { fetchGscSnapshot, fetchAllPageQueries, type GscQueryRaw } from "@/lib/gsc/fetcher";
 import { transformGscSnapshot } from "@/lib/gsc/transform";
 import { saveSnapshot, type IndexingSnapshotFile } from "@/lib/gsc/store";
+import { invalidateSnapshotCache } from "@/lib/gsc/loader";
 import {
   saveBatch,
   recordError,
@@ -210,6 +211,8 @@ export async function POST(req: NextRequest) {
     };
     await saveSnapshot(file);
 
+    // 清掉 loader 的内存快照缓存 —— 否则"更新"后页面仍读旧缓存，要等 TTL 才刷新。
+    invalidateSnapshotCache();
     // 让 /app/indexing 的 RSC 在下次请求时重新跑（loader 优先 PG，degraded 时降级 JSON）
     revalidatePath("/app/indexing");
 

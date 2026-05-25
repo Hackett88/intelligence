@@ -19,7 +19,7 @@ import {
   synthesizeDirNodes,
   buildParentMap,
 } from "./transform";
-import { loadLatestBatch, type RealPageRecord, type LoadedBatch } from "./repository";
+import { loadLatestBatch, loadLastSyncByMode, type RealPageRecord, type LoadedBatch } from "./repository";
 import { loadSnapshot, type IndexingSnapshotFile } from "./store";
 
 export type SnapshotSource = "pg" | "json" | "none";
@@ -197,9 +197,59 @@ async function loadFromJson(): Promise<LoadedSnapshot | null> {
   };
 }
 
-/** 入口：先 PG，再 JSON 兜底。两条都没数据返回 null。 */
-export async function loadLatestSnapshot(): Promise<LoadedSnapshot | null> {
+/** 实际加载：先 PG，再 JSON 兜底。两条都没数据返回 null。 */
+async function loadLatestSnapshotUncached(): Promise<LoadedSnapshot | null> {
   const fromPg = await loadFromPg();
   if (fromPg) return fromPg;
   return await loadFromJson();
+}
+
+// ── 跨请求内存缓存 ──────────────────────────────────────────────────────────
+// snapshot 是 GSC 快照（只有手动点"更新"才会变），没必要每次进页面都打库 +
+// 重建合成节点 —— 本地→PG 单次往返就 ~400ms，串了几趟就是数秒。这里缓存"已重建
+// 的结果"，页面来回切换直接命中、近 0 开销；同步成功后由 invalidateSnapshotCache
+// 主动清空，保证"更新"后立即见新数据。dev 热重载会重置模块级变量，故挂 globalThis。
+const SNAPSHOT_TTL_MS = 60_000;
+type SyncModeStatus = { full: string | null; weekly: string | null; daily: string | null };
+type SnapshotCacheEntry = { data: LoadedSnapshot | null; expiresAt: number };
+type SyncStatusCacheEntry = { data: SyncModeStatus; expiresAt: number };
+const globalForSnapshot = global as typeof globalThis & {
+  gscSnapshotCache?: SnapshotCacheEntry;
+  gscLastSyncCache?: SyncStatusCacheEntry;
+};
+
+/** 清空快照 + 同步状态缓存 —— 同步写库成功后调用，使下次加载拿到最新数据。 */
+export function invalidateSnapshotCache(): void {
+  globalForSnapshot.gscSnapshotCache = undefined;
+  globalForSnapshot.gscLastSyncCache = undefined;
+}
+
+/** 入口：带缓存的最新快照加载。 */
+export async function loadLatestSnapshot(): Promise<LoadedSnapshot | null> {
+  const now = Date.now();
+  const cached = globalForSnapshot.gscSnapshotCache;
+  if (cached && cached.expiresAt > now) return cached.data;
+
+  const data = await loadLatestSnapshotUncached();
+  // 只缓存"成功拿到的非空快照"。null 可能源于 PG 瞬时不可用（loadFromPg/loadFromJson
+  // 都 catch 返回 null）—— 不缓存失败态，避免把一次抖动固化成最长 60s 的空窗。
+  if (data) globalForSnapshot.gscSnapshotCache = { data, expiresAt: now + SNAPSHOT_TTL_MS };
+  return data;
+}
+
+/** 各模式最近同步时间（弹窗用），带缓存 + 兜底。与快照同源、同步后一起失效。 */
+export async function loadLastSyncByModeCached(): Promise<SyncModeStatus> {
+  const now = Date.now();
+  const cached = globalForSnapshot.gscLastSyncCache;
+  if (cached && cached.expiresAt > now) return cached.data;
+
+  let data: SyncModeStatus;
+  try {
+    data = await loadLastSyncByMode();
+  } catch {
+    // 失败不缓存（同 loadLatestSnapshot 的考量）：下次重试，不固化空状态。
+    return { full: null, weekly: null, daily: null };
+  }
+  globalForSnapshot.gscLastSyncCache = { data, expiresAt: now + SNAPSHOT_TTL_MS };
+  return data;
 }

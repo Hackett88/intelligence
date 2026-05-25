@@ -145,7 +145,11 @@ export interface LoadedBatch {
   pages: RealPageRecord[];
 }
 
-/** 取最近一次成功的 batch（含 pages）。无成功批次返回 null。 */
+/** 取最近一次成功的 batch（含 pages）。无成功批次返回 null。
+ *  必须"先拿到 latest.id，再按 id 查 pages"——两步锚定同一个 batch。
+ *  不可改成两条并行的 ORDER BY DESC LIMIT 1：同步事务提交 + 同日去重 DELETE 的并发
+ *  窗口里，log 与 pages 的子查询可能各自选到不同批次（数据错位），或 pages 定位到刚被
+ *  删的 id（返回空）。省这一趟往返不值得拿一致性换 —— 性能由 loader 层缓存兜底。 */
 export async function loadLatestBatch(): Promise<LoadedBatch | null> {
   const [latest] = await db
     .select()
