@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { X, ExternalLink, AlertTriangle, Info } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { X, ExternalLink, AlertTriangle, Info, Pencil, Check } from "lucide-react";
 import { Sparkline } from "../../keywords/_components/_utils";
 import type { PageDetail, QueryRow } from "./_mock";
 import type { TimeWindow } from "./FilterBar";
@@ -9,6 +10,7 @@ import { isAssetUrl } from "@/lib/gsc/classify";
 import {
   LANG_SITE_LABELS,
   PageTypeChip,
+  PAGE_TYPE_ORDER,
   IndexStateChip,
   HealthChip,
   formatPosition,
@@ -39,6 +41,99 @@ function Field({ label, value }: { label: string; value: React.ReactNode }) {
           ? <span className="text-manor-inkGhost font-normal">—</span>
           : value}
       </div>
+    </div>
+  );
+}
+
+// 页面类型字段：展示 chip + 铅笔图标；点击铅笔在原位展开「下拉 + 确定/取消」修正框。
+// 确定后调 /api/indexing/page-type 落盘修正，再 router.refresh() 让 RSC 重读、把修正
+// 后的 pageType 流回 props（与"更新"同步后的刷新机制一致）。修正按 fullUrl 持久化，
+// 独立于 GSC 同步 —— 下次同步重新推断也不会盖掉。
+function PageTypeField({ fullUrl, pageType }: { fullUrl: string; pageType: string }) {
+  // 切换到另一个页面时由父级 key={fullUrl} 重挂载本组件 → 状态自然重置（editing=false、
+  // value=新 pageType）；同页内重新打开编辑由铅笔 onClick 重置 value。故无需 effect 同步。
+  const router = useRouter();
+  const [editing, setEditing] = React.useState(false);
+  const [value, setValue] = React.useState(pageType);
+  const [saving, setSaving] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+
+  const save = async () => {
+    if (value === pageType) {
+      setEditing(false);
+      return;
+    }
+    setSaving(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/indexing/page-type", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: fullUrl, pageType: value }),
+      });
+      const data = (await res.json()) as { ok?: boolean; message?: string };
+      if (!res.ok || !data.ok) throw new Error(data?.message ?? "保存失败");
+      setEditing(false);
+      router.refresh(); // RSC 重读 snapshot（已套用修正）→ 新 pageType 流回
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "保存失败");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (!editing) {
+    return (
+      <span className="inline-flex items-center gap-1.5">
+        <PageTypeChip value={pageType} />
+        <button
+          type="button"
+          onClick={() => { setValue(pageType); setError(null); setEditing(true); }}
+          title="修正页面类型"
+          aria-label="修正页面类型"
+          className="text-manor-brassDim hover:text-manor-brassHi transition-colors shrink-0"
+        >
+          <Pencil size={11} />
+        </button>
+      </span>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <select
+        value={value}
+        disabled={saving}
+        onChange={(e) => setValue(e.target.value)}
+        className="w-full bg-manor-bg3 border border-manor-brass/40 rounded text-manor-ink text-xs px-1.5 py-1 outline-none focus:border-manor-brassHi/70 disabled:opacity-60"
+        style={{ fontFamily: "var(--font-serif), 'EB Garamond', serif" }}
+      >
+        {PAGE_TYPE_ORDER.map((t) => (
+          <option key={t} value={t} className="bg-manor-bg3 text-manor-ink">
+            {t}
+          </option>
+        ))}
+      </select>
+      <div className="flex items-center gap-1.5">
+        <button
+          type="button"
+          onClick={save}
+          disabled={saving}
+          className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] border border-manor-brassHi/55 text-manor-brassHi bg-manor-brassDim/15 hover:bg-manor-brassDim/25 transition-colors disabled:opacity-60"
+        >
+          <Check size={11} />
+          {saving ? "保存中…" : "确定"}
+        </button>
+        <button
+          type="button"
+          onClick={() => { setEditing(false); setError(null); setValue(pageType); }}
+          disabled={saving}
+          className="px-2 py-0.5 rounded text-[11px] border border-manor-brass/25 text-manor-inkDim hover:text-manor-ink transition-colors disabled:opacity-60"
+        >
+          取消
+        </button>
+      </div>
+      {error && <span className="text-[10px] text-manor-oxbloodHi">{error}</span>}
     </div>
   );
 }
@@ -513,7 +608,7 @@ export function DetailDrawer({
         {/* 基本信息 */}
         <Section title="基本信息">
           <Field label="站点语言" value={langSiteLabel} />
-          <Field label="页面类型" value={<PageTypeChip value={page.pageType} />} />
+          <Field label="页面类型" value={<PageTypeField key={page.fullUrl} fullUrl={page.fullUrl} pageType={page.pageType} />} />
           <Field label="主关键词" value={effectiveTopQuery} />
           <Field label="页面健康" value={<HealthChip page={page} />} />
           <Field label="收录状态" value={<IndexStateChip state={page.indexState} />} />

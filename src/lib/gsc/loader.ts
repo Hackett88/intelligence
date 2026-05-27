@@ -21,6 +21,7 @@ import {
 } from "./transform";
 import { loadLatestBatch, loadLastSyncByMode, type RealPageRecord, type LoadedBatch } from "./repository";
 import { loadSnapshot, type IndexingSnapshotFile } from "./store";
+import { loadPageTypeOverrides } from "./overrides";
 
 export type SnapshotSource = "pg" | "json" | "none";
 
@@ -197,11 +198,27 @@ async function loadFromJson(): Promise<LoadedSnapshot | null> {
   };
 }
 
+/**
+ * 套用页面类型"人工修正"：按 fullUrl 命中则覆盖 inferPageType 的结果。
+ * 独立于 PG/JSON 数据源，在重建页面后统一施加 —— 这样同步重新推断也盖不掉修正。
+ * 同时改 pageType 会让下游健康分类 / 周期分档（依据 pageType）一并按修正口径走。
+ */
+function applyPageTypeOverrides(pages: PageRow[], overrides: Record<string, string>): void {
+  if (!pages.length) return;
+  for (const p of pages) {
+    const fixed = overrides[p.fullUrl];
+    if (fixed && fixed !== p.pageType) p.pageType = fixed;
+  }
+}
+
 /** 实际加载：先 PG，再 JSON 兜底。两条都没数据返回 null。 */
 async function loadLatestSnapshotUncached(): Promise<LoadedSnapshot | null> {
-  const fromPg = await loadFromPg();
-  if (fromPg) return fromPg;
-  return await loadFromJson();
+  const snapshot = (await loadFromPg()) ?? (await loadFromJson());
+  if (!snapshot) return null;
+  // 套用人工修正（文件不存在时 overrides 为空对象，无副作用）
+  const overrides = await loadPageTypeOverrides();
+  applyPageTypeOverrides(snapshot.pages, overrides);
+  return snapshot;
 }
 
 // ── 跨请求内存缓存 ──────────────────────────────────────────────────────────
