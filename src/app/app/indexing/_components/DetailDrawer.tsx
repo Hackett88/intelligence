@@ -7,7 +7,7 @@ import type { PageDetail, QueryRow } from "./_mock";
 import type { TimeWindow } from "./FilterBar";
 import { isAssetUrl } from "@/lib/gsc/classify";
 import {
-  MARKET_LABELS,
+  LANG_SITE_LABELS,
   PageTypeChip,
   IndexStateChip,
   HealthChip,
@@ -316,7 +316,69 @@ function NoKeywordCallout({ tag }: { tag: NoDataTag }) {
   );
 }
 
+// 可排序的数值列键（与 QueryRow 数值字段一一对应）
+type SortKey = "clicks" | "impressions" | "ctr" | "position";
+type SortDir = "desc" | "asc";
+type QuerySort = { key: SortKey; dir: SortDir } | null;
+
+// 可排序表头：复用主列表（PageTable）的金色 ▲/▼ 指示风格。
+// 提到模块顶层以满足 react-hooks/static-components（render 内创建组件会丢 state）。
+function SortableTh({
+  label,
+  sortKey,
+  sort,
+  onSort,
+}: {
+  label: string;
+  sortKey: SortKey;
+  sort: QuerySort;
+  onSort: (k: SortKey) => void;
+}) {
+  const active = sort?.key === sortKey;
+  return (
+    <th
+      onClick={() => onSort(sortKey)}
+      title={active ? (sort!.dir === "desc" ? "由高到低 · 点击切换升序" : "由低到高 · 点击恢复默认") : "点击按此列由高到低排序"}
+      className={[
+        "text-right py-1.5 px-1.5 font-sc tracking-[0.18em] font-medium border-b border-manor-brass/30",
+        "cursor-pointer select-none whitespace-nowrap transition-colors hover:text-[#F0DEA0]",
+        active ? "text-manor-brassHi" : "",
+      ].join(" ")}
+      style={{ textShadow: active ? "0 0 8px rgba(224,197,122,.55)" : undefined }}
+      aria-sort={active ? (sort!.dir === "desc" ? "descending" : "ascending") : "none"}
+    >
+      <span className="inline-flex items-center justify-end gap-1">
+        {label}
+        {active && (
+          <span className="text-manor-brassHi" style={{ fontSize: 9 }}>
+            {sort!.dir === "desc" ? "▼" : "▲"}
+          </span>
+        )}
+      </span>
+    </th>
+  );
+}
+
 function QueryRankTable({ rows }: { rows: QueryRow[] }) {
+  // 排序状态：null = 保持原始顺序（GSC 已按点击降序返回）。
+  // 点击同一列循环：默认 → 降序(由高到低) → 升序 → 恢复默认。
+  const [sort, setSort] = React.useState<QuerySort>(null);
+
+  const toggleSort = (key: SortKey) => {
+    setSort((prev) => {
+      if (!prev || prev.key !== key) return { key, dir: "desc" }; // 首点：由高到低
+      if (prev.dir === "desc") return { key, dir: "asc" };        // 再点：由低到高
+      return null;                                                 // 三点：恢复默认
+    });
+  };
+
+  const sortedRows = React.useMemo(() => {
+    if (!sort) return rows;
+    const factor = sort.dir === "desc" ? -1 : 1;
+    // slice 防止原地 mutate props
+    return rows.slice().sort((a, b) => (a[sort.key] - b[sort.key]) * factor);
+  }, [rows, sort]);
+
   if (rows.length === 0) {
     return (
       <div className="text-center py-6 text-manor-inkFaint"
@@ -327,6 +389,7 @@ function QueryRankTable({ rows }: { rows: QueryRow[] }) {
       </div>
     );
   }
+
   return (
     <div className="overflow-x-auto -mx-3 px-3">
       <table className="w-full border-collapse text-[11px]">
@@ -334,14 +397,14 @@ function QueryRankTable({ rows }: { rows: QueryRow[] }) {
           <tr className="text-manor-brassHi/85">
             <th className="text-left py-1.5 px-1.5 font-sc tracking-[0.18em] font-medium border-b border-manor-brass/30">#</th>
             <th className="text-left py-1.5 px-1.5 font-sc tracking-[0.18em] font-medium border-b border-manor-brass/30">查询</th>
-            <th className="text-right py-1.5 px-1.5 font-sc tracking-[0.18em] font-medium border-b border-manor-brass/30">点击</th>
-            <th className="text-right py-1.5 px-1.5 font-sc tracking-[0.18em] font-medium border-b border-manor-brass/30">曝光</th>
-            <th className="text-right py-1.5 px-1.5 font-sc tracking-[0.18em] font-medium border-b border-manor-brass/30">CTR</th>
-            <th className="text-right py-1.5 px-1.5 font-sc tracking-[0.18em] font-medium border-b border-manor-brass/30">排名</th>
+            <SortableTh label="点击" sortKey="clicks" sort={sort} onSort={toggleSort} />
+            <SortableTh label="曝光" sortKey="impressions" sort={sort} onSort={toggleSort} />
+            <SortableTh label="CTR" sortKey="ctr" sort={sort} onSort={toggleSort} />
+            <SortableTh label="排名" sortKey="position" sort={sort} onSort={toggleSort} />
           </tr>
         </thead>
         <tbody>
-          {rows.map((q, i) => (
+          {sortedRows.map((q, i) => (
             <tr
               key={q.query}
               style={{
@@ -393,11 +456,8 @@ export function DetailDrawer({
       ? classifyNoKeywordData(page)
       : null;
 
-  const marketLabel = page.market
-    ? MARKET_LABELS[page.market.toLowerCase()] ?? page.market.toUpperCase()
-    : null;
-  const flag = page.market
-    ? ({ uk: "🇬🇧", us: "🇺🇸", sa: "🇸🇦", ae: "🇦🇪", my: "🇲🇾", id: "🇮🇩", fr: "🇫🇷", de: "🇩🇪", au: "🇦🇺", tr: "🇹🇷", eg: "🇪🇬", pk: "🇵🇰", bd: "🇧🇩", ng: "🇳🇬", ma: "🇲🇦", ca: "🇨🇦" } as Record<string, string>)[page.market.toLowerCase()]
+  const langSiteLabel = page.market
+    ? LANG_SITE_LABELS[page.market.toLowerCase()] ?? page.market.toUpperCase()
     : null;
 
   return (
@@ -452,14 +512,7 @@ export function DetailDrawer({
       <div className="p-4 flex flex-col gap-3">
         {/* 基本信息 */}
         <Section title="基本信息">
-          <Field
-            label="市场"
-            value={
-              marketLabel
-                ? <span className="inline-flex items-center gap-1.5">{flag && <span>{flag}</span>}{marketLabel}</span>
-                : null
-            }
-          />
+          <Field label="站点语言" value={langSiteLabel} />
           <Field label="页面类型" value={<PageTypeChip value={page.pageType} />} />
           <Field label="主关键词" value={effectiveTopQuery} />
           <Field label="页面健康" value={<HealthChip page={page} />} />

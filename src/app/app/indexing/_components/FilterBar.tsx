@@ -269,13 +269,11 @@ export function FilterBar({
       <TimeWindowSelect value={filters.timeWindow} onChange={(v) => update("timeWindow", v)} />
 
       <MultiSelect
-        placeholder="市场"
+        placeholder="站点语言"
         values={filters.market}
         options={marketOptions}
         onChange={(v) => update("market", v)}
         width="flex-1 basis-0 min-w-[76px] max-w-[148px]"
-        showFlagOnTrigger
-        showFlagInItem
       />
       <MultiSelect
         placeholder="页面类型"

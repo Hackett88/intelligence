@@ -57,3 +57,7 @@ temp/
 .claude/
 .tmp/
 .tmp-screens/
+# agent 取证截图（过程物料，不入代码仓库）
+/ga4-screenshots/
+/截图/
+/验证截图/

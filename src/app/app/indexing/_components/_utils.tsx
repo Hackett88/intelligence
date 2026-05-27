@@ -328,33 +328,36 @@ export function formatCtr(ctr: number, indexState?: IndexStateLite): React.React
 }
 
 // ───────────────────────────────────────────────────────────────────────────
-// 市场旗帜 — 与 keywords 模块共享同一表（保持品牌一致）
+// 站点语言标签 — 「收录与索引」模块的「站点语言」列 / 筛选 / 详情共用
+//
+// 底层 market 值是 inferMarket(transform.ts) 按 URL 语言/地区前缀推断的代码
+// （无前缀 → us）。这里按各前缀「代表的语言版本」显示，而非国家 —— GA4 已证实
+// 流量来源国家与 URL 前缀并不对应（无前缀英文页主力是巴基斯坦而非美国），故此
+// 列表达的是「站点语言版本」，且不挂国旗，以免重新引入「这是某国流量」的暗示。
 // ───────────────────────────────────────────────────────────────────────────
 
-export const MARKET_FLAGS: Record<string, string> = {
-  uk: "🇬🇧", gb: "🇬🇧", us: "🇺🇸", sa: "🇸🇦", ae: "🇦🇪", my: "🇲🇾", id: "🇮🇩",
-  fr: "🇫🇷", de: "🇩🇪", es: "🇪🇸", au: "🇦🇺", tr: "🇹🇷",
-  eg: "🇪🇬", pk: "🇵🇰", bd: "🇧🇩", ng: "🇳🇬", ma: "🇲🇦",
-  ca: "🇨🇦",
+export const LANG_SITE_LABELS: Record<string, string> = {
+  us: "英语",      // 无前缀 / 默认英文站
+  sa: "阿拉伯语",   // /ar/
+  fr: "法语",      // /fr/
+  de: "德语",      // /de/
+  tr: "土耳其语",   // /tr/
+  es: "西班牙语",   // /es/
+  br: "葡萄牙语",   // /pt/
+  id: "印尼语",    // /id/
+  my: "马来语",    // /ms/
+  pk: "乌尔都语",   // /ur/
+  jp: "日语",      // /ja/
+  cn: "中文",      // /zh/
+  // 其它国家代码若出现，回落到对应语言
+  uk: "英语", gb: "英语", au: "英语", ca: "英语", ng: "英语",
+  ae: "阿拉伯语", eg: "阿拉伯语", ma: "阿拉伯语", bd: "孟加拉语",
 };
 
-export const MARKET_LABELS: Record<string, string> = {
-  uk: "英国", gb: "英国", us: "美国", sa: "沙特", ae: "阿联酋",
-  my: "马来西亚", id: "印尼", fr: "法国", de: "德国", es: "西班牙",
-  au: "澳大利亚", tr: "土耳其", eg: "埃及", pk: "巴基斯坦", bd: "孟加拉",
-  ng: "尼日利亚", ma: "摩洛哥", ca: "加拿大",
-};
-
-export function MarketCell({ market }: { market: string | null }) {
+export function LangSiteCell({ market }: { market: string | null }) {
   if (!market) return <span className="text-manor-inkGhost">—</span>;
-  const flag = MARKET_FLAGS[market.toLowerCase()];
-  const label = MARKET_LABELS[market.toLowerCase()] ?? market.toUpperCase();
-  return (
-    <span className="text-xs text-manor-inkDim inline-flex items-center gap-1">
-      {flag && <span>{flag}</span>}
-      <span>{label}</span>
-    </span>
-  );
+  const label = LANG_SITE_LABELS[market.toLowerCase()] ?? market.toUpperCase();
+  return <span className="text-xs text-manor-inkDim">{label}</span>;
 }
 
 // ───────────────────────────────────────────────────────────────────────────

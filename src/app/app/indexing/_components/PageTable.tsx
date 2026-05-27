@@ -14,7 +14,7 @@ import type { PageRow } from "./_mock";
 import {
   HealthDot,
   PageTypeChip,
-  MarketCell,
+  LangSiteCell,
   formatPosition,
   formatCtr,
   formatLargeNumber,
@@ -60,9 +60,9 @@ export function PageTable({ data, onRowClick }: PageTableProps) {
     },
     {
       accessorKey: "market",
-      header: "市场",
+      header: "站点语言",
       size: 90,
-      cell: ({ getValue }) => <MarketCell market={getValue() as string} />,
+      cell: ({ getValue }) => <LangSiteCell market={getValue() as string} />,
     },
     {
       accessorKey: "pageType",

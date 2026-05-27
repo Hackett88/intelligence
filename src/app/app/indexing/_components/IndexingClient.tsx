@@ -21,7 +21,7 @@ import {
   type PageDetail,
   getMockPageDetail,
 } from "./_mock";
-import { MARKET_FLAGS, MARKET_LABELS, positionBucket, comparePageType, resolvePageStatus } from "./_utils";
+import { LANG_SITE_LABELS, positionBucket, comparePageType, resolvePageStatus } from "./_utils";
 import type { LastSyncMeta, SyncModeStatus } from "./IndexingWrapper";
 import { classifyCadence, CADENCE_META, type Cadence, type HealthState } from "@/lib/gsc/classify";
 
@@ -348,8 +348,7 @@ export function IndexingClient({
     return {
       marketOptions: [...markets].sort().map((m) => ({
         value: m,
-        label: MARKET_LABELS[m.toLowerCase()] ?? m.toUpperCase(),
-        flag: MARKET_FLAGS[m.toLowerCase()],
+        label: LANG_SITE_LABELS[m.toLowerCase()] ?? m.toUpperCase(),
       })),
       // 按真实用户进入网站的路径排序（首页→品类→产品→落地→内容→辅助），见 _utils.PAGE_TYPE_ORDER
       pageTypeOptions: [...types].sort(comparePageType).map((t) => ({ value: t, label: t })),
