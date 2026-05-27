@@ -31,6 +31,9 @@ export type PageRow = {
   // 该页的关键词排名（top N）。同步时批量抓取一并落库，抽屉/列表直接读，不再懒加载。
   // 合成节点 / 无数据页为空数组。
   queries?: QueryRow[];
+  // GA4 单 URL 指标（进站后行为/转化）。同步时按 landing_page 口径写入；
+  // 近 28 天无 GA4 着陆流量的页为 undefined，抽屉走"无数据"诚实空态。
+  ga4?: Ga4Metrics;
   // 树视图聚合用的合成节点（如 /products /collections）：GSC 没返回过它，
   // 但 UI 需要它做 sub-page 的目录入口。这类节点 clicks/impressions 都是 0，
   // 列表视图、SummaryBar、Stats 都应过滤掉。
@@ -43,6 +46,32 @@ export type QueryRow = {
   impressions: number;
   ctr: number;
   position: number;
+};
+
+// ───────────────────────────────────────────────────────────────────────────
+// GA4 — 单 URL 的"进站后"指标。经多视角评审（SEO 决策 / GA4 口径 / 信息架构 /
+// 行业最佳实践 / 现实校验）后，只保留对"单页 SEO 决策"真正可行动、且跨页面类型可读
+// 的少数信号；其余冗余/恒零/归因错配的一律裁掉：
+//   保留 · engagementRate 互动率 —— 唯一跨页类型可比、可行动的核心信号（落地是否接住点击，≈1−跳出率）
+//   保留 · activeUsers 活跃用户 —— 仅作上下文底数 / 比率分母（全渠道，非纯自然搜索）
+//   保留 · avgEngagementTime 平均互动时长 —— 须对照同类基准才有意义，作中性补充（不做好坏判断）
+//   保留 · topCountries 来源国 —— 与"站点语言"交叉做 hreflang 一致性诊断
+//   裁掉 · 浏览次数/每用户浏览量/事件数/新用户/会话 —— 与 GSC 点击或活跃用户冗余、语义混杂
+//   裁掉 · 关键事件/转化率 —— 对 SEO 关心的内容/商品落地页恒为 0（实测前 10 页全 0）
+//   裁掉 · 购买次数/收入 —— 全站购买率 ~0.4%、单页≈0，且为会话级着陆归因，归 FRUCTUS「表现与迭代」模块
+// 数据由同步流（ga4-fetcher，landing_page 口径，近 28 天）真实写入 PageRow.ga4。
+// GA4_COUNTRY_BY_LANG / ga4CountryPoolKey 仍保留：供抽屉 LangGeoConsistency 判定"外来国"。
+// ───────────────────────────────────────────────────────────────────────────
+export type Ga4Country = { country: string; activeUsers: number };
+
+export type Ga4Metrics = {
+  activeUsers: number;        // 活跃用户（全渠道去重）
+  engagementRate: number;     // 互动率 0..1（互动会话÷总会话，≈1−跳出率）
+  // 平均每次会话互动时长（秒，per session）—— 单页体检问的是"每次访问待多久"，
+  // 故用 per session 而非 per active user（后者按人头摊、受回访扭曲、跨页不可比）。
+  // 判好坏须对照"同类型页"分位数基准（待真实 GA4 数据接入后建），不设绝对阈值。
+  avgEngagementTime: number;
+  topCountries: Ga4Country[]; // 流量来源国 Top N（GA4 country 维度）
 };
 
 export type PageDetail = PageRow & {
@@ -376,6 +405,36 @@ export function getMockStats(): IndexingStats {
     top10Pages: top10,
     lastSync: "2026-05-23T03:15:00Z",
   };
+}
+
+// ───────────────────────────────────────────────────────────────────────────
+// GA4 示例值生成器 —— 真实 GA4 数据接入前，按页面 id 确定性派生一组"看起来合理"
+// 的进站后指标，仅用于抽屉里 GA4 板块的「设计定稿 / 视觉评审」。一律标注"待接入"，
+// 接入真实 GA4 后整段删除（与 _mock 站点种子同命运）。
+// 只产出评审后保留的 4 项；来源国按站点语言加权，使"语言×来源国"一致性默认成立
+// （真实错配才会触发告警，不在示例里造假问题）。
+// ───────────────────────────────────────────────────────────────────────────
+// 站点语言族 → 该语言的典型流量来源国池（每池 10 国）。
+// 用途：① 示例来源国按页面语言取，使"语言×来源国"一致性默认成立；
+//       ② 抽屉据此判断某来源国对本语言版是否"外来"（不在本池=疑似 hreflang 错配）。
+// 池间允许重叠（如 Morocco 同属阿/法、Germany 同属德/土耳其侨民）——一致性按
+// "是否属于本站点语言池"判断，不靠 country→单一语言 的全局映射（一国可多语族）。
+export const GA4_COUNTRY_BY_LANG: Record<string, string[]> = {
+  us: ["United States", "United Kingdom", "India", "Pakistan", "Canada", "Australia", "Nigeria", "Bangladesh", "Philippines", "Ireland"],
+  sa: ["Saudi Arabia", "Egypt", "United Arab Emirates", "Morocco", "Iraq", "Algeria", "Jordan", "Kuwait", "Qatar", "Oman"],
+  fr: ["France", "Belgium", "Morocco", "Canada", "Switzerland", "Senegal", "Ivory Coast", "Tunisia", "Luxembourg", "Algeria"],
+  de: ["Germany", "Austria", "Switzerland", "Netherlands", "Belgium", "Luxembourg", "Poland", "Czechia", "Denmark", "France"],
+  tr: ["Turkey", "Germany", "Netherlands", "Austria", "Azerbaijan", "Belgium", "France", "Cyprus", "Bulgaria", "United Kingdom"],
+  id: ["Indonesia", "Malaysia", "Singapore", "Brunei", "Netherlands", "Saudi Arabia", "United Arab Emirates", "Australia", "United States", "Timor-Leste"],
+  my: ["Malaysia", "Indonesia", "Singapore", "Brunei", "Thailand", "United Kingdom", "Australia", "United States", "Saudi Arabia", "United Arab Emirates"],
+};
+// 把 inferMarket 给的 market 码归到上面的语言池 key（英语族都回落到 us 池）
+export function ga4CountryPoolKey(market: string): string {
+  const m = (market || "").toLowerCase();
+  if (GA4_COUNTRY_BY_LANG[m]) return m;
+  if (["uk", "gb", "au", "ca", "ng", "in", "pk"].includes(m)) return "us";
+  if (["ae", "eg", "ma"].includes(m)) return "sa";
+  return "us";
 }
 
 export function getMockPageDetail(id: string): PageDetail | null {

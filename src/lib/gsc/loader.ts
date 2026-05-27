@@ -90,6 +90,16 @@ export function rebuildPagesFromReal(
       parentId: parentPath ? idByPath.get(parentPath) : undefined,
       isPillar: p.isPillar || undefined,
       sortOrder: p.sortOrder,
+      // GA4 进站后指标（迁移 0012）：仅当列有值时还原对象，否则 undefined → 抽屉走"无数据"分支
+      ga4:
+        p.ga4ActiveUsers != null
+          ? {
+              activeUsers: p.ga4ActiveUsers,
+              engagementRate: p.ga4EngagementRate ?? 0,
+              avgEngagementTime: p.ga4AvgEngagementTime ?? 0,
+              topCountries: p.ga4TopCountries ?? [],
+            }
+          : undefined,
     });
   }
 

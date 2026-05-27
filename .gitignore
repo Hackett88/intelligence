@@ -51,6 +51,9 @@ drizzle/
 temp/
 *.log
 
+# 浏览器实测截图等本地验证产物（体量大、非源码，留本地即可）
+test-evidence/
+
 # local debug artifacts (root-level screenshots / scratch folders)
 /*.png
 .screens/

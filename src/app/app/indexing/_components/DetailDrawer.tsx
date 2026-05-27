@@ -4,7 +4,8 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { X, ExternalLink, AlertTriangle, Info, Pencil, Check, ChevronDown } from "lucide-react";
 import { Sparkline } from "../../keywords/_components/_utils";
-import type { PageDetail, QueryRow } from "./_mock";
+import type { PageDetail, QueryRow, Ga4Metrics, Ga4Country } from "./_mock";
+import { GA4_COUNTRY_BY_LANG, ga4CountryPoolKey } from "./_mock";
 import type { TimeWindow } from "./FilterBar";
 import { isAssetUrl } from "@/lib/gsc/classify";
 import {
@@ -139,12 +140,55 @@ function PageTypeField({ fullUrl, pageType }: { fullUrl: string; pageType: strin
 }
 
 const SECTION_LATIN: Record<string, string> = {
-  "基本信息":     "CARTA · PAGINAE",
-  "性能指标":     "METRICA · GSC",
-  "12 月趋势":    "ANNUS · TRENDORUM",
-  "页面关键词排名": "QUAERELAE · IN PAGINA",
-  "关联词库":     "NEXUS · ARCHIVUM",
+  "基本信息":       "CARTA · PAGINAE",
+  "性能指标":       "METRICA · GSC",
+  "进站后表现":     "BEHAVIOR · GA4",
+  "12 月趋势":      "ANNUS · TRENDORUM",
+  "页面关键词排名":  "QUAERELAE · IN PAGINA",
+  "关联词库":       "NEXUS · ARCHIVUM",
 };
+
+// 互动时长：秒 → "1分23秒" / "45秒"
+function formatEngagementTime(sec: number): string {
+  if (!sec || sec <= 0) return "0秒";
+  const m = Math.floor(sec / 60);
+  const s = Math.round(sec % 60);
+  return m > 0 ? `${m}分${s}秒` : `${s}秒`;
+}
+
+// 互动率分档 —— 互动率的门槛（>10s / ≥2 浏览 / 有关键事件）是低位绝对阈值，
+// 不随内容长短线性漂移，故可用绝对区间给"好/一般/偏低"判断（与平均时长不同）。
+// 阈值依据（research-ga4-engagement-rate-standard-2026-05-27）：Databox 真实账户聚合
+// 全行业中位 ~56%、电商 ~64%。原 55/35 偏松（绿灯≈及格线、红线过松）。这里取
+// 「通用偏严」版 60/45（站点电商+大量长篇内容混合）。后续接真实 GA4 后，应改为按
+// 「页面类型」自校准（用本站同类型页 P50/P25 定线，商品页可收紧到 65/50）。
+function engagementTier(rate: number): { label: string; color: string } {
+  if (rate >= 0.60) return { label: "良好", color: "#7BA67D" };  // 庄园 sage 绿（manor-sageHi）
+  if (rate >= 0.45) return { label: "一般", color: "#D4A574" };  // 庄园琥珀（manor-amber）
+  return { label: "偏低", color: "#C46B5A" };                    // 庄园暗红（manor-oxblood）
+}
+
+// 真实页近 28 天无 GA4 着陆流量 → 段内诚实空态（替代旧的"示例值"兜底）。
+// 文案按会话着陆口径（landing_page）措辞：对真零流量页准确，对"有非入口访问"的页
+// 也不误导（tooltip 说明少量非入口访问不计入）。
+function Ga4NoDataCallout() {
+  return (
+    <div
+      className="px-3 py-3 rounded text-[11px] leading-relaxed text-manor-inkFaint"
+      style={{ background: "rgba(255,255,255,.025)", border: "1px solid rgba(224,197,122,.14)" }}
+    >
+      <span
+        className="block text-manor-ink/70 mb-0.5"
+        title="按 GA4 会话着陆口径（landing_page）统计近 28 天。少量非入口访问（用户从站内其他页跳转到达）不计入此处。"
+      >
+        近 28 天无 GA4 着陆流量
+      </span>
+      <span className="text-manor-inkFaint">
+        该页在近 28 天内未作为会话着陆页产生访问 —— 故无进站后行为数据。曝光/点击见上方 GSC 指标。
+      </span>
+    </div>
+  );
+}
 
 function Section({
   title,
@@ -562,6 +606,167 @@ function QueryRankTable({ rows }: { rows: QueryRow[] }) {
 }
 
 // ───────────────────────────────────────────────────────────────────────────
+// 站点语言 × GA4 来源国 一致性诊断
+//   语言版页面（/ar /fr /de /tr…）的主力来源国若不在该语言的预期国家池里，多半是
+//   hreflang / 国际化错配（流量被引到了错的语言版）。英语默认站天然全球流量，不评一致性。
+//   判定用"是否属于本站点语言的国家池"（GA4_COUNTRY_BY_LANG），不靠 country→单一语言
+//   的全局映射——一国可属多语族（摩洛哥=阿/法、瑞士=德/法），单值映射会误判。
+//   来源国 Top 10 列优先排两列：左列第 1–5 名、右列第 6–10 名；前 3 名带金/银/铜徽章。
+// ───────────────────────────────────────────────────────────────────────────
+
+// 排名徽章：前 3 名 = 金 / 银 / 铜 立体小奖牌（左上高光→基色→暗边 + 同色辉光），
+// 4 名及以后 = 朴素序号。三色与奖牌质感呼应庄园主题的"立体玻璃珠"做法。
+const RANK_MEDALS: Record<number, { hi: string; base: string; lo: string; ring: string; glow: string; text: string }> = {
+  1: { hi: "#FFF1C0", base: "#E8C75A", lo: "#9A7B22", ring: "rgba(154,123,34,.85)", glow: "rgba(232,199,90,.7)",  text: "#4A3A0C" }, // 黄金
+  2: { hi: "#FCFCFE", base: "#C9CDD6", lo: "#7E838C", ring: "rgba(126,131,140,.85)", glow: "rgba(201,205,214,.55)", text: "#2E3138" }, // 白银
+  3: { hi: "#F2C79E", base: "#C77B3E", lo: "#7A451E", ring: "rgba(122,69,30,.85)", glow: "rgba(199,123,62,.55)",  text: "#3A1E0C" }, // 青铜
+};
+function RankBadge({ rank }: { rank: number }) {
+  const m = RANK_MEDALS[rank];
+  if (m) {
+    return (
+      <span
+        aria-label={`第 ${rank} 名`}
+        title={`第 ${rank} 名`}
+        className="inline-flex items-center justify-center shrink-0 font-semibold tabnum"
+        style={{
+          width: 15, height: 15, borderRadius: 9999, fontSize: 9, lineHeight: 1,
+          color: m.text,
+          background: `radial-gradient(circle at 32% 28%, ${m.hi}, ${m.base} 58%, ${m.lo})`,
+          boxShadow: `0 0 5px ${m.glow}, inset 0 1px 0 rgba(255,255,255,.45)`,
+          border: `0.5px solid ${m.ring}`,
+          fontFamily: "var(--font-serif), 'EB Garamond', serif",
+        }}
+      >
+        {rank}
+      </span>
+    );
+  }
+  return (
+    <span
+      aria-label={`第 ${rank} 名`}
+      className="inline-flex items-center justify-center shrink-0 text-manor-inkFaint tabnum"
+      style={{ width: 15, height: 15, fontSize: 9, lineHeight: 1 }}
+    >
+      {rank}
+    </span>
+  );
+}
+
+function LangGeoConsistency({
+  market,
+  topCountries,
+}: {
+  market: string;
+  topCountries: Ga4Metrics["topCountries"];
+}) {
+  const siteCode = (market || "").toLowerCase();
+  const siteLangLabel = LANG_SITE_LABELS[siteCode] ?? (market ? market.toUpperCase() : "—");
+  const poolKey = ga4CountryPoolKey(siteCode);
+  const sitePool = GA4_COUNTRY_BY_LANG[poolKey] ?? [];
+  const isEnglishDefault = poolKey === "us";
+  const isForeign = (country: string) => !isEnglishDefault && !sitePool.includes(country);
+  const dominant = topCountries[0];
+  const mismatch = !isEnglishDefault && !!dominant && isForeign(dominant.country);
+
+  const verdict = isEnglishDefault
+    ? { text: "英语站 · 全球流量正常", color: "#C9A961", warn: false }
+    : mismatch
+    ? { text: "疑似 hreflang 不一致", color: "#E0A33A", warn: true }
+    : { text: "语言一致", color: "#7BA67D", warn: false };
+
+  const max = Math.max(...topCountries.map((r) => r.activeUsers), 1);
+  const rows = topCountries.slice(0, 10);
+  const left = rows.slice(0, 5);    // 第 1–5 名
+  const right = rows.slice(5, 10);  // 第 6–10 名
+
+  const renderCell = (r: Ga4Country, rank: number) => {
+    const foreign = isForeign(r.country);
+    return (
+      <div
+        key={r.country}
+        title={`#${rank} ${r.country} · ${r.activeUsers.toLocaleString()} 活跃用户`}
+        className="flex flex-col gap-1 px-2 py-1.5 rounded overflow-hidden"
+        style={{
+          background: foreign ? "rgba(224,163,58,.12)" : "rgba(16,32,22,.5)",
+          border: `1px solid ${foreign ? "rgba(224,163,58,.45)" : "rgba(201,169,97,.22)"}`,
+        }}
+      >
+        <div className="flex items-center justify-between gap-1.5">
+          <span className="flex items-center gap-1 min-w-0">
+            <RankBadge rank={rank} />
+            <span
+              className={`text-[10px] leading-tight truncate ${foreign ? "text-amber-300/90" : "text-manor-inkDim"}`}
+            >
+              {r.country}
+            </span>
+          </span>
+          <span
+            className={`text-[12px] tabnum leading-none shrink-0 ${foreign ? "text-amber-300" : "text-manor-brassHi"}`}
+          >
+            {r.activeUsers.toLocaleString()}
+          </span>
+        </div>
+        <span className="h-[3px] rounded-sm overflow-hidden bg-manor-bg2">
+          <span
+            className="block h-full"
+            style={{
+              width: `${(r.activeUsers / max) * 100}%`,
+              background: foreign
+                ? "linear-gradient(90deg, #8A5A2A, #E0A33A)"
+                : "linear-gradient(90deg, #A08850, #EFD89A)",
+            }}
+          />
+        </span>
+      </div>
+    );
+  };
+
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-[10px] text-manor-inkDim uppercase tracking-wider leading-none">
+          站点语言 × 来源国
+        </span>
+        <span
+          title={
+            mismatch
+              ? "该语言版页面的主力来源国不在本语言的预期国家里，可能 hreflang 配置错误 / 国际化失血"
+              : isEnglishDefault
+              ? "英语默认站，来源国全球分布属正常，不评一致性"
+              : "主力来源国与站点语言一致"
+          }
+          className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9.5px] whitespace-nowrap border"
+          style={{ borderColor: `${verdict.color}66`, background: `${verdict.color}1a`, color: verdict.color }}
+        >
+          {verdict.warn && <AlertTriangle size={9} />}
+          {verdict.text}
+        </span>
+      </div>
+      <div className="flex items-center gap-1.5 text-[11px]">
+        <span className="text-manor-inkDim">站点语言</span>
+        <span className="text-manor-brassHi">{siteLangLabel}</span>
+        <span className="text-manor-inkGhost">·</span>
+        <span className="text-manor-inkFaint text-[10px]">GA4 全渠道来源国 Top 10</span>
+      </div>
+      {rows.length > 0 ? (
+        // 列优先两列：左列第 1–5 名、右列第 6–10 名（用两个竖向 stack 保证分列顺序）
+        <div className="flex gap-1.5 items-start">
+          <div className="flex-1 min-w-0 flex flex-col gap-1.5">
+            {left.map((r, i) => renderCell(r, i + 1))}
+          </div>
+          <div className="flex-1 min-w-0 flex flex-col gap-1.5">
+            {right.map((r, i) => renderCell(r, i + 6))}
+          </div>
+        </div>
+      ) : (
+        <span className="text-manor-inkGhost text-xs">—</span>
+      )}
+    </div>
+  );
+}
+
+// ───────────────────────────────────────────────────────────────────────────
 // Main drawer
 // ───────────────────────────────────────────────────────────────────────────
 
@@ -588,6 +793,11 @@ export function DetailDrawer({
   const langSiteLabel = page.market
     ? LANG_SITE_LABELS[page.market.toLowerCase()] ?? page.market.toUpperCase()
     : null;
+
+  // GA4 指标：真实数据从 page.ga4 取（同步时按 landing_page 口径写入）。
+  // 合成目录节点无 GA4 概念 → 不展示该段；真实页若无 GA4 着陆流量 → 段内走诚实空态。
+  const ga4: Ga4Metrics | null = page.isSynthetic ? null : page.ga4 ?? null;
+  const showGa4Section = !page.isSynthetic; // 真实页恒展示该段（有数据→指标，无数据→空态）
 
   return (
     <div className="flex flex-col min-w-[400px]">
@@ -711,6 +921,96 @@ export function DetailDrawer({
             );
           })()}
         </Section>
+
+        {/* GA4 · 进站后表现 —— 经多视角评审后只保留对单页 SEO 决策真正可行动的信号：
+            互动率(hero,带分档判断) + 活跃用户/互动时长(中性上下文) + 语言×来源国(hreflang诊断)。
+            浏览/事件/新用户/会话/关键事件/购买/收入均已裁（冗余/恒零/归因错配，营收归 FRUCTUS）。 */}
+        {showGa4Section && (
+          <Section title="进站后表现" grid={false}>
+            {!ga4 ? (
+              // 真实页但近 28 天无 GA4 着陆流量 —— 诚实空态，不再编造示例值
+              <Ga4NoDataCallout />
+            ) : (
+            <div className="flex flex-col gap-3">
+              {/* 口径提示：GA4 全渠道 28 天 vs GSC 90 天，待对齐 */}
+              <p className="text-[10px] text-manor-inkFaint leading-snug">
+                GA4 全渠道口径 · 近 28 天（GSC 性能为 90 天，时间窗待对齐）。仅保留对单页 SEO 决策可行动的信号。
+              </p>
+
+              {/* 互动率 —— 唯一带"好/坏"判断的 hero 指标（门槛为低位绝对阈值，跨页类型可比） */}
+              {(() => {
+                const tier = engagementTier(ga4.engagementRate);
+                return (
+                  <div
+                    className="px-3 py-2.5 relative overflow-hidden"
+                    style={{
+                      borderRadius: 4,
+                      background:
+                        "linear-gradient(180deg, rgba(20,42,28,.92) 0%, rgba(10,24,16,.96) 100%)",
+                      border: `1px solid ${tier.color}55`,
+                      boxShadow:
+                        "inset 0 1px 0 rgba(224,197,122,.12), inset 0 -1px 0 rgba(0,0,0,.5)",
+                    }}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        <span
+                          aria-hidden="true"
+                          style={{
+                            width: 3, height: 3, transform: "rotate(45deg)",
+                            background: "linear-gradient(135deg, #EFD89A 0%, #A08850 100%)",
+                          }}
+                        />
+                        <span
+                          className="text-manor-brassHi/85 tracking-[0.22em]"
+                          style={{ fontFamily: "var(--font-sc), 'Cormorant SC', serif", fontSize: 8.5 }}
+                        >
+                          IMPLICATIO · 互动率
+                        </span>
+                      </div>
+                      <span
+                        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9.5px]"
+                        style={{ background: `${tier.color}1a`, color: tier.color, border: `1px solid ${tier.color}55` }}
+                      >
+                        <span style={{ width: 5, height: 5, borderRadius: 9999, background: tier.color, boxShadow: `0 0 5px ${tier.color}` }} />
+                        {tier.label}
+                      </span>
+                    </div>
+                    <p
+                      className="font-semibold tabnum leading-none mt-1.5"
+                      style={{ fontFamily: "var(--font-serif), 'EB Garamond', serif", fontSize: 24, color: tier.color }}
+                    >
+                      {(ga4.engagementRate * 100).toFixed(1)}%
+                    </p>
+                    <p className="text-manor-ink/70 mt-1.5 text-[10.5px] leading-snug">
+                      落地是否接住点击（互动会话÷总会话 ≈ 1−跳出率）。偏低 = 落地即走，多为意图错配或落地体验差。
+                    </p>
+                  </div>
+                );
+              })()}
+
+              {/* 活跃用户 + 互动时长 —— 中性上下文，不做好坏判断 */}
+              <div className="grid grid-cols-2 gap-2">
+                <MetricTile
+                  label="活跃用户"
+                  latin="ACTIVI"
+                  value={ga4.activeUsers.toLocaleString()}
+                  subline="全渠道去重 · 非纯自然搜索"
+                />
+                <MetricTile
+                  label="平均互动时长"
+                  latin="TEMPUS"
+                  value={formatEngagementTime(ga4.avgEngagementTime)}
+                  subline="每次会话 · 对照同类型页基准（待上线）"
+                />
+              </div>
+
+              {/* 站点语言 × 来源国 一致性（hreflang 诊断） */}
+              <LangGeoConsistency market={page.market} topCountries={ga4.topCountries} />
+            </div>
+            )}
+          </Section>
+        )}
 
         {/* 12 月趋势 */}
         <Section title="12 月趋势" grid={false}>

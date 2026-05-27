@@ -150,6 +150,10 @@ export const gscSyncLog = pgTable(
     top10Pages:       integer("top10_pages"),
     errorCode:        text("error_code"),
     errorMessage:     text("error_message"),
+    // 本批次关键词抓取真正失败（网络/限流/超时）的页 fullUrl 列表（迁移 0013）。
+    // 用于"24h 内续跑"：再点全量时只补这些页，其余沿用上一批。null/[] = 无失败=完整批次。
+    // 注意：只记 fetch 报错的页，不含"抓到但 0 关键词"（隐私阈值）的页 —— 后者不该重试。
+    queryFailedUrls:  jsonb("query_failed_urls"),
   },
   (t) => ({
     startedAtIdx: index("idx_gsc_sync_log_started_at").on(t.startedAt),
@@ -177,6 +181,14 @@ export const gscPages = pgTable(
     // 该 URL 的页面关键词排名（top N），同步时批量抓取一并落库；
     // 元素形如 { query, clicks, impressions, ctr, position }
     queries:     jsonb("queries").notNull().default([]),
+    // GA4 进站后指标（迁移 0012）—— 与 GSC 同批次、同一行。
+    // 全部可空：NULL = 该页未拉到 / 无 GA4 数据（前端回退占位），区别于"真拉到且为 0"。
+    // 口径：全渠道、近 28 天、landing_page 维度（Sean 拍板）。
+    ga4ActiveUsers:       integer("ga4_active_users"),
+    ga4EngagementRate:    doublePrecision("ga4_engagement_rate"),   // 0..1（engaged_sessions/sessions 派生）
+    ga4AvgEngagementTime: doublePrecision("ga4_avg_engagement_time"), // 秒/会话（user_engagement_duration/sessions 派生）
+    ga4TopCountries:      jsonb("ga4_top_countries"),               // [{ country, activeUsers }] Top10
+    ga4Sampled:          boolean("ga4_sampled"),                    // 该批 GA4 是否被采样（近似标记）
     isPillar:    boolean("is_pillar").notNull().default(false),
     sortOrder:   integer("sort_order").notNull(),
   },

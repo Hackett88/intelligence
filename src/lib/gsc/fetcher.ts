@@ -12,14 +12,14 @@
 // "每页行数"只是 visual paging，DOM 已经全员到齐。所以直接遍历 tbody 即可，
 // 不需要切分页或滚动。
 
-import puppeteer, { type Browser, type Page } from "puppeteer-core";
-import { promises as fs } from "node:fs";
-import path from "node:path";
-import os from "node:os";
+import { type Browser, type Page } from "puppeteer-core";
+import {
+  DEFAULT_CDP_HOST,
+  DEFAULT_CDP_PORT,
+  connectBrowser,
+} from "./cdp";
 
 const DEFAULT_PROPERTY = "sc-domain:weslamic.com";
-const DEFAULT_CDP_HOST = "127.0.0.1";
-const DEFAULT_CDP_PORT = 9222;
 
 const performanceUrl = (resourceId: string) =>
   `https://search.google.com/search-console/performance/search-analytics?` +
@@ -35,80 +35,8 @@ const queryByPageUrl = (resourceId: string, pageUrl: string) =>
   `&breakdown=query&metrics=CLICKS%2CIMPRESSIONS%2CCTR%2CPOSITION` +
   `&page=!${encodeURIComponent(pageUrl)}`;
 
-// 解析 Chrome 的 wsEndpoint。
-//
-// Chrome 148+ 默认禁用了 HTTP discovery 端点（/json/version 返回 404），puppeteer
-// 的传统 `browserURL` 拿 wsEndpoint 的方式就失效了。但 Chrome 启动时仍会把当前
-// 的 wsPath 写到 `<user-data-dir>/DevToolsActivePort`，格式：
-//   9222
-//   /devtools/browser/<uuid>
-// 我们直接读该文件构造 ws URL，跳过 HTTP discovery。
-function chromeUserDataDir(): string[] {
-  // 允许通过环境变量覆盖；按 OS 给默认路径，多个候选都试一遍。
-  const env = process.env.CHROME_USER_DATA_DIR;
-  if (env) return [env];
-  if (process.platform === "win32") {
-    const local = process.env.LOCALAPPDATA || path.join(os.homedir(), "AppData", "Local");
-    return [
-      path.join(local, "Google", "Chrome", "User Data"),
-      path.join(local, "Google", "Chrome Beta", "User Data"),
-      path.join(local, "Chromium", "User Data"),
-    ];
-  }
-  if (process.platform === "darwin") {
-    const home = os.homedir();
-    return [
-      path.join(home, "Library", "Application Support", "Google", "Chrome"),
-      path.join(home, "Library", "Application Support", "Chromium"),
-    ];
-  }
-  // linux
-  const home = os.homedir();
-  return [
-    path.join(home, ".config", "google-chrome"),
-    path.join(home, ".config", "chromium"),
-  ];
-}
-
-async function resolveBrowserWSEndpoint(host: string, port: number): Promise<string> {
-  // 先尝试老的 HTTP discovery（Chrome 旧版 / 非默认安全策略下还可用）
-  try {
-    const res = await fetch(`http://${host}:${port}/json/version`, {
-      headers: { Host: "localhost" },
-    });
-    if (res.ok) {
-      const data = (await res.json()) as { webSocketDebuggerUrl?: string };
-      if (data?.webSocketDebuggerUrl) return data.webSocketDebuggerUrl;
-    }
-  } catch {
-    // 不输出，继续走 DevToolsActivePort
-  }
-
-  // Fallback：读 DevToolsActivePort
-  const candidates = chromeUserDataDir().map((d) => path.join(d, "DevToolsActivePort"));
-  for (const file of candidates) {
-    try {
-      const content = await fs.readFile(file, "utf-8");
-      const [portLine, wsPath] = content.split("\n");
-      const filePort = parseInt(portLine?.trim() || "", 10);
-      if (filePort !== port) continue; // 跨 profile 时端口可能不一致
-      if (!wsPath?.startsWith("/devtools/browser/")) continue;
-      return `ws://${host}:${port}${wsPath.trim()}`;
-    } catch {
-      // 该文件不存在 / 没权限，试下一个
-    }
-  }
-  throw new Error(
-    `无法解析 Chrome wsEndpoint：${host}:${port} 的 /json/version 不响应，且 DevToolsActivePort 文件未找到。` +
-      `请确认 Chrome 已以 --remote-debugging-port=${port} 启动，或设置环境变量 CHROME_USER_DATA_DIR。`
-  );
-}
-
-// CDP 接管用户的 Chrome（仅 connect，不 launch）。调用方负责 disconnect。
-async function connectBrowser(host: string, port: number): Promise<Browser> {
-  const browserWSEndpoint = await resolveBrowserWSEndpoint(host, port);
-  return puppeteer.connect({ browserWSEndpoint, defaultViewport: null });
-}
+// CDP 连接原语（connectBrowser / resolveBrowserWSEndpoint / chromeUserDataDir）已抽到
+// ./cdp.ts，GSC 与 GA4 采集共享，避免两份逻辑漂移。
 
 // 优先复用已存在的 GSC tab（用户多半已经在那里登录、看过数据），没有就新开一个。
 async function resolveGscTab(browser: Browser): Promise<Page> {

@@ -4,7 +4,7 @@
 import { db } from "@/db/client";
 import { gscSyncLog, gscPages } from "@/db/schema";
 import type { NewGscSyncLog, NewGscPage, GscSyncLog, GscPage } from "@/db/schema";
-import type { QueryRow } from "@/app/app/indexing/_components/_mock";
+import type { QueryRow, Ga4Country } from "@/app/app/indexing/_components/_mock";
 import { eq, desc, and, sql } from "drizzle-orm";
 
 // 清理时区：按 Asia/Shanghai 划分自然日。改时区改这里一处即可。
@@ -20,6 +20,7 @@ export interface BatchMeta {
   avgCtr: number;
   avgPosition: number;
   top10Pages: number;
+  queryFailedUrls?: string[]; // 本批关键词抓取真失败的页 fullUrl（24h 续跑用）；空/未传 = 完整批次
 }
 
 // gsc_pages 行的"应用层视图" —— 数字列已是 number，trend12m 已 parse
@@ -39,6 +40,12 @@ export interface RealPageRecord {
   queries: QueryRow[];
   isPillar: boolean;
   sortOrder: number;
+  // GA4 进站后指标（迁移 0012）—— 可空，null/undefined = 未拉到/无数据。
+  ga4ActiveUsers?: number | null;
+  ga4EngagementRate?: number | null;
+  ga4AvgEngagementTime?: number | null;
+  ga4TopCountries?: Ga4Country[] | null;
+  ga4Sampled?: boolean | null;
 }
 
 // ── 写入 ───────────────────────────────────────────────────────────────────
@@ -84,6 +91,12 @@ export async function saveBatch(meta: BatchMeta, pages: RealPageRecord[]): Promi
         queries: p.queries,
         isPillar: p.isPillar,
         sortOrder: p.sortOrder,
+        // GA4 列：undefined/null 时 Drizzle 不写 → 列 DEFAULT NULL（向后兼容、不破坏旧逻辑）
+        ga4ActiveUsers: p.ga4ActiveUsers ?? null,
+        ga4EngagementRate: p.ga4EngagementRate ?? null,
+        ga4AvgEngagementTime: p.ga4AvgEngagementTime ?? null,
+        ga4TopCountries: p.ga4TopCountries ?? null,
+        ga4Sampled: p.ga4Sampled ?? null,
       }));
       // PG 默认 INSERT 多值上限按参数计；259 行 × ~15 列 ≈ 3.9k 参数，远低于 65535
       await tx.insert(gscPages).values(rows);
@@ -101,6 +114,8 @@ export async function saveBatch(meta: BatchMeta, pages: RealPageRecord[]): Promi
         avgCtr: meta.avgCtr,
         avgPosition: meta.avgPosition,
         top10Pages: meta.top10Pages,
+        // 失败页清单：传了非空数组就写，否则写 null（= 本批完整，不触发续跑）
+        queryFailedUrls: meta.queryFailedUrls && meta.queryFailedUrls.length > 0 ? meta.queryFailedUrls : null,
       })
       .where(eq(gscSyncLog.id, batchId));
 
@@ -170,6 +185,26 @@ export async function loadLatestBatch(): Promise<LoadedBatch | null> {
     log: latest,
     pages: rows.map(toRealPageRecord),
   };
+}
+
+/** 24h 续跑用：取最近一次 **full** 成功批次（含 pages）。无则 null。
+ *  与 loadLatestBatch 同样两步锚定（先 id 再 pages），避免并发窗口数据错位。 */
+export async function loadLatestFullBatch(): Promise<LoadedBatch | null> {
+  const [latest] = await db
+    .select()
+    .from(gscSyncLog)
+    .where(and(eq(gscSyncLog.status, "ok"), eq(gscSyncLog.mode, "full")))
+    .orderBy(desc(gscSyncLog.startedAt))
+    .limit(1);
+  if (!latest) return null;
+
+  const rows = await db
+    .select()
+    .from(gscPages)
+    .where(eq(gscPages.batchId, latest.id))
+    .orderBy(gscPages.sortOrder);
+
+  return { log: latest, pages: rows.map(toRealPageRecord) };
 }
 
 /**
@@ -257,5 +292,10 @@ function toRealPageRecord(row: GscPage): RealPageRecord {
     queries: Array.isArray(row.queries) ? (row.queries as QueryRow[]) : [],
     isPillar: row.isPillar,
     sortOrder: row.sortOrder,
+    ga4ActiveUsers: row.ga4ActiveUsers,
+    ga4EngagementRate: row.ga4EngagementRate,
+    ga4AvgEngagementTime: row.ga4AvgEngagementTime,
+    ga4TopCountries: Array.isArray(row.ga4TopCountries) ? (row.ga4TopCountries as Ga4Country[]) : null,
+    ga4Sampled: row.ga4Sampled,
   };
 }
