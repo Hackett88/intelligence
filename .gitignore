@@ -44,8 +44,8 @@ next-env.d.ts
 docker-compose*.yml
 docker-data/
 
-# drizzle migrations
-drizzle/
+# drizzle：纳入手写 .sql 迁移（建库/部署的权威指令集），忽略过时的 kit 快照（meta/ 早停在 0002）
+drizzle/meta/
 
 # temp & logs
 temp/

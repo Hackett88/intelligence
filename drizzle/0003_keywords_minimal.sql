@@ -1,0 +1,21 @@
+CREATE TABLE "keywords" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"keyword" text NOT NULL,
+	"market" text,
+	"month" text,
+	"row_key" text,
+	"search_volume" integer,
+	"keyword_difficulty" integer,
+	"cpc" real,
+	"number_of_results" integer,
+	"trends" text,
+	"intent" text,
+	"serp_features_keyword" text,
+	"bp" integer,
+	"cs" integer,
+	"source_row_keys" text,
+	"protected" boolean,
+	"question_type" text,
+	"created_at" timestamp DEFAULT now(),
+	"updated_at" timestamp DEFAULT now()
+);
