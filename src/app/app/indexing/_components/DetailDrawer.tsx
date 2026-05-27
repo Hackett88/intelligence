@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { X, ExternalLink, AlertTriangle, Info, Pencil, Check } from "lucide-react";
+import { X, ExternalLink, AlertTriangle, Info, Pencil, Check, ChevronDown } from "lucide-react";
 import { Sparkline } from "../../keywords/_components/_utils";
 import type { PageDetail, QueryRow } from "./_mock";
 import type { TimeWindow } from "./FilterBar";
@@ -454,10 +454,16 @@ function SortableTh({
   );
 }
 
+// 默认折叠时只显示前 N 条，其余收在「展开全部」之后 —— 25 条一次铺开太长，
+// 先给 10 条够看主词，需要再展开，视觉上更克制。
+const QUERY_COLLAPSED_COUNT = 10;
+
 function QueryRankTable({ rows }: { rows: QueryRow[] }) {
   // 排序状态：null = 保持原始顺序（GSC 已按点击降序返回）。
   // 点击同一列循环：默认 → 降序(由高到低) → 升序 → 恢复默认。
   const [sort, setSort] = React.useState<QuerySort>(null);
+  // 折叠状态：默认只显示前 QUERY_COLLAPSED_COUNT 条。
+  const [expanded, setExpanded] = React.useState(false);
 
   const toggleSort = (key: SortKey) => {
     setSort((prev) => {
@@ -473,6 +479,13 @@ function QueryRankTable({ rows }: { rows: QueryRow[] }) {
     // slice 防止原地 mutate props
     return rows.slice().sort((a, b) => (a[sort.key] - b[sort.key]) * factor);
   }, [rows, sort]);
+
+  // 折叠时只取前 N 条；展开后全量。隐藏条数 > 0 才显示展开按钮。
+  const hiddenCount = sortedRows.length - QUERY_COLLAPSED_COUNT;
+  const visibleRows =
+    expanded || hiddenCount <= 0
+      ? sortedRows
+      : sortedRows.slice(0, QUERY_COLLAPSED_COUNT);
 
   if (rows.length === 0) {
     return (
@@ -499,7 +512,7 @@ function QueryRankTable({ rows }: { rows: QueryRow[] }) {
           </tr>
         </thead>
         <tbody>
-          {sortedRows.map((q, i) => (
+          {visibleRows.map((q, i) => (
             <tr
               key={q.query}
               style={{
@@ -523,6 +536,27 @@ function QueryRankTable({ rows }: { rows: QueryRow[] }) {
           ))}
         </tbody>
       </table>
+
+      {/* 展开 / 收起：折叠时显示前 N 条，点击图标展开全部，再点收起 */}
+      {hiddenCount > 0 && (
+        <div className="flex justify-center pt-2 pb-0.5">
+          <button
+            type="button"
+            onClick={() => setExpanded((v) => !v)}
+            aria-expanded={expanded}
+            title={expanded ? "收起" : `展开全部 ${sortedRows.length} 条`}
+            className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-[10px] tracking-wide border border-manor-brass/30 text-manor-brassDim hover:text-manor-brassHi hover:border-manor-brass/55 bg-manor-brassDim/5 hover:bg-manor-brassDim/15 transition-colors"
+            style={{ fontFamily: "var(--font-sc), 'Cormorant SC', serif" }}
+          >
+            <ChevronDown
+              size={12}
+              className="transition-transform"
+              style={{ transform: expanded ? "rotate(180deg)" : "none" }}
+            />
+            {expanded ? "收起" : `展开全部（还有 ${hiddenCount} 条）`}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
