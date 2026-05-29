@@ -9,19 +9,28 @@ import { useEffect, useRef, useState } from "react";
  * Live-tick: every ~5s one random card's number changes by ±1 → ripple pulse.
  */
 
-type Readout = { value: number; cn: string; status: "live" | "warn" };
+// real: true 表示此卡承载真实数据 —— 不参与每 5.5s 的随机跳动，避免真实数被篡改。
+type Readout = { value: number; cn: string; status: "live" | "warn"; real?: boolean };
 
-const initialReadouts: Readout[] = [
-  { value: 14,  cn: "候选", status: "live" },
-  { value: 154, cn: "入库", status: "live" },
-  { value: 13,  cn: "待审", status: "warn" },
-  { value: 141, cn: "已评", status: "live" },
-  { value: 6,   cn: "加普", status: "live" },
-  { value: 28,  cn: "圣语", status: "live" },
-  { value: 12,  cn: "在产", status: "warn" },
-  { value: 38,  cn: "上榜", status: "live" },
-  { value: 154, cn: "总计", status: "live" },
-];
+// 功能板块数：无数据源，由 Sean 手动指定。要改板块数直接改这个常量即可。当前 4。
+const FUNCTIONAL_MODULES = 4;
+
+// 收录页之后的 7 张仍为占位 mock（"其它日后再改"）。前两张接真实数据：
+//   模块 ← FUNCTIONAL_MODULES 常量（功能模块数，与总览页 OFFICIA·模块 同义）
+//   收录 ← GSC 快照 stats.totalPages（与「收录与索引」页的「收录页数」同源）
+function buildReadouts(indexedPages: number): Readout[] {
+  return [
+    { value: FUNCTIONAL_MODULES, cn: "模块", status: "live", real: true },
+    { value: indexedPages,       cn: "收录", status: "live", real: true },
+    { value: 13,  cn: "待审", status: "warn" },
+    { value: 141, cn: "已评", status: "live" },
+    { value: 6,   cn: "加普", status: "live" },
+    { value: 28,  cn: "圣语", status: "live" },
+    { value: 12,  cn: "在产", status: "warn" },
+    { value: 38,  cn: "上榜", status: "live" },
+    { value: 154, cn: "总计", status: "live" },
+  ];
+}
 
 const sc = "var(--font-sc), 'Cormorant SC', serif";
 const serif = "var(--font-serif), 'EB Garamond', serif";
@@ -94,7 +103,7 @@ function HudCard({
       <div className="flex items-center gap-1 mt-1 leading-none">
         <StatusDot kind={status} />
         <span
-          className="text-manor-ink/85"
+          className="text-manor-ink/85 whitespace-nowrap"
           style={{ fontFamily: serif, fontSize: 9.5, letterSpacing: "0.06em" }}
         >
           {cn}
@@ -104,15 +113,25 @@ function HudCard({
   );
 }
 
-export function HudRail() {
-  const [readouts, setReadouts] = useState<Readout[]>(initialReadouts);
+export function HudRail({ indexedPages }: { indexedPages: number }) {
+  const [readouts, setReadouts] = useState<Readout[]>(() => buildReadouts(indexedPages));
+
+  // 真实「收录」卡随快照变化而更新（mock 卡的本地跳动状态不受影响）。
+  useEffect(() => {
+    setReadouts((prev) =>
+      prev.map((r) => (r.cn === "收录" ? { ...r, value: indexedPages } : r)),
+    );
+  }, [indexedPages]);
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
     if (mq.matches) return;
     const tick = window.setInterval(() => {
       setReadouts((prev) => {
-        const i = Math.floor(Math.random() * prev.length);
+        // 只在 mock 卡里随机挑一张跳动 —— 真实卡（real）保持稳定。
+        const mutable = prev.flatMap((r, idx) => (r.real ? [] : [idx]));
+        if (mutable.length === 0) return prev;
+        const i = mutable[Math.floor(Math.random() * mutable.length)];
         const delta = Math.random() > 0.5 ? 1 : -1;
         return prev.map((r, idx) =>
           idx === i ? { ...r, value: Math.max(0, r.value + delta) } : r,

@@ -7,6 +7,12 @@ interface SecondaryAuthDialogProps {
   open: boolean;
   onSuccess: () => void;
   onCancel: () => void;
+  /** 顶部小标签（默认：◆ SIGILLUM · 二次验证） */
+  eyebrow?: string;
+  /** 主标题（默认：请加盖操作印玺） */
+  title?: string;
+  /** 副说明（默认：写入与高耗动作需重新验印） */
+  description?: string;
 }
 
 const MAX_ATTEMPTS = 5;
@@ -16,6 +22,9 @@ export function SecondaryAuthDialog({
   open,
   onSuccess,
   onCancel,
+  eyebrow = "◆ SIGILLUM · 二次验证",
+  title = "请加盖操作印玺",
+  description = "写入与高耗动作需重新验印",
 }: SecondaryAuthDialogProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [password, setPassword] = useState("");
@@ -125,19 +134,19 @@ export function SecondaryAuthDialog({
               className="font-sc tracking-[0.32em] text-manor-brassHi/80 mb-1.5"
               style={{ fontFamily: "var(--font-sc), 'Cormorant SC', serif", fontSize: 10 }}
             >
-              ◆ SIGILLUM · 二次验证
+              {eyebrow}
             </div>
             <h2
               className="text-brass-gradient font-serif font-semibold leading-tight"
               style={{ fontFamily: "var(--font-serif), 'EB Garamond', serif", fontSize: 20, letterSpacing: "0.02em" }}
             >
-              请加盖操作印玺
+              {title}
             </h2>
             <p
               className="text-manor-inkDim mt-1.5 italic"
               style={{ fontFamily: "var(--font-serif), 'EB Garamond', serif", fontSize: 12 }}
             >
-              写入与高耗动作需重新验印
+              {description}
             </p>
             <span className="brass-divider mt-3 opacity-60 block" />
           </div>

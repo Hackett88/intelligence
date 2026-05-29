@@ -369,6 +369,21 @@ function MiniSegmented({
   );
 }
 
+// GA4 进站后表现固定取近 28 天窗口（无多档可切）——做成静态徽标，视觉对齐 MiniSegmented
+// 的「激活段」（同款边框/圆角/高度/字号/SC 小型大写），摆在段头右上角，与「性能指标」的
+// 90d 同位呼应。小写 "28d" 经 Cormorant SC 渲染为小型大写，显示与 90d 一致。
+function Ga4WindowBadge() {
+  return (
+    <span
+      title="GA4 全渠道口径 · 固定近 28 天窗口（GSC 性能为 90 天，时间窗待对齐）"
+      className="inline-flex items-center border border-manor-brass/30 rounded px-1.5 text-manor-brassHi bg-manor-brassDim/15 tracking-wide"
+      style={{ height: 20, fontSize: 10, fontFamily: "var(--font-sc), 'Cormorant SC', serif" }}
+    >
+      28d
+    </span>
+  );
+}
+
 // ───────────────────────────────────────────────────────────────────────────
 // Query rank table (内联 — 不需要 useReactTable 这种重武器)
 // ───────────────────────────────────────────────────────────────────────────
@@ -926,17 +941,12 @@ export function DetailDrawer({
             互动率(hero,带分档判断) + 活跃用户/互动时长(中性上下文) + 语言×来源国(hreflang诊断)。
             浏览/事件/新用户/会话/关键事件/购买/收入均已裁（冗余/恒零/归因错配，营收归 FRUCTUS）。 */}
         {showGa4Section && (
-          <Section title="进站后表现" grid={false}>
+          <Section title="进站后表现" grid={false} extra={<Ga4WindowBadge />}>
             {!ga4 ? (
               // 真实页但近 28 天无 GA4 着陆流量 —— 诚实空态，不再编造示例值
               <Ga4NoDataCallout />
             ) : (
             <div className="flex flex-col gap-3">
-              {/* 口径提示：GA4 全渠道 28 天 vs GSC 90 天，待对齐 */}
-              <p className="text-[10px] text-manor-inkFaint leading-snug">
-                GA4 全渠道口径 · 近 28 天（GSC 性能为 90 天，时间窗待对齐）。仅保留对单页 SEO 决策可行动的信号。
-              </p>
-
               {/* 互动率 —— 唯一带"好/坏"判断的 hero 指标（门槛为低位绝对阈值，跨页类型可比） */}
               {(() => {
                 const tier = engagementTier(ga4.engagementRate);

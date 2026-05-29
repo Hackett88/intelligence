@@ -1,4 +1,5 @@
 import { auth } from "@/lib/auth";
+import { loadLatestSnapshot } from "@/lib/gsc/loader";
 import { TopNav } from "./_components/TopNav";
 import { UserMenu } from "./_components/UserMenu";
 import { CurrentTime } from "./_components/CurrentTime";
@@ -14,7 +15,10 @@ export default async function AppLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await auth();
+  // auth 与快照互不依赖 —— 并行。快照走 loader 的 60s 缓存，与「收录与索引」页同源；
+  // 拿不到数据时（PG/JSON 皆空）收录页诚实显示 0。
+  const [session, snapshot] = await Promise.all([auth(), loadLatestSnapshot()]);
+  const indexedPages = snapshot?.stats.totalPages ?? 0;
 
   return (
     <div className="min-h-screen paper-grain">
@@ -71,7 +75,7 @@ export default async function AppLayout({
       </header>
 
       {/* Left HUD rail */}
-      <HudRail />
+      <HudRail indexedPages={indexedPages} />
 
       {/* Main content area — pulled in by HUD on left (w-[78px]),
           StatusBar (h-14) and DiariumTicker (h-8) on bottom.
