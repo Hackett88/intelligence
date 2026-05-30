@@ -42,8 +42,9 @@ export type Territory = "产品" | "知识" | "工具" | "场景" | "品牌";
 export const TERRITORY_BY_THEME: Record<string, Territory> = {
   "zikr-ring": "产品",
   "islamic-jewelry": "产品",
+  "tasbih": "产品", // demo · 品类经线中段
   "knowledge-dhikr": "知识",
-  "slow-living": "知识",
+  "slow-living": "场景", // v2.1: 老板明确 Slow Living 属于场景
   "itasbih-tools": "工具",
   "qibla-finder": "工具",
   "muslim-gifts": "场景",
@@ -168,6 +169,29 @@ const STOPWORDS = new Set([
 ]);
 const meaningfulTokens = (s: string) => tokenize(s).filter((w) => !STOPWORDS.has(w));
 
+// 极轻量英文单复数归一（仅长度>3 的 token 去尾 s/es；中文/阿拉伯语等不以 s 结尾不受影响）。
+// 修电商品类词 bracelet/bracelets、gift/gifts 因单复数被当作不同 token 的硬伤。
+function foldPlural(t: string): string {
+  if (t.length > 4 && t.endsWith("es")) return t.slice(0, -2);
+  if (t.length > 3 && t.endsWith("s")) return t.slice(0, -1);
+  return t;
+}
+const meaningfulFolded = (s: string) => meaningfulTokens(s).map(foldPlural);
+
+/**
+ * 蚕食检测专用重合度：去停用词 + 单复数归一后的实义词 Jaccard（0..100）。
+ * 与 serpOverlapPct（展示用，保持原状）分开 —— 不改后者，避免波及 KeywordModal 的归处推荐显示。
+ */
+export function meaningfulOverlapPct(a: string, b: string): number {
+  const ta = new Set(meaningfulFolded(a));
+  const tb = new Set(meaningfulFolded(b));
+  if (ta.size === 0 || tb.size === 0) return 0;
+  let inter = 0;
+  for (const w of ta) if (tb.has(w)) inter++;
+  const union = ta.size + tb.size - inter;
+  return Math.round((inter / union) * 100);
+}
+
 /**
  * SERP 重合度（演示值）：用两词的 token Jaccard 近似"Google 是否会用同一页满足两者"。
  * 真实化时替换为：抓两词 top10 URL 求交集 / |共享 URL|。返回 0..100。
@@ -282,10 +306,6 @@ export function suggestPlacement(
 }
 
 /**
- * 蚕食检测（真：基于绑定关系）：找出"不同页面却争夺高度重合关键词"的冲突对。
- * 这里以页面 primaryKeyword 的 token 重合 >=50% 且分属不同页为信号。
- */
-/**
  * 去重：同一关键词文本（跨市场的多条）默认合并成一条展示。
  * 保留每条的 id（移出时整组一起解绑），并汇总搜索量、记录涉及的市场。
  * 代表词取搜索量最高的那条（展示主市场用）。
@@ -317,13 +337,155 @@ export function dedupeKeywords(kws: RawKeyword[]): DedupedKeyword[] {
   return Array.from(map.values()).map(({ _bestSv, ...rest }) => rest);
 }
 
+// ════════════════════════════════════════════════════════════════════════════
+// 漏斗层 + 意图族：蚕食检测的两个新维度，同时供 UI 显式展示「页面类型 / 搜索意图」。
+// 两者都运行时派生（URL 推断 + 绑定词投票），不入库、不加 WbPage 字段 —— DB/旧草稿零迁移。
+// ════════════════════════════════════════════════════════════════════════════
+
+/** Shopify 漏斗层：从 URL 前缀实时推断（product 前缀优先于 collection）。 */
+export type FunnelLayer = "collection" | "product" | "blog" | "page" | null;
+export function urlFunnelLayer(url: string | null): FunnelLayer {
+  if (!url) return null;
+  if (url.includes("/products/")) return "product";   // /collections/x/products/y 也归 product
+  if (url.includes("/collections/")) return "collection";
+  if (url.includes("/blogs/")) return "blog";          // /id/blogs/... 含 locale 子路径仍命中
+  if (url.includes("/pages/")) return "page";
+  return null;
+}
+
+/**
+ * 工作台轨道 —— 内容/商品分轨重做的地基（运行时按 URL 派生，不入库、零迁移）。
+ *   · 博客(/blogs/)        → 内容轨 content（Topic Cluster：支柱/集群文章）
+ *   · 品类页/产品页          → 商品轨 catalog（Collection → Product）
+ *   · 工具页(/pages/) / 未设 URL → other（待归置）
+ * 这是把"博客内容"与"商品页"从同一个主题框里分开的判据。
+ */
+export type WorkTrack = "content" | "catalog" | "other";
+export function pageTrack(url: string | null): WorkTrack {
+  const layer = urlFunnelLayer(url);
+  if (layer === "blog") return "content";
+  if (layer === "collection" || layer === "product") return "catalog";
+  return "other";
+}
+
+/** 搜索意图族：6 种 behaviorIntent 收敛成三族（既用于漏斗判定，也用于 UI 搜索意图展示）。 */
+export type IntentFamily = "commercial" | "informational" | "navigational";
+export const INTENT_FAMILY: Record<BehaviorIntent, IntentFamily> = {
+  "了解型": "informational",
+  "行动型": "commercial",
+  "混合型": "commercial",
+  "对比型": "commercial",
+  "官网导航": "navigational",
+  "线下到访": "navigational",
+};
+
+/**
+ * 页意图族信号：对该页全部绑定词的意图族做多数投票。
+ * mixed 仅在「无绝对多数族」（平局 / 主导族未过半）时为真 —— 这类才是真正势均力敌、需人工核。
+ * 只要主导族绝对过半（如 commercial 2 : informational 1），就用主导族判定，不因偶有少数异族词
+ * （跨 10 市场常见）而把真蚕食误降级为黄色待核。
+ */
+export type PageIntentSignal = { family: IntentFamily | null; mixed: boolean };
+export function resolvePageIntent(boundKws: RawKeyword[]): PageIntentSignal {
+  const counts: Record<IntentFamily, number> = { commercial: 0, informational: 0, navigational: 0 };
+  let total = 0;
+  for (const k of boundKws) {
+    const f = k.behaviorIntent ? INTENT_FAMILY[k.behaviorIntent] : null;
+    if (f) { counts[f]++; total++; }
+  }
+  const entries = (Object.entries(counts) as [IntentFamily, number][]).filter(([, n]) => n > 0);
+  if (entries.length === 0) return { family: null, mixed: false };
+  entries.sort((a, b) => b[1] - a[1]);
+  const mixed = entries.length > 1 && entries[0][1] * 2 <= total; // 主导族未严格过半 → 势均力敌
+  return { family: entries[0][0], mixed };
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// 蚕食检测：三维 AND（词面重合 ∧ 同漏斗层 ∧ 同意图族）→ 真蚕食；跨层/跨族 = 漏斗协作。
+// ════════════════════════════════════════════════════════════════════════════
+
+/** 两页关系：红=真蚕食 / 绿=漏斗协作 / 黄=待人工核对 / 灰=跨主题低优。 */
+export type RelationType =
+  | "true_cannibalization"
+  | "funnel_division"
+  | "intent_overlap"
+  | "cross_theme_low";
+
+/** CannibalConflict 的超集：保留 aId/bId/overlap，旧消费端（Dock/Inspector）零改即运行。 */
 export type CannibalConflict = { aId: string; bId: string; overlap: number };
-export function detectCannibalization(pages: WbPage[]): CannibalConflict[] {
-  const out: CannibalConflict[] = [];
+export type PageRelation = CannibalConflict & {
+  relationType: RelationType;
+  advice: string;
+};
+
+/** 红色谓词：Dock 真蚕食计数 / Inspector 红块 / MapCanvas 红徽标 三处共用，杜绝口径分裂。 */
+export function isHardCannibalization(r: PageRelation): boolean {
+  return (r.relationType ?? "true_cannibalization") === "true_cannibalization";
+}
+
+// 词面重合阈值。去停用词+单复数归一后短词 Jaccard 会系统性升高，已用 176 词回归核过（见执行日志）。
+const CANNIBAL_THRESHOLD = 50;
+
+/**
+ * 检测页面间关系。getIntent 为可选注入式 resolver（从该页绑定词投票得意图族）：
+ * 缺省时降级为「漏斗层 + 词面 + 页型」判定，不引入意图族（安全降级，DB/旧草稿零依赖）。
+ */
+export function detectCannibalization(
+  pages: WbPage[],
+  getIntent?: (pageId: string) => PageIntentSignal,
+): PageRelation[] {
+  const out: PageRelation[] = [];
   for (let i = 0; i < pages.length; i++) {
     for (let j = i + 1; j < pages.length; j++) {
-      const ov = serpOverlapPct(pages[i].primaryKeyword, pages[j].primaryKeyword);
-      if (ov >= 50) out.push({ aId: pages[i].id, bId: pages[j].id, overlap: ov });
+      const a = pages[i], b = pages[j];
+
+      // 维度1：词面实义词重合（去停用词 + 单复数归一）
+      const ov = meaningfulOverlapPct(a.primaryKeyword, b.primaryKeyword);
+      if (ov < CANNIBAL_THRESHOLD) continue;
+
+      // 跨主题：不静默放过，降为低优灰提示。themeId 对用户新建页可能等于自身 id，
+      // 这种「孤立新建支柱」不靠 themeId 分组，继续走门控。
+      const aIso = a.themeId === a.id, bIso = b.themeId === b.id;
+      if (a.themeId !== b.themeId && !(aIso && bIso)) {
+        out.push({ aId: a.id, bId: b.id, overlap: ov, relationType: "cross_theme_low",
+          advice: "跨主题同根词，核对是否两个主题在抢同一词，优先级低" });
+        continue;
+      }
+
+      // 维度2：Shopify 漏斗层 —— 跨层 = 漏斗协作（collection 导购 / product 成交 / blog 科普）
+      const la = urlFunnelLayer(a.url), lb = urlFunnelLayer(b.url);
+      if (la && lb && la !== lb) {
+        const samePageType = a.pageType === b.pageType;
+        out.push({ aId: a.id, bId: b.id, overlap: ov, relationType: "funnel_division",
+          advice: samePageType
+            ? "不同 Shopify 页型，当前为漏斗协作；注意两页页面类型相同，若某页漏斗层调整（如 blog 升级为 collection）需复检蚕食"
+            : "不同 Shopify 页型，漏斗协作。核对内链：collection 用购买锚指 product、blog 用学习锚指 collection" });
+        continue;
+      }
+
+      // 维度3：搜索意图族 —— 跨族 = 漏斗协作
+      const sa = getIntent?.(a.id), sb = getIntent?.(b.id);
+      if (sa?.family && sb?.family && sa.family !== sb.family) {
+        out.push({ aId: a.id, bId: b.id, overlap: ov, relationType: "funnel_division",
+          advice: "不同搜索意图族，漏斗协作，正常" });
+        continue;
+      }
+
+      // 维度4：意图混杂的页 → 不强判真蚕食，降为待核
+      if (sa?.mixed || sb?.mixed) {
+        out.push({ aId: a.id, bId: b.id, overlap: ov, relationType: "intent_overlap",
+          advice: "存在跨市场意图分歧，核对真实 SERP 再决定是否合并" });
+        continue;
+      }
+
+      // 维度5：同层（或层未知）+ 同族 —— 看页型决定红/黄
+      if (a.pageType === b.pageType) {
+        out.push({ aId: a.id, bId: b.id, overlap: ov, relationType: "true_cannibalization",
+          advice: "疑似真蚕食：先查证两页真实 Google SERP 是否重合（当前重合%为词面演示值，非真实 SERP），确认后再做 301 合并或主词重分配" });
+      } else {
+        out.push({ aId: a.id, bId: b.id, overlap: ov, relationType: "intent_overlap",
+          advice: "同意图不同页型，核对真实 SERP 是否共现，再决定是否改绑" });
+      }
     }
   }
   return out;

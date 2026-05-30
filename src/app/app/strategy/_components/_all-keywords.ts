@@ -178,4 +178,24 @@ export const ALL_KEYWORDS: RawKeyword[] = [
   { id: "k173", keyword: "weslamic.com", market: null, sv: null, kd: null, intent: null, behaviorIntent: "官网导航", pagePlanningIntent: "品牌主页", layer: "一级核心", questionType: null },
   { id: "k174", keyword: "weslamic official", market: null, sv: null, kd: null, intent: null, behaviorIntent: "官网导航", pagePlanningIntent: "品牌主页", layer: "一级核心", questionType: null },
   { id: "k175", keyword: "weslamic", market: null, sv: null, kd: null, intent: null, behaviorIntent: "官网导航", pagePlanningIntent: "品牌主页", layer: "一级核心", questionType: null },
+
+  // ── demo · Tasbih 念珠主题演示词（非真实 176 词，仅用于 Loom Grid v2 喂厚数据）─────
+  { id: "d0", keyword: "tasbih beads", market: "us", sv: 1600, kd: 20, intent: "Commercial", behaviorIntent: "行动型", pagePlanningIntent: "品类聚合页", layer: "一级核心", questionType: null }, // demo
+  { id: "d1", keyword: "prayer beads tasbih", market: "uk", sv: 590, kd: 18, intent: "Commercial", behaviorIntent: "混合型", pagePlanningIntent: "品类聚合页", layer: "二级独立", questionType: null }, // demo
+  { id: "d2", keyword: "tasbih necklace", market: "us", sv: 320, kd: 15, intent: "Commercial", behaviorIntent: "行动型", pagePlanningIntent: "品类聚合页", layer: "二级独立", questionType: null }, // demo
+  { id: "d3", keyword: "wood tasbih", market: "us", sv: 480, kd: 12, intent: "Commercial", behaviorIntent: "行动型", pagePlanningIntent: "品类聚合页", layer: "二级独立", questionType: null }, // demo
+  { id: "d4", keyword: "wooden prayer beads", market: "uk", sv: 320, kd: 14, intent: "Commercial", behaviorIntent: "行动型", pagePlanningIntent: "品类聚合页", layer: "二级独立", questionType: null }, // demo
+  { id: "d5", keyword: "gemstone tasbih", market: "sa", sv: 390, kd: 16, intent: "Commercial", behaviorIntent: "行动型", pagePlanningIntent: "品类聚合页", layer: "二级独立", questionType: null }, // demo
+  { id: "d6", keyword: "tasbih gift", market: "uk", sv: 480, kd: 10, intent: "Commercial", behaviorIntent: "行动型", pagePlanningIntent: "场景使用页", layer: "二级独立", questionType: null }, // demo
+  { id: "d7", keyword: "tasbih gift set", market: "us", sv: 260, kd: 8, intent: "Commercial", behaviorIntent: "行动型", pagePlanningIntent: "场景使用页", layer: "二级独立", questionType: null }, // demo
+  { id: "d8", keyword: "ramadan tasbih", market: "uk", sv: 590, kd: 12, intent: "Commercial", behaviorIntent: "行动型", pagePlanningIntent: "场景使用页", layer: "二级独立", questionType: null }, // demo
+  { id: "d9", keyword: "eid tasbih", market: "uk", sv: 320, kd: 10, intent: "Commercial", behaviorIntent: "行动型", pagePlanningIntent: "场景使用页", layer: "二级独立", questionType: null }, // demo
+  { id: "d10", keyword: "digital tasbih counter", market: "my", sv: 720, kd: 22, intent: null, behaviorIntent: "行动型", pagePlanningIntent: "工具生态页", layer: "二级独立", questionType: null }, // demo
+  { id: "d11", keyword: "electronic tasbih", market: "sa", sv: 210, kd: 18, intent: null, behaviorIntent: "行动型", pagePlanningIntent: "工具生态页", layer: "三级变体", questionType: null }, // demo
+  { id: "d12", keyword: "tasbih dhikr", market: "us", sv: 210, kd: 14, intent: "Informational", behaviorIntent: "了解型", pagePlanningIntent: "知识深度页", layer: "二级独立", questionType: null }, // demo
+  { id: "d13", keyword: "how to use tasbih for dhikr", market: "uk", sv: 170, kd: 12, intent: "Informational", behaviorIntent: "了解型", pagePlanningIntent: "知识深度页", layer: "三级变体", questionType: "how" }, // demo
+  { id: "d14", keyword: "islamic jewelry gift", market: "uk", sv: 390, kd: 15, intent: "Commercial", behaviorIntent: "行动型", pagePlanningIntent: "场景使用页", layer: "二级独立", questionType: null }, // demo
+  { id: "d15", keyword: "muslim jewelry", market: "us", sv: 480, kd: 18, intent: "Commercial", behaviorIntent: "行动型", pagePlanningIntent: "品类聚合页", layer: "二级独立", questionType: null }, // demo
+  { id: "d16", keyword: "zikr ring gift", market: "uk", sv: 170, kd: 8, intent: "Commercial", behaviorIntent: "行动型", pagePlanningIntent: "场景使用页", layer: "二级独立", questionType: null }, // demo
+  { id: "d17", keyword: "islamic necklace", market: "us", sv: 320, kd: 14, intent: "Commercial", behaviorIntent: "行动型", pagePlanningIntent: "品类聚合页", layer: "二级独立", questionType: null }, // demo
 ];

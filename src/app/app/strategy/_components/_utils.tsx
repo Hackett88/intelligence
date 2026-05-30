@@ -6,7 +6,9 @@
  * 并复用关键词库 & 收录页已有的 chip 体系（layer / page_planning_intent / behavior）。
  */
 import * as React from "react";
+import { Store, ShoppingCart, BookOpen, Wrench, type LucideIcon } from "lucide-react";
 import type { PageNodeWithRollup, PlanStatus, PageRole, Market } from "./_data";
+import { urlFunnelLayer, type FunnelLayer, type IntentFamily, type RelationType } from "./_workbench";
 
 // 复用既有 chip：page_planning_intent 既是关键词维度，也正是这里的"页面类型"
 export {
@@ -204,4 +206,86 @@ export function MarketFlags({ markets, maxN = 6 }: { markets: Market[] | string[
       {extra > 0 && <span className="text-[9px] text-manor-inkFaint ml-0.5">+{extra}</span>}
     </span>
   );
+}
+
+// ── 页面类型（Shopify 漏斗层）：品类页 / 产品页 / 博客页 / 工具页 ─────────────────
+// 由页面 URL 前缀推断（urlFunnelLayer），把原本藏在网址里的页面类型显式摆到运营眼前
+// —— 让人一眼看清「这页处在转化漏斗的哪一层、抓哪种搜索意图」。
+type FunnelMeta = { label: string; sublabel: string; icon: LucideIcon; text: string; chip: string };
+export const FUNNEL_META: Record<NonNullable<FunnelLayer>, FunnelMeta> = {
+  collection: { label: "品类页", sublabel: "品类导购页 · collection", icon: Store, text: "text-manor-brassHi", chip: "bg-manor-bg3 border-manor-brassDim/55" },
+  product: { label: "产品页", sublabel: "成交转化页 · product", icon: ShoppingCart, text: "text-manor-sageHi", chip: "bg-manor-bg3 border-manor-sageDim/55" },
+  blog: { label: "博客页", sublabel: "答疑科普页 · blog", icon: BookOpen, text: "text-manor-brassDim", chip: "bg-manor-bg3 border-manor-line2" },
+  page: { label: "工具页", sublabel: "在线工具页 · pages", icon: Wrench, text: "text-manor-brassDim", chip: "bg-manor-bg3 border-manor-line2" },
+};
+
+/** 页面类型徽标。无 URL（待新建/未定）返回 null —— 不臆造，避免误导。 */
+export function FunnelChip({ url, size = "md" }: { url: string | null; size?: "sm" | "md" }) {
+  const layer = urlFunnelLayer(url);
+  if (!layer) return null;
+  const m = FUNNEL_META[layer];
+  const Icon = m.icon;
+  const pad = size === "sm" ? "px-1 py-0 text-[10px] gap-0.5" : "px-1.5 py-0.5 text-[11px] gap-1";
+  return (
+    <span
+      className={`inline-flex items-center rounded border ${pad} ${m.chip} ${m.text} whitespace-nowrap shrink-0`}
+      title={`页面类型：${m.label} — ${m.sublabel}`}
+    >
+      <Icon size={size === "sm" ? 9 : 11} />
+      {m.label}
+    </span>
+  );
+}
+
+// ── 搜索意图（意图族）：商业 / 信息 / 导航 ─────────────────────────────
+// 由页面绑定词的 behaviorIntent 多数投票派生（resolvePageIntent）。
+export const INTENT_FAMILY_META: Record<IntentFamily, { label: string; short: string }> = {
+  commercial: { label: "商业意图", short: "商业" },
+  informational: { label: "信息意图", short: "信息" },
+  navigational: { label: "导航意图", short: "导航" },
+};
+
+// ── 两页关系（蚕食检测输出）四色 ───────────────────────────────────────────────
+export const RELATION_META: Record<
+  RelationType,
+  { label: string; latin: string; text: string; dot: string; chip: string }
+> = {
+  true_cannibalization: {
+    label: "真蚕食", latin: "RIVALIS", text: "text-manor-oxbloodHi",
+    dot: "radial-gradient(circle at 30% 30%, #E0A89A, #C46B5A 55%, #7A3A30)",
+    chip: "bg-manor-bg3 text-manor-oxbloodHi border-manor-oxbloodDim/55",
+  },
+  intent_overlap: {
+    label: "待核", latin: "DUBIUM", text: "text-manor-brassHi",
+    dot: "radial-gradient(circle at 30% 30%, #F8E6B0, #D4B36F 55%, #A08850)",
+    chip: "bg-manor-bg3 text-manor-brassHi border-manor-brassDim/55",
+  },
+  funnel_division: {
+    label: "漏斗协作", latin: "COOPERATIO", text: "text-manor-sageHi",
+    dot: "radial-gradient(circle at 30% 30%, #BDE6B1, #7BA67D 55%, #3D5C46)",
+    chip: "bg-manor-bg3 text-manor-sageHi border-manor-sageDim/55",
+  },
+  cross_theme_low: {
+    label: "跨主题", latin: "EXTRA", text: "text-manor-inkDim",
+    dot: "radial-gradient(circle at 30% 30%, #6E665A, #46413A 55%, #2A2722)",
+    chip: "bg-manor-bg3 text-manor-inkDim border-manor-line2",
+  },
+};
+
+// ── 主题的页面类型覆盖度：这个主题覆盖了「信息 / 品类 / 成交」哪几层，缺哪层 ──────────
+// 只看已设 URL（已上线/规划）的页面能推断出的漏斗层。给运营一个正向规划信号。
+export type FunnelCoverage = {
+  present: Set<NonNullable<FunnelLayer>>;
+  missing: NonNullable<FunnelLayer>[];
+};
+// 一个完整主题理想应覆盖的三种核心漏斗层（工具页 page 视主题而定，不计入缺口）
+const CORE_FUNNELS: NonNullable<FunnelLayer>[] = ["blog", "collection", "product"];
+export function themeFunnelCoverage(urls: (string | null)[]): FunnelCoverage {
+  const present = new Set<NonNullable<FunnelLayer>>();
+  for (const u of urls) {
+    const l = urlFunnelLayer(u);
+    if (l) present.add(l);
+  }
+  const missing = CORE_FUNNELS.filter((f) => !present.has(f));
+  return { present, missing };
 }

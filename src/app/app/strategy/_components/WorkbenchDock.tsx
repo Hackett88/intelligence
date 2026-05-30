@@ -2,14 +2,15 @@
 
 import * as React from "react";
 import { Package, AlertTriangle, Undo2, Redo2, Check, X, ChevronUp } from "lucide-react";
-import type { RawKeyword, WbPage, CannibalConflict } from "./_workbench";
-import { marketFlag, formatSv } from "./_utils";
+import type { RawKeyword, WbPage, PageRelation } from "./_workbench";
+import { isHardCannibalization } from "./_workbench";
+import { marketFlag, formatSv, RELATION_META } from "./_utils";
 
 interface WorkbenchDockProps {
   parkedCount: number;
   parkedKeywords: RawKeyword[];
   conflictCount: number;
-  conflicts: CannibalConflict[];
+  conflicts: PageRelation[];
   pages: WbPage[];
   canUndo: boolean;
   canRedo: boolean;
@@ -68,32 +69,59 @@ export function WorkbenchDock({
         </div>
       )}
 
-      {/* Conflicts panel */}
+      {/* Page-relation panel —— 真蚕食优先；协作/待核/跨主题在概览里"双显"，
+          避免红点从旧口径骤降时被误读为"告警消失"。 */}
       {showConflicts && (
-        <div className="absolute bottom-full right-0 w-80 max-h-60 overflow-y-auto bg-manor-bg2 border border-manor-line rounded-t-lg shadow-lg z-20">
-          <div className="px-3 py-2 border-b border-manor-line flex items-center justify-between">
-            <span className="text-[10px] tracking-[0.15em] text-manor-oxbloodHi/80" style={{ fontFamily: sc }}>
-              蚕食冲突
+        <div className="absolute bottom-full right-0 w-96 max-h-72 overflow-y-auto bg-manor-bg2 border border-manor-line rounded-t-lg shadow-lg z-20">
+          <div className="px-3 py-2 border-b border-manor-line flex items-center justify-between sticky top-0 bg-manor-bg2 z-10">
+            <span className="text-[10px] tracking-[0.15em] text-manor-brassHi/80" style={{ fontFamily: sc }}>
+              页面关系检查
             </span>
             <button type="button" onClick={() => setShowConflicts(false)} className="text-manor-inkFaint hover:text-manor-ink">
               <X size={12} />
             </button>
           </div>
           {conflicts.length === 0 ? (
-            <div className="px-3 py-4 text-xs text-manor-inkFaint text-center">无冲突</div>
+            <div className="px-3 py-4 text-xs text-manor-inkFaint text-center">未检出相关页面对</div>
           ) : (
-            conflicts.map((c, i) => {
-              const a = pages.find((p) => p.id === c.aId);
-              const b = pages.find((p) => p.id === c.bId);
-              return (
-                <div key={i} className="px-3 py-2 border-b border-manor-line/30 text-[11px] text-manor-inkDim">
-                  <span className="text-manor-oxbloodHi">{a?.title ?? c.aId}</span>
-                  <span className="text-manor-inkFaint mx-1">vs</span>
-                  <span className="text-manor-oxbloodHi">{b?.title ?? c.bId}</span>
-                  <span className="text-manor-inkFaint ml-1">({c.overlap}% 重合)</span>
-                </div>
-              );
-            })
+            <>
+              {/* 概览：四色计数（双显，缓解红点骤降的认知落差） */}
+              <div className="px-3 py-1.5 border-b border-manor-line/40 flex flex-wrap gap-x-3 gap-y-0.5 text-[10px]">
+                {(["true_cannibalization", "intent_overlap", "funnel_division", "cross_theme_low"] as const).map((rt) => {
+                  const n = conflicts.filter((c) => c.relationType === rt).length;
+                  if (!n) return null;
+                  return (
+                    <span key={rt} className={RELATION_META[rt].text}>
+                      {RELATION_META[rt].label} <span className="tabular-nums font-medium">{n}</span>
+                    </span>
+                  );
+                })}
+              </div>
+              {/* 列表：真蚕食排前 */}
+              {[...conflicts]
+                .sort((a, b) => (isHardCannibalization(b) ? 1 : 0) - (isHardCannibalization(a) ? 1 : 0))
+                .map((c, i) => {
+                  const a = pages.find((p) => p.id === c.aId);
+                  const b = pages.find((p) => p.id === c.bId);
+                  const m = RELATION_META[c.relationType];
+                  return (
+                    <div key={i} className="px-3 py-2 border-b border-manor-line/30 text-[11px]">
+                      <div className="flex items-center gap-1.5 mb-0.5">
+                        <span className={`inline-flex items-center px-1 py-0 rounded border text-[10px] ${m.chip}`}>
+                          {m.label}
+                        </span>
+                        <span className="text-manor-inkFaint tabular-nums">{c.overlap}% 重合</span>
+                      </div>
+                      <div className="text-manor-inkDim">
+                        <span className="text-manor-ink/85">{a?.title ?? c.aId}</span>
+                        <span className="text-manor-inkFaint mx-1">×</span>
+                        <span className="text-manor-ink/85">{b?.title ?? c.bId}</span>
+                      </div>
+                      <div className="text-[10px] text-manor-inkFaint mt-0.5 leading-snug">{c.advice}</div>
+                    </div>
+                  );
+                })}
+            </>
           )}
         </div>
       )}
@@ -120,6 +148,7 @@ export function WorkbenchDock({
         <button
           type="button"
           onClick={() => { setShowConflicts(!showConflicts); setShowParked(false); }}
+          title={`真蚕食 ${conflictCount} 处 · 点开查看全部页面关系（真蚕食 / 待核 / 漏斗协作 / 跨主题）`}
           className={[
             "flex items-center gap-1.5 px-2 py-1 rounded transition-colors",
             conflictCount > 0
@@ -128,7 +157,7 @@ export function WorkbenchDock({
           ].join(" ")}
         >
           <AlertTriangle size={13} />
-          冲突
+          蚕食
           <span className="tabular-nums">[{conflictCount}]</span>
         </button>
 

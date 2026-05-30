@@ -147,6 +147,7 @@ const THEMES: Theme[] = [
         kw("zikr ring", "tr", 260, 25, "一级核心", "品类聚合页", "行动型"),
         kw("zikr ring counter", "us", 820, 38, "一级核心", "品类聚合页", "行动型"),
         kw("خاتم ذكي", "sa", 720, 22, "一级核心", "品类聚合页", "了解型"),
+        kw("zikr ring gift", "uk", 170, 8, "二级独立", "场景使用页", "行动型"), // demo
       ],
     },
     clusters: [
@@ -573,6 +574,9 @@ const THEMES: Theme[] = [
       note: "islamic-jewelry 簇 10 页全 0 点击 —— 缺一个真正的品类支柱统领。",
       keywords: [
         kw("islamic jewelry", "uk", 260, 11, "二级独立", "品类聚合页", "行动型", { intent: "Informational,Commercial", primary: true }),
+        kw("muslim jewelry", "us", 480, 18, "二级独立", "品类聚合页", "行动型"), // demo
+        kw("islamic jewelry gift", "uk", 390, 15, "二级独立", "场景使用页", "行动型"), // demo
+        kw("islamic necklace", "us", 320, 14, "二级独立", "品类聚合页", "行动型"), // demo
       ],
     },
     clusters: [
@@ -654,6 +658,137 @@ const THEMES: Theme[] = [
           kw("aqeeq stone", "sa", 880, 17, "四级兜底", "品类聚合页", "混合型"),
           kw("aqeeq ring", "sa", 210, 14, "四级兜底", "品类聚合页", "混合型"),
           kw("anklet", "sa", 880, 14, "四级兜底", "品类聚合页", "混合型"),
+        ],
+      },
+    ],
+  },
+
+  // ── 6b. Tasbih 念珠（品类经线中段：Islamic Jewelry → Tasbih → Zikr Ring）── demo
+  {
+    id: "tasbih",
+    name: "Tasbih 念珠",
+    latin: "TASBIH",
+    clusterKey: "tasbih",
+    summary: "品类漏斗中段桥品类。承接 Islamic Jewelry 泛流量，桥接到 Zikr Ring 智能念珠成交。",
+    pillar: {
+      id: "tb-pillar", // demo
+      role: "pillar",
+      title: "Tasbih Prayer Beads 念珠品类页",
+      pageType: "品类聚合页",
+      status: "gap",
+      url: "/collections/tasbih",
+      market: "us",
+      markets: ["us", "uk", "my", "sa", "id"],
+      position: null,
+      clicks: null,
+      impressions: null,
+      note: "demo · 品类漏斗中段，承接泛珠宝流量、桥接到 Zikr Ring",
+      keywords: [
+        kw("tasbih beads", "us", 1600, 20, "一级核心", "品类聚合页", "行动型", { primary: true }), // demo
+        kw("prayer beads tasbih", "uk", 590, 18, "二级独立", "品类聚合页", "混合型"), // demo
+        kw("tasbih necklace", "us", 320, 15, "二级独立", "品类聚合页", "行动型"), // demo
+      ],
+    },
+    clusters: [
+      {
+        id: "tb-c-wood", // demo
+        role: "cluster",
+        title: "Wood Tasbih 木质念珠",
+        pageType: "品类聚合页",
+        status: "gap",
+        url: "/collections/wood-tasbih",
+        market: "us",
+        markets: ["us", "uk"],
+        position: null,
+        clicks: null,
+        impressions: null,
+        keywords: [
+          kw("wood tasbih", "us", 480, 12, "二级独立", "品类聚合页", "行动型", { primary: true }), // demo
+          kw("wooden prayer beads", "uk", 320, 14, "二级独立", "品类聚合页", "行动型"), // demo
+        ],
+      },
+      {
+        id: "tb-c-gemstone", // demo
+        role: "cluster",
+        title: "Gemstone Tasbih 宝石念珠",
+        pageType: "品类聚合页",
+        status: "gap",
+        url: "/collections/gemstone-tasbih",
+        market: "sa",
+        markets: ["sa", "ae"],
+        position: null,
+        clicks: null,
+        impressions: null,
+        keywords: [
+          kw("gemstone tasbih", "sa", 390, 16, "二级独立", "品类聚合页", "行动型", { primary: true }), // demo
+        ],
+      },
+      {
+        id: "tb-c-gift", // demo
+        role: "cluster",
+        title: "Tasbih Gift Set 念珠礼盒",
+        pageType: "场景使用页",
+        status: "gap",
+        url: "/collections/tasbih-gift",
+        market: "uk",
+        markets: ["uk", "us"],
+        position: null,
+        clicks: null,
+        impressions: null,
+        keywords: [
+          kw("tasbih gift", "uk", 480, 10, "二级独立", "场景使用页", "行动型", { primary: true }), // demo
+          kw("tasbih gift set", "us", 260, 8, "二级独立", "场景使用页", "行动型"), // demo
+        ],
+      },
+      {
+        id: "tb-c-ramadan", // demo
+        role: "cluster",
+        title: "Ramadan Tasbih 斋月念珠",
+        pageType: "场景使用页",
+        status: "gap",
+        url: "/collections/ramadan-tasbih",
+        market: "uk",
+        markets: ["uk"],
+        position: null,
+        clicks: null,
+        impressions: null,
+        keywords: [
+          kw("ramadan tasbih", "uk", 590, 12, "二级独立", "场景使用页", "行动型", { primary: true }), // demo
+          kw("eid tasbih", "uk", 320, 10, "二级独立", "场景使用页", "行动型"), // demo
+        ],
+      },
+      {
+        id: "tb-c-digital", // demo
+        role: "cluster",
+        title: "Digital Tasbih Counter 数字念珠",
+        pageType: "工具生态页",
+        status: "optimize",
+        url: "/pages/digital-tasbih",
+        market: "my",
+        markets: ["my", "sa"],
+        position: 14.2,
+        clicks: 12,
+        impressions: 680,
+        keywords: [
+          kw("digital tasbih counter", "my", 720, 22, "二级独立", "工具生态页", "行动型", { primary: true }), // demo
+          kw("electronic tasbih", "sa", 210, 18, "三级变体", "工具生态页", "行动型"), // demo
+        ],
+      },
+      {
+        id: "tb-c-dhikr", // demo
+        role: "cluster",
+        title: "Tasbih for Dhikr 念诵用念珠指南",
+        pageType: "知识深度页",
+        status: "gap",
+        url: "/blogs/tasbih/tasbih-for-dhikr",
+        market: "us",
+        markets: ["us", "uk"],
+        position: null,
+        clicks: null,
+        impressions: null,
+        keywords: [
+          kw("tasbih dhikr", "us", 210, 14, "二级独立", "知识深度页", "了解型", { primary: true }), // demo
+          kw("how to use tasbih for dhikr", "uk", 170, 12, "三级变体", "知识深度页", "了解型", { q: "how" }), // demo
         ],
       },
     ],

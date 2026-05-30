@@ -1,18 +1,21 @@
 "use client";
 
 import * as React from "react";
-import { TreePine, TableProperties, Undo2, Redo2, Package, AlertTriangle } from "lucide-react";
+import { Undo2, Redo2, Package, AlertTriangle, PanelLeftOpen, PanelRightOpen } from "lucide-react";
 import type { WorkbenchSeed, WbPage, RawKeyword, Territory, MarketRankings, PlanPayload } from "./_workbench";
 import { saveStrategyPlanAction } from "./_plan-actions";
 import {
   detectCannibalization,
   suggestPlacement,
-  type CannibalConflict,
+  isHardCannibalization,
+  resolvePageIntent,
+  type PageRelation,
 } from "./_workbench";
 import { ALL_KEYWORDS } from "./_all-keywords";
 import { SourcePool } from "./SourcePool";
-import { MapCanvas } from "./MapCanvas";
+import { LoomGrid } from "./LoomGrid";
 import { InspectorPanel } from "./InspectorPanel";
+import { Worklist } from "./Worklist";
 import { WorkbenchDock } from "./WorkbenchDock";
 import { AssignMenu } from "./AssignMenu";
 import { KeywordModal } from "./KeywordModal";
@@ -103,7 +106,8 @@ function UnassignConfirmDialog({
 }
 
 // ── State shape ──────────────────────────────────────────────────────────────
-export type ViewMode = "tree" | "table";
+/** @deprecated Loom Grid is now the sole view; kept for backward compat with MapCanvas.tsx (not rendered). */
+export type ViewMode = "radial" | "tree" | "table";
 export type SelectionKind = { type: "page"; id: string } | { type: "keyword"; id: string } | null;
 
 type WbState = {
@@ -112,7 +116,6 @@ type WbState = {
   parked: Set<string>;             // kwId set (basket)
   selection: SelectionKind;
   poolSelection: Set<string>;      // multi-select in source pool
-  view: ViewMode;
   undoStack: HistoryEntry[];
   redoStack: HistoryEntry[];
   assignMenuOpen: boolean;
@@ -135,7 +138,6 @@ type Action =
   | { type: "CREATE_AND_ASSIGN"; role: "pillar" | "cluster"; pillarId: string | null; title: string; territory: Territory; kwIds: string[] }
   | { type: "SELECT"; selection: SelectionKind }
   | { type: "SET_POOL_SELECTION"; ids: Set<string> }
-  | { type: "SET_VIEW"; view: ViewMode }
   | { type: "UNDO" }
   | { type: "REDO" }
   | { type: "OPEN_ASSIGN_MENU" }
@@ -333,8 +335,6 @@ function reducer(state: WbState, action: Action): WbState {
       return { ...state, selection: action.selection };
     case "SET_POOL_SELECTION":
       return { ...state, poolSelection: action.ids };
-    case "SET_VIEW":
-      return { ...state, view: action.view };
     case "UNDO": {
       if (state.undoStack.length === 0) return state;
       const prev = state.undoStack[state.undoStack.length - 1];
@@ -379,7 +379,6 @@ function saveToStorage(s: WbState) {
       bindings: s.bindings,
       parked: Array.from(s.parked),
       pages: s.pages,
-      view: s.view,
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   } catch { /* quota exceeded or unavailable */ }
@@ -394,7 +393,6 @@ function loadFromStorage(seed: WorkbenchSeed): Partial<WbState> | null {
       bindings: data.bindings ?? seed.bindings,
       parked: new Set(data.parked ?? []),
       pages: data.pages ?? seed.pages,
-      view: data.view ?? "tree",
     };
   } catch {
     return null;
@@ -424,13 +422,28 @@ export function WorkbenchClient({ seed, rankings, initialPlan }: WorkbenchClient
   const initState = React.useMemo<WbState>(() => {
     const saved = loadFromStorage(seed);
     // 优先级：数据库已持久化的规划 > 本地草稿 > 蓝图种子
+    const basePages = initialPlan?.pages ?? saved?.pages ?? seed.pages;
+    // v2.1 seed-merge: 把种子里 DB plan 没有的页面自动并入（按 pageId 去重），
+    // 让新增 demo 主题在有 DB plan 时也能完整下钻。只在前端合并，不动落库逻辑。
+    const existingIds = new Set(basePages.map((p) => p.id));
+    const merged = [...basePages];
+    for (const sp of seed.pages) {
+      if (!existingIds.has(sp.id)) merged.push(sp);
+    }
+    const baseBindings = initialPlan ? { ...initialPlan.bindings } : (saved?.bindings ?? { ...seed.bindings });
+    // Also merge seed bindings for newly added pages
+    const mergedBindings = { ...baseBindings };
+    for (const [kwId, pageId] of Object.entries(seed.bindings)) {
+      if (!(kwId in mergedBindings) && merged.some((p) => p.id === pageId)) {
+        mergedBindings[kwId] = pageId;
+      }
+    }
     return {
-      pages: initialPlan?.pages ?? saved?.pages ?? seed.pages,
-      bindings: initialPlan ? { ...initialPlan.bindings } : (saved?.bindings ?? { ...seed.bindings }),
+      pages: merged,
+      bindings: mergedBindings,
       parked: initialPlan ? new Set(initialPlan.parked) : (saved?.parked ?? new Set<string>()),
       selection: null,
       poolSelection: new Set<string>(),
-      view: (saved?.view as ViewMode) ?? "tree", // 视图偏好仍走本地
       undoStack: [],
       redoStack: [],
       assignMenuOpen: false,
@@ -442,7 +455,7 @@ export function WorkbenchClient({ seed, rankings, initialPlan }: WorkbenchClient
   // auto-save on bindings/parked/pages change（本地草稿，瞬时、离线兜底）
   React.useEffect(() => {
     saveToStorage(state);
-  }, [state.bindings, state.parked, state.pages, state.view]);
+  }, [state.bindings, state.parked, state.pages]);
 
   // 防抖落库（按 owner 持久化；与本地草稿并行，数据库为权威源）。
   // 用「序列化快照比对」判断是否有实质变化 —— 跳过初始水合，且对 StrictMode 的
@@ -460,10 +473,19 @@ export function WorkbenchClient({ seed, rankings, initialPlan }: WorkbenchClient
     lastSavedSnap.current = snap;
     if (dbSaveTimer.current) clearTimeout(dbSaveTimer.current);
     dbSaveTimer.current = setTimeout(() => {
+      // P1-safety: filter out demo pages (tb-*) and demo keyword bindings (d0-d99) before saving to DB.
+      // Demo data is display-only via seed-merge; it must never pollute the real persisted plan.
+      const isDemo = (id: string) => /^tb-/.test(id) || /^d\d+$/.test(id);
+      const cleanPages = state.pages.filter((p) => !isDemo(p.id));
+      const cleanBindings: Record<string, string> = {};
+      for (const [kwId, pageId] of Object.entries(state.bindings)) {
+        if (!isDemo(kwId) && !isDemo(pageId)) cleanBindings[kwId] = pageId;
+      }
+      const cleanParked = Array.from(state.parked).filter((id) => !isDemo(id));
       void saveStrategyPlanAction({
-        pages: state.pages,
-        bindings: state.bindings,
-        parked: Array.from(state.parked),
+        pages: cleanPages,
+        bindings: cleanBindings,
+        parked: cleanParked,
       }).catch(() => { /* 落库失败不阻断操作；本地草稿仍在 */ });
     }, 1000);
     return () => { if (dbSaveTimer.current) clearTimeout(dbSaveTimer.current); };
@@ -484,6 +506,19 @@ export function WorkbenchClient({ seed, rankings, initialPlan }: WorkbenchClient
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, []);
+
+  // ── R4: Collapsible sidebars (折叠状态持久化到 localStorage) ─────────────
+  const [leftCollapsed, setLeftCollapsed] = React.useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    try { return JSON.parse(localStorage.getItem("wb-collapse") || "{}").left ?? false; } catch { return false; }
+  });
+  const [rightCollapsed, setRightCollapsed] = React.useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    try { return JSON.parse(localStorage.getItem("wb-collapse") || "{}").right ?? false; } catch { return false; }
+  });
+  React.useEffect(() => {
+    try { localStorage.setItem("wb-collapse", JSON.stringify({ left: leftCollapsed, right: rightCollapsed })); } catch { /* ignore */ }
+  }, [leftCollapsed, rightCollapsed]);
 
   // ── Resizable columns (左/右 拖拽调宽，宽度持久化到 localStorage) ──────────
   const clampW = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
@@ -559,10 +594,11 @@ export function WorkbenchClient({ seed, rankings, initialPlan }: WorkbenchClient
   const parkedCount = state.parked.size;
   const excludedCount = seed.excluded.length;
 
-  // cannibalization
-  const conflicts = React.useMemo<CannibalConflict[]>(
-    () => detectCannibalization(state.pages),
-    [state.pages]
+  // cannibalization —— 注入意图 resolver（从每页绑定词投票得意图族）。
+  // 漏斗层由 URL 推断、意图族由绑定词派生，故依赖 state.pages + boundByPage。
+  const conflicts = React.useMemo<PageRelation[]>(
+    () => detectCannibalization(state.pages, (id) => resolvePageIntent(boundByPage.get(id) ?? [])),
+    [state.pages, boundByPage]
   );
 
   // recently assigned page id for highlight animation
@@ -641,7 +677,7 @@ export function WorkbenchClient({ seed, rankings, initialPlan }: WorkbenchClient
               filter: "drop-shadow(0 0 5px rgba(239,216,154,.22)) drop-shadow(0 1px 0 rgba(0,0,0,.55))",
             }}
           >
-            选题工作台
+            主题与页面规划
           </h1>
           <span
             className="font-sc tracking-[0.24em] text-manor-brassHi whitespace-nowrap shrink-0 hidden 2xl:inline"
@@ -671,99 +707,114 @@ export function WorkbenchClient({ seed, rankings, initialPlan }: WorkbenchClient
             </span>
           </div>
 
-          {/* View toggle */}
-          <div
-            className="h-7 shrink-0 inline-flex items-center border border-manor-brass/30 rounded-md overflow-hidden"
+          {/* Loom Grid view label */}
+          <span
+            className="h-7 shrink-0 inline-flex items-center px-2.5 text-[11px] text-manor-brassHi/70 border border-manor-brass/20 rounded-md"
             style={{
+              fontFamily: sc,
               background: "linear-gradient(180deg, rgba(20,42,28,.95) 0%, rgba(8,20,13,.97) 100%)",
-              boxShadow: "inset 0 1px 0 rgba(224,197,122,.18), inset 0 -1px 0 rgba(0,0,0,.45)",
+              letterSpacing: "0.14em",
             }}
           >
-            <button
-              type="button"
-              onClick={() => dispatch({ type: "SET_VIEW", view: "tree" })}
-              className={[
-                "h-full px-2.5 inline-flex items-center gap-1.5 text-[11px] transition-colors border-r border-manor-brass/15",
-                state.view === "tree"
-                  ? "text-manor-brassHi bg-manor-brassDim/15"
-                  : "text-manor-inkDim hover:text-manor-brassHi hover:bg-manor-brassDim/10",
-              ].join(" ")}
-              style={{ fontFamily: sc }}
-            >
-              <TreePine size={12} />
-              <span className="tracking-wide">树</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => dispatch({ type: "SET_VIEW", view: "table" })}
-              className={[
-                "h-full px-2.5 inline-flex items-center gap-1.5 text-[11px] transition-colors",
-                state.view === "table"
-                  ? "text-manor-brassHi bg-manor-brassDim/15"
-                  : "text-manor-inkDim hover:text-manor-brassHi hover:bg-manor-brassDim/10",
-              ].join(" ")}
-              style={{ fontFamily: sc }}
-            >
-              <TableProperties size={12} />
-              <span className="tracking-wide">表</span>
-            </button>
-          </div>
+            LOOM GRID
+          </span>
         </div>
       </div>
 
       {/* ── Three-column body ──────────────────────────────────────── */}
       <div className="flex flex-1 min-h-0 overflow-hidden relative">
-        {/* Left: Source Pool (可拖拽调宽) */}
-        <div style={{ width: leftW }} className="shrink-0 border-r border-manor-line flex flex-col min-h-0 bg-manor-bg">
-          <SourcePool
-            keywords={poolKeywords}
-            selection={state.poolSelection}
-            onSelectionChange={(ids) => dispatch({ type: "SET_POOL_SELECTION", ids })}
-            onAssignClick={() => dispatch({ type: "OPEN_ASSIGN_MENU" })}
-            onParkClick={() => {
-              const ids = Array.from(state.poolSelection);
-              if (ids.length > 0) dispatch({ type: "PARK", kwIds: ids });
-            }}
-            onKeywordOpen={(id) => setModalKeywordId(id)}
-          />
-        </div>
+        {/* Left: Source Pool (collapsible + resizable) */}
+        {leftCollapsed ? (
+          <div
+            className="shrink-0 w-8 border-r border-manor-line flex flex-col items-center py-3 bg-manor-bg cursor-pointer hover:bg-manor-bg3/40 transition-colors"
+            onClick={() => setLeftCollapsed(false)}
+            title="Expand source pool"
+          >
+            <PanelLeftOpen size={14} className="text-manor-brassDim mb-2" />
+            <span
+              className="text-[9px] text-manor-brassDim/70 tracking-[0.14em]"
+              style={{ fontFamily: sc, writingMode: "vertical-rl", textOrientation: "mixed" }}
+            >
+              POOL {unboundCount}
+            </span>
+          </div>
+        ) : (
+          <div style={{ width: leftW }} className="shrink-0 border-r border-manor-line flex flex-col min-h-0 bg-manor-bg">
+            <SourcePool
+              keywords={poolKeywords}
+              selection={state.poolSelection}
+              onSelectionChange={(ids) => dispatch({ type: "SET_POOL_SELECTION", ids })}
+              onAssignClick={() => dispatch({ type: "OPEN_ASSIGN_MENU" })}
+              onParkClick={() => {
+                const ids = Array.from(state.poolSelection);
+                if (ids.length > 0) dispatch({ type: "PARK", kwIds: ids });
+              }}
+              onKeywordOpen={(id) => setModalKeywordId(id)}
+              onCollapse={() => setLeftCollapsed(true)}
+            />
+          </div>
+        )}
 
-        {/* Center: Map Canvas (自适应剩余宽度) */}
+        {/* Center: Loom Grid (自适应剩余宽度) */}
         <div className="flex-1 min-w-[280px] flex flex-col min-h-0 bg-manor-bg2">
-          <MapCanvas
+          <LoomGrid
             pages={state.pages}
-            bindings={state.bindings}
-            allKeywords={ALL_KEYWORDS}
             boundByPage={boundByPage}
-            view={state.view}
-            highlightPageId={highlightPageId}
             selectedPageId={state.selection?.type === "page" ? state.selection.id : null}
             onPageSelect={(id) => dispatch({ type: "SELECT", selection: { type: "page", id } })}
-            onUnassign={(kwIds) => { void requestUnassign(kwIds); }}
-            onNewPillar={(title, territory) => dispatch({ type: "NEW_PILLAR", title, territory })}
             onNewCluster={(title, pillarId) => dispatch({ type: "NEW_CLUSTER", title, pillarId })}
-            territories={seed.territories}
+            onNewPillar={(title, territory) => dispatch({ type: "NEW_PILLAR", title, territory })}
           />
         </div>
 
-        {/* Right: Inspector (可拖拽调宽) */}
-        <div style={{ width: rightW }} className="shrink-0 border-l border-manor-line flex flex-col min-h-0 bg-manor-bg">
-          <InspectorPanel
-            selectedPage={selectedPage}
-            pages={state.pages}
-            bindings={state.bindings}
-            allKeywords={ALL_KEYWORDS}
-            conflicts={conflicts}
-            boundByPage={boundByPage}
-            rankings={rankings}
-            onPageSelect={(id) => dispatch({ type: "SELECT", selection: { type: "page", id } })}
-            onUrlChange={(pageId, url) => dispatch({ type: "SET_PAGE_URL", pageId, url })}
-          />
-        </div>
+        {/* Right: Inspector (collapsible + resizable) */}
+        {rightCollapsed ? (
+          <div
+            className="shrink-0 w-8 border-l border-manor-line flex flex-col items-center py-3 bg-manor-bg cursor-pointer hover:bg-manor-bg3/40 transition-colors"
+            onClick={() => setRightCollapsed(false)}
+            title="Expand inspector"
+          >
+            <PanelRightOpen size={14} className="text-manor-brassDim mb-2" />
+            <span
+              className="text-[9px] text-manor-brassDim/70 tracking-[0.14em]"
+              style={{ fontFamily: sc, writingMode: "vertical-rl", textOrientation: "mixed" }}
+            >
+              {selectedPage ? "INSPECTOR" : "WORKLIST"}
+            </span>
+          </div>
+        ) : (
+          <div style={{ width: rightW }} className="shrink-0 border-l border-manor-line flex flex-col min-h-0 bg-manor-bg">
+            {selectedPage ? (
+              <InspectorPanel
+                selectedPage={selectedPage}
+                pages={state.pages}
+                bindings={state.bindings}
+                allKeywords={ALL_KEYWORDS}
+                conflicts={conflicts}
+                boundByPage={boundByPage}
+                rankings={rankings}
+                onPageSelect={(id) => dispatch({ type: "SELECT", selection: { type: "page", id } })}
+                onUrlChange={(pageId, url) => dispatch({ type: "SET_PAGE_URL", pageId, url })}
+                onCollapse={() => setRightCollapsed(true)}
+              />
+            ) : (
+              <Worklist
+                pages={state.pages}
+                conflicts={conflicts}
+                poolKeywords={poolKeywords}
+                boundByPage={boundByPage}
+                onPageSelect={(id) => dispatch({ type: "SELECT", selection: { type: "page", id } })}
+                onKeywordOpen={(id) => setModalKeywordId(id)}
+                onAssign={(kwId, pageId) => handleAssign([kwId], pageId)}
+                onCollapse={() => setRightCollapsed(true)}
+              />
+            )}
+          </div>
+        )}
 
-        {/* 透明拖拽热区（贴在分栏缝上，无可见把柄，hover 显示左右拖动光标） */}
-        <ColResizer style={{ left: leftW }} onDown={startResize("left")} />
-        <ColResizer style={{ left: `calc(100% - ${rightW}px)` }} onDown={startResize("right")} />
+        {/* 透明拖拽热区（仅在未折叠时显示） */}
+        {!leftCollapsed && <ColResizer style={{ left: leftW }} onDown={startResize("left")} />}
+        {!rightCollapsed && <ColResizer style={{ left: `calc(100% - ${rightW}px)` }} onDown={startResize("right")} />}
 
         {/* Assign Menu overlay */}
         {state.assignMenuOpen && (
@@ -828,7 +879,7 @@ export function WorkbenchClient({ seed, rankings, initialPlan }: WorkbenchClient
       <WorkbenchDock
         parkedCount={parkedCount}
         parkedKeywords={parkedKeywords}
-        conflictCount={conflicts.length}
+        conflictCount={conflicts.filter(isHardCannibalization).length}
         conflicts={conflicts}
         pages={state.pages}
         canUndo={state.undoStack.length > 0}

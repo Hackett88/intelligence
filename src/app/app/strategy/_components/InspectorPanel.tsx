@@ -7,11 +7,18 @@ import {
   opportunityScore,
   opportunityTier,
   dedupeKeywords,
-  type CannibalConflict,
+  resolvePageIntent,
+  isHardCannibalization,
+  urlFunnelLayer,
+  type PageRelation,
 } from "./_workbench";
 import {
   RoleMark,
   StatusChip,
+  FunnelChip,
+  FUNNEL_META,
+  RELATION_META,
+  INTENT_FAMILY_META,
   formatSv,
   positionText,
   formatPagePlanningIntent,
@@ -65,11 +72,13 @@ interface InspectorPanelProps {
   pages: WbPage[];
   bindings: Record<string, string>;
   allKeywords: RawKeyword[];
-  conflicts: CannibalConflict[];
+  conflicts: PageRelation[];
   boundByPage: Map<string, RawKeyword[]>;
   rankings: MarketRankings;
   onPageSelect: (id: string) => void;
   onUrlChange: (pageId: string, url: string) => void;
+  /** v2.4: optional collapse callback */
+  onCollapse?: () => void;
 }
 
 export function InspectorPanel({
@@ -82,6 +91,7 @@ export function InspectorPanel({
   rankings,
   onPageSelect,
   onUrlChange,
+  onCollapse,
 }: InspectorPanelProps) {
   const sc = "var(--font-sc), 'Cormorant SC', serif";
 
@@ -110,6 +120,7 @@ export function InspectorPanel({
     rankings={rankings}
     onPageSelect={onPageSelect}
     onUrlChange={onUrlChange}
+    onCollapse={onCollapse}
   />;
 }
 
@@ -124,16 +135,18 @@ function PageInspector({
   rankings,
   onPageSelect,
   onUrlChange,
+  onCollapse,
 }: {
   page: WbPage;
   pages: WbPage[];
-  conflicts: CannibalConflict[];
+  conflicts: PageRelation[];
   boundByPage: Map<string, RawKeyword[]>;
   allKeywords: RawKeyword[];
   bindings: Record<string, string>;
   rankings: MarketRankings;
   onPageSelect: (id: string) => void;
   onUrlChange: (pageId: string, url: string) => void;
+  onCollapse?: () => void;
 }) {
   const sc = "var(--font-sc), 'Cormorant SC', serif";
   const [showAllKws, setShowAllKws] = React.useState(false);
@@ -154,6 +167,9 @@ function PageInspector({
   const oppScore = opportunityScore(page.position ? 0 : (page.clicks ?? 0), null, page.status);
   // Use a more meaningful calculation with the page's bound keywords
   const boundKws = boundByPage.get(page.id) ?? [];
+  // 页面类型（URL 推断）+ 搜索意图（绑定词意图族投票）—— 显式化「这页在哪层漏斗、抓哪种意图」
+  const funnel = urlFunnelLayer(page.url);
+  const intentSignal = resolvePageIntent(boundKws);
   const totalSv = boundKws.reduce((s, k) => s + (k.sv ?? 0), 0);
   const avgKd = boundKws.length > 0
     ? Math.round(boundKws.reduce((s, k) => s + (k.kd ?? 0), 0) / boundKws.length)
@@ -187,9 +203,16 @@ function PageInspector({
     <div className="flex flex-col h-full overflow-y-auto" style={{ scrollbarGutter: "stable" }}>
       {/* Header */}
       <div className="px-3 py-2 border-b border-manor-line shrink-0">
-        <span className="text-[10px] tracking-[0.2em] text-manor-brassHi/60 block mb-1" style={{ fontFamily: sc }}>
-          IUDICIUM · 页面检视
-        </span>
+        <div className="flex items-center gap-2 mb-1">
+          <span className="text-[10px] tracking-[0.2em] text-manor-brassHi/60 flex-1 truncate min-w-0" style={{ fontFamily: sc }}>
+            IUDICIUM · 页面检视
+          </span>
+          {onCollapse && (
+            <button type="button" onClick={onCollapse} className="shrink-0 p-0.5 text-manor-inkFaint hover:text-manor-brassHi transition-colors" title="Collapse">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M9 12h6"/><path d="M3 18h18"/></svg>
+            </button>
+          )}
+        </div>
         <div className="flex items-center gap-2">
           <RoleMark role={page.role} size={8} />
           <p className="text-sm text-manor-ink font-medium truncate flex-1" title={page.title}>
@@ -213,6 +236,17 @@ function PageInspector({
             <div>
               <span className="text-manor-inkFaint block text-[10px]">状态</span>
               <StatusChip status={page.status} size="sm" />
+            </div>
+            <div>
+              <span className="text-manor-inkFaint block text-[10px]">页面类型</span>
+              {funnel ? (
+                <div className="flex flex-col gap-0.5">
+                  <FunnelChip url={page.url} size="sm" />
+                  <span className="text-[9px] text-manor-inkFaint leading-snug">{FUNNEL_META[funnel].sublabel}</span>
+                </div>
+              ) : (
+                <span className="text-[10px] text-manor-inkFaint italic">未定 · 设 URL 后识别</span>
+              )}
             </div>
           </div>
 
@@ -278,6 +312,23 @@ function PageInspector({
             专业信号
           </span>
 
+          {/* 搜索意图（意图族）—— 这页主要抓哪种搜索意图 */}
+          <div className="mb-2">
+            <span className="text-[10px] text-manor-inkFaint block mb-1">搜索意图</span>
+            {intentSignal.family ? (
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-[11px] text-manor-ink">{INTENT_FAMILY_META[intentSignal.family].label}</span>
+                {intentSignal.mixed && (
+                  <span className="inline-flex items-center px-1 py-0 rounded border text-[9px] bg-manor-bg3 text-manor-brassHi border-manor-brassDim/55">
+                    意图混杂 · 需人工确认
+                  </span>
+                )}
+              </div>
+            ) : (
+              <span className="text-[10px] text-manor-inkFaint italic">尚无绑定词 — 待判定</span>
+            )}
+          </div>
+
           {/* Intent distribution */}
           {intentDist.length > 0 && (
             <div className="mb-2">
@@ -318,30 +369,44 @@ function PageInspector({
             </span>
           </div>
 
-          {/* Cannibalization */}
+          {/* 页面关系（蚕食检测）—— 四色：真蚕食红 / 待核黄 / 漏斗协作绿 / 跨主题灰 */}
           {pageConflicts.length > 0 && (
             <div className="mb-2">
-              <div className="flex items-center gap-1 mb-1">
-                <AlertTriangle size={12} className="text-manor-oxbloodHi" />
-                <span className="text-[10px] text-manor-oxbloodHi">蚕食告警</span>
+              <div className="flex items-baseline gap-1.5 mb-1">
+                <span className="text-[10px] text-manor-brassHi/70">页面关系</span>
+                <span className="text-[9px] text-manor-inkFaint italic">重合% 为演示值</span>
               </div>
-              {pageConflicts.map((c, i) => {
-                const otherId = c.aId === page.id ? c.bId : c.aId;
-                const other = pages.find((p) => p.id === otherId);
-                return (
-                  <div key={i} className="text-[10px] text-manor-inkDim flex items-center gap-1 pl-4">
-                    <span>与</span>
-                    <button
-                      type="button"
-                      onClick={() => onPageSelect(otherId)}
-                      className="text-manor-oxbloodHi hover:underline truncate max-w-[140px]"
-                    >
-                      {other?.title ?? otherId}
-                    </button>
-                    <span className="text-manor-inkFaint">重合 {c.overlap}%</span>
-                  </div>
-                );
-              })}
+              <div className="space-y-1.5">
+                {pageConflicts
+                  .slice()
+                  .sort((a, b) => (isHardCannibalization(b) ? 1 : 0) - (isHardCannibalization(a) ? 1 : 0))
+                  .map((c, i) => {
+                    const otherId = c.aId === page.id ? c.bId : c.aId;
+                    const other = pages.find((p) => p.id === otherId);
+                    const m = RELATION_META[c.relationType];
+                    const hard = isHardCannibalization(c);
+                    return (
+                      <div key={i} className="text-[10px]">
+                        <div className="flex items-center gap-1.5">
+                          {hard && <AlertTriangle size={11} className="text-manor-oxbloodHi shrink-0" />}
+                          <span className={`inline-flex items-center px-1 py-0 rounded border text-[9px] shrink-0 ${m.chip}`}>
+                            {m.label}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => onPageSelect(otherId)}
+                            className="text-manor-inkDim hover:text-manor-brassHi hover:underline truncate min-w-0 flex-1 text-left"
+                            title={other?.title ?? otherId}
+                          >
+                            {other?.title ?? otherId}
+                          </button>
+                          <span className="text-manor-inkFaint tabular-nums shrink-0">{c.overlap}%</span>
+                        </div>
+                        <div className="text-manor-inkFaint mt-0.5 leading-snug">{c.advice}</div>
+                      </div>
+                    );
+                  })}
+              </div>
             </div>
           )}
         </div>

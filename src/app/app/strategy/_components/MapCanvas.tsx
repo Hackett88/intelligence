@@ -1,12 +1,15 @@
 "use client";
 
 import * as React from "react";
-import { ChevronDown, ChevronRight, Plus, X, ExternalLink } from "lucide-react";
-import type { WbPage, RawKeyword, Territory } from "./_workbench";
-import { dedupeKeywords } from "./_workbench";
+import { ChevronDown, ChevronRight, Plus, X, ExternalLink, AlertTriangle } from "lucide-react";
+import type { WbPage, RawKeyword, Territory, PageRelation } from "./_workbench";
+import { dedupeKeywords, isHardCannibalization } from "./_workbench";
 import {
   RoleMark,
   StatusChip,
+  FunnelChip,
+  FUNNEL_META,
+  themeFunnelCoverage,
   CoverageBar,
   MarketFlags,
   formatSv,
@@ -16,6 +19,7 @@ import {
   marketFlag,
 } from "./_utils";
 import type { ViewMode } from "./WorkbenchClient";
+import { RadialView } from "./RadialView";
 
 interface MapCanvasProps {
   pages: WbPage[];
@@ -30,6 +34,8 @@ interface MapCanvasProps {
   onNewPillar: (title: string, territory: Territory) => void;
   onNewCluster: (title: string, pillarId: string) => void;
   territories: Territory[];
+  /** 页面关系（蚕食检测输出）；用于在涉及真蚕食的节点上加红色徽标。 */
+  conflicts?: PageRelation[];
 }
 
 // ── Theme tab bar ─────────────────────────────────────────────────────────────
@@ -145,6 +151,10 @@ function ThemeTabBar({
   );
 }
 
+// 核心产品主题 —— 唯一真正售卖、所有引流页最终导向成交的核心（当前为 Zikr Ring）。
+// TODO: 后续改为数据驱动 / 可配置（如按"含 /products/ 且真备货"判定），暂以主题 id 锚定。
+const CORE_THEME_ID = "zikr-ring";
+
 // ── Tree View ────────────────────────────────────────────────────────────────
 function TreeView({
   pages,
@@ -156,8 +166,18 @@ function TreeView({
   onNewPillar,
   onNewCluster,
   territories,
+  conflicts = [],
 }: Omit<MapCanvasProps, "view" | "bindings" | "allKeywords">) {
   const pillars = pages.filter((p) => p.role === "pillar");
+
+  // 涉及「真蚕食」的页面 id 集合 —— 节点红徽标只认这一个口径（与 Dock/Inspector 统一）
+  const hardConflictIds = React.useMemo(() => {
+    const s = new Set<string>();
+    for (const c of conflicts) {
+      if (isHardCannibalization(c)) { s.add(c.aId); s.add(c.bId); }
+    }
+    return s;
+  }, [conflicts]);
   const [collapsed, setCollapsed] = React.useState<Set<string>>(new Set());
   const [newPillarTitle, setNewPillarTitle] = React.useState("");
   const [newPillarTerritory, setNewPillarTerritory] = React.useState<Territory>("知识");
@@ -191,15 +211,24 @@ function TreeView({
     return pillars.filter((p) => p.themeId === activeTheme);
   }, [pillars, activeTheme]);
 
-  // Group by territory
-  const byTerritory = React.useMemo(() => {
-    const map = new Map<Territory, WbPage[]>();
-    for (const p of filteredPillars) {
-      if (!map.has(p.territory)) map.set(p.territory, []);
-      map.get(p.territory)!.push(p);
+  // 顶层组织 = 核心 + 引流：Zikr Ring 单独置顶为「核心」，其余主题按渠道（territory）分组为「引流层」，
+  // 全部视觉上从属于核心。体现「一个核心产品 + 一圈按抓什么流量分工、向核心导流的页面」。
+  const groups = React.useMemo(() => {
+    const core = filteredPillars.filter((p) => p.themeId === CORE_THEME_ID);
+    const tributary = filteredPillars.filter((p) => p.themeId !== CORE_THEME_ID);
+    const byTer = new Map<Territory, WbPage[]>();
+    for (const p of tributary) {
+      if (!byTer.has(p.territory)) byTer.set(p.territory, []);
+      byTer.get(p.territory)!.push(p);
     }
-    return map;
-  }, [filteredPillars]);
+    const result: { key: string; label: string; kind: "core" | "tributary"; pillars: WbPage[] }[] = [];
+    if (core.length) result.push({ key: "__core__", label: "核心产品 · 成交目标", kind: "core", pillars: core });
+    for (const t of territories) {
+      const ps = byTer.get(t);
+      if (ps && ps.length) result.push({ key: t, label: t, kind: "tributary", pillars: ps });
+    }
+    return result;
+  }, [filteredPillars, territories]);
 
   return (
     <div className="flex-1 min-h-0 flex flex-col">
@@ -207,21 +236,43 @@ function TreeView({
       <ThemeTabBar themes={themes} activeTheme={activeTheme} onSelect={setActiveTheme} sc={sc} />
 
       <div className="flex-1 min-h-0 overflow-y-auto px-4 py-2 space-y-4" style={{ scrollbarGutter: "stable" }}>
-      {(activeTheme === "all" ? territories : (([filteredPillars[0]?.territory].filter(Boolean)) as Territory[])).map((territory) => {
-        const terPillars = byTerritory.get(territory);
-        if (!terPillars || terPillars.length === 0) return null;
+      {groups.map((group, gi) => {
+        const groupPillars = group.pillars;
+        const isCore = group.kind === "core";
+        const prevTributary = gi > 0 && groups[gi - 1].kind === "tributary";
         return (
-          <div key={territory}>
-            {/* Territory label */}
+          <div key={group.key}>
+            {/* 在第一个引流分组前,插一条"以下为核心引流"分隔 */}
+            {!isCore && !prevTributary && (
+              <div className="flex items-center gap-2 mb-2 mt-1">
+                <span className="text-[9px] tracking-[0.18em] text-manor-sageHi/55 uppercase" style={{ fontFamily: sc }}>
+                  ↑ 以下页面为核心引流 · 按抓什么流量分工
+                </span>
+                <span className="flex-1 h-px bg-manor-line/60" />
+              </div>
+            )}
+            {/* Group label */}
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-[9px] tracking-[0.2em] text-manor-brassHi/60 uppercase" style={{ fontFamily: sc }}>
-                {territory}
-              </span>
+              {isCore ? (
+                <span
+                  className="text-[11px] tracking-[0.14em] text-manor-brassHi"
+                  style={{ fontFamily: sc, textShadow: "0 0 8px rgba(239,216,154,.4)" }}
+                  title="唯一真正售卖、所有引流页最终在此成交的核心产品"
+                >
+                  ◎ {group.label}
+                </span>
+              ) : (
+                <span className="text-[9px] tracking-[0.2em] text-manor-sageHi/65 uppercase" style={{ fontFamily: sc }}>
+                  {group.label}
+                </span>
+              )}
               <span className="flex-1 h-px bg-manor-line" />
+              <span className="text-[9px] text-manor-inkFaint tabular-nums shrink-0">{groupPillars.length}</span>
             </div>
 
-            {terPillars.map((pillar) => {
+            {groupPillars.map((pillar) => {
               const clusters = pages.filter((p) => p.pillarId === pillar.id);
+              const coverage = themeFunnelCoverage([pillar.url, ...clusters.map((c) => c.url)]);
               const isCollapsed = collapsed.has(pillar.id);
               const pillarKws = boundByPage.get(pillar.id) ?? [];
               const isHighlighted = highlightPageId === pillar.id;
@@ -254,7 +305,13 @@ function TreeView({
                     <span className="font-medium text-sm text-manor-ink truncate flex-1 min-w-0">
                       {pillar.title}
                     </span>
+                    {hardConflictIds.has(pillar.id) && (
+                      <span title="存在真蚕食冲突" className="shrink-0 inline-flex">
+                        <AlertTriangle size={12} className="text-manor-oxbloodHi" />
+                      </span>
+                    )}
                     <StatusChip status={pillar.status} size="sm" />
+                    <FunnelChip url={pillar.url} size="sm" />
                     {formatPagePlanningIntent(pillar.pageType)}
                     <MarketFlags markets={pillar.markets} maxN={3} />
                     {pillar.url && (
@@ -271,6 +328,42 @@ function TreeView({
                   {/* Expanded content */}
                   {!isCollapsed && (
                     <div className="ml-6 pl-3 border-l border-manor-line/50">
+                      {/* 主题页面类型覆盖：这个主题覆盖了「博客 / 品类 / 产品」哪几层漏斗 */}
+                      <div className="flex items-center gap-1.5 py-1.5 text-[10px] flex-wrap">
+                        <span
+                          className="text-manor-inkFaint shrink-0"
+                          title="这个主题覆盖了「信息(blog) · 品类(collection) · 成交(product)」哪几层漏斗"
+                        >
+                          类型覆盖
+                        </span>
+                        {coverage.present.size === 0 ? (
+                          <span className="text-manor-inkFaint italic">页面尚未设 URL，无法识别</span>
+                        ) : (
+                          (["blog", "collection", "product", "page"] as const)
+                            .filter((f) => coverage.present.has(f))
+                            .map((f) => {
+                              const meta = FUNNEL_META[f];
+                              return (
+                                <span
+                                  key={f}
+                                  className={`inline-flex items-center gap-0.5 px-1 py-0 rounded border text-[9px] ${meta.chip} ${meta.text}`}
+                                  title={`已覆盖${meta.label} · ${meta.sublabel}`}
+                                >
+                                  ✓ {meta.label}
+                                </span>
+                              );
+                            })
+                        )}
+                        {pillar.territory === "产品" && coverage.missing.length > 0 && (
+                          <span
+                            className="text-manor-brassHi/80 text-[9px]"
+                            title="缺这些页面类型 = 对应的「信息 / 品类 / 成交」漏斗层没有落地页承接，这部分流量会白白流失"
+                          >
+                            建议补：{coverage.missing.map((f) => FUNNEL_META[f].label).join("、")}
+                          </span>
+                        )}
+                      </div>
+
                       {/* Bound keywords on pillar */}
                       {pillarKws.length > 0 && (
                         <div className="flex flex-wrap gap-1 py-1.5">
@@ -320,7 +413,13 @@ function TreeView({
                               <span className="text-xs text-manor-ink truncate flex-1 min-w-0">
                                 {cluster.title}
                               </span>
+                              {hardConflictIds.has(cluster.id) && (
+                                <span title="存在真蚕食冲突" className="shrink-0 inline-flex">
+                                  <AlertTriangle size={11} className="text-manor-oxbloodHi" />
+                                </span>
+                              )}
                               <StatusChip status={cluster.status} size="sm" />
+                              <FunnelChip url={cluster.url} size="sm" />
                               {formatPagePlanningIntent(cluster.pageType)}
                               {cluster.url && (
                                 <span
@@ -605,7 +704,16 @@ export function MapCanvas(props: MapCanvasProps) {
         </span>
       </div>
 
-      {props.view === "tree" ? (
+      {props.view === "radial" ? (
+        <RadialView
+          pages={props.pages}
+          boundByPage={props.boundByPage}
+          highlightPageId={props.highlightPageId}
+          selectedPageId={props.selectedPageId}
+          onPageSelect={props.onPageSelect}
+          conflicts={props.conflicts}
+        />
+      ) : props.view === "tree" ? (
         <TreeView
           pages={props.pages}
           boundByPage={props.boundByPage}
@@ -616,6 +724,7 @@ export function MapCanvas(props: MapCanvasProps) {
           onNewPillar={props.onNewPillar}
           onNewCluster={props.onNewCluster}
           territories={props.territories}
+          conflicts={props.conflicts}
         />
       ) : (
         <TableView

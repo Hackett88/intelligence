@@ -43,6 +43,8 @@ interface SourcePoolProps {
   onAssignClick: () => void;
   onParkClick: () => void;
   onKeywordOpen: (id: string) => void;
+  /** v2.4: optional collapse callback -- renders a collapse button inside the header row */
+  onCollapse?: () => void;
 }
 
 type PoolFilters = {
@@ -101,6 +103,7 @@ export function SourcePool({
   onAssignClick,
   onParkClick,
   onKeywordOpen,
+  onCollapse,
 }: SourcePoolProps) {
   const [filters, setFilters] = React.useState<PoolFilters>({ ...DEFAULT_FILTERS });
   const [showFilters, setShowFilters] = React.useState(false);
@@ -207,13 +210,18 @@ export function SourcePool({
     <>
       {/* Header */}
       <div className="px-3 py-2 border-b border-manor-line shrink-0">
-        <div className="flex items-center justify-between mb-1.5">
-          <span className="text-[10px] tracking-[0.2em] text-manor-brassHi/80" style={{ fontFamily: sc }}>
+        <div className="flex items-center gap-2 mb-1.5">
+          <span className="text-[10px] tracking-[0.2em] text-manor-brassHi/80 flex-1 truncate min-w-0" style={{ fontFamily: sc }}>
             INTROITUS · 进料
           </span>
-          <span className="text-[10px] text-manor-inkDim tabular-nums">
+          <span className="text-[10px] text-manor-inkDim tabular-nums shrink-0">
             {filtered.length} 词
           </span>
+          {onCollapse && (
+            <button type="button" onClick={onCollapse} className="shrink-0 p-0.5 text-manor-inkFaint hover:text-manor-brassHi transition-colors" title="Collapse">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M9 12h6"/><path d="M3 18h18"/></svg>
+            </button>
+          )}
         </div>
 
         {/* Progress bar */}
