@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { AlertTriangle, ChevronDown, Pencil } from "lucide-react";
+import { AlertTriangle, ChevronDown, Pencil, X } from "lucide-react";
 import type { WbPage, RawKeyword, Market, MarketRankings } from "./_workbench";
 import {
   opportunityScore,
@@ -77,6 +77,8 @@ interface InspectorPanelProps {
   rankings: MarketRankings;
   onPageSelect: (id: string) => void;
   onUrlChange: (pageId: string, url: string) => void;
+  /** 移出已绑词（走二次验印确认）。传入该页该词文本的全部市场变体 id。 */
+  onUnassign?: (kwIds: string[]) => void;
   /** v2.4: optional collapse callback */
   onCollapse?: () => void;
 }
@@ -91,6 +93,7 @@ export function InspectorPanel({
   rankings,
   onPageSelect,
   onUrlChange,
+  onUnassign,
   onCollapse,
 }: InspectorPanelProps) {
   const sc = "var(--font-sc), 'Cormorant SC', serif";
@@ -120,6 +123,7 @@ export function InspectorPanel({
     rankings={rankings}
     onPageSelect={onPageSelect}
     onUrlChange={onUrlChange}
+    onUnassign={onUnassign}
     onCollapse={onCollapse}
   />;
 }
@@ -135,6 +139,7 @@ function PageInspector({
   rankings,
   onPageSelect,
   onUrlChange,
+  onUnassign,
   onCollapse,
 }: {
   page: WbPage;
@@ -146,6 +151,7 @@ function PageInspector({
   rankings: MarketRankings;
   onPageSelect: (id: string) => void;
   onUrlChange: (pageId: string, url: string) => void;
+  onUnassign?: (kwIds: string[]) => void;
   onCollapse?: () => void;
 }) {
   const sc = "var(--font-sc), 'Cormorant SC', serif";
@@ -421,13 +427,24 @@ function PageInspector({
           {kwsToShow.length > 0 ? (
             <div className="space-y-0.5">
               {kwsToShow.map((g) => (
-                <div key={g.key} className="flex items-center gap-1.5 text-[10px] text-manor-inkDim">
+                <div key={g.key} className="group flex items-center gap-1.5 text-[10px] text-manor-inkDim">
                   <span className="w-3 text-center">{marketFlag(g.reprMarket)}</span>
                   <span className="truncate flex-1">{g.keyword}</span>
                   {g.count > 1 && (
                     <span className="text-[9px] text-manor-inkFaint" title={`${g.count} 个市场变体合并`}>×{g.count}</span>
                   )}
                   <span className="tabular-nums text-manor-inkFaint">{formatSv(g.totalSv)}</span>
+                  {onUnassign && (
+                    <button
+                      type="button"
+                      onClick={() => onUnassign(g.ids)}
+                      title={g.count > 1 ? `移出该词的 ${g.count} 个市场变体（移回源池）` : "移出该词（移回源池）"}
+                      aria-label="移出该词"
+                      className="shrink-0 p-0.5 -mr-0.5 text-manor-inkFaint hover:text-manor-oxbloodHi opacity-0 group-hover:opacity-100 focus:opacity-100 transition-all"
+                    >
+                      <X size={11} />
+                    </button>
+                  )}
                 </div>
               ))}
               {dedupedKws.length > 10 && (

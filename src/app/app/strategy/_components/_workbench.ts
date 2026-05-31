@@ -42,6 +42,7 @@ export type Territory = "产品" | "知识" | "工具" | "场景" | "品牌";
 export const TERRITORY_BY_THEME: Record<string, Territory> = {
   "zikr-ring": "产品",
   "islamic-jewelry": "产品",
+  "name-necklace": "产品", // 原 islamic-jewelry 子集群，提升为独立经线行
   "tasbih": "产品", // demo · 品类经线中段
   "knowledge-dhikr": "知识",
   "slow-living": "场景", // v2.1: 老板明确 Slow Living 属于场景
@@ -418,7 +419,7 @@ export type PageRelation = CannibalConflict & {
   advice: string;
 };
 
-/** 红色谓词：Dock 真蚕食计数 / Inspector 红块 / MapCanvas 红徽标 三处共用，杜绝口径分裂。 */
+/** 红色谓词：Dock 真蚕食计数 / Inspector 红块 / Worklist 作战清单 三处共用，杜绝口径分裂。 */
 export function isHardCannibalization(r: PageRelation): boolean {
   return (r.relationType ?? "true_cannibalization") === "true_cannibalization";
 }

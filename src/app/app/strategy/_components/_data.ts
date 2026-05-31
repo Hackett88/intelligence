@@ -114,7 +114,7 @@ const kw = (
 });
 
 // ════════════════════════════════════════════════════════════════════════════
-// 主题数据集（8 个真实主题 + 待规划词 + 噪声）
+// 主题数据集（9 个真实主题 + 待规划词 + 噪声）
 // ════════════════════════════════════════════════════════════════════════════
 
 const THEMES: Theme[] = [
@@ -581,28 +581,6 @@ const THEMES: Theme[] = [
     },
     clusters: [
       {
-        id: "ij-c-necklace",
-        role: "cluster",
-        title: "Name Necklace 定制项链",
-        pageType: "品类聚合页",
-        status: "optimize",
-        url: "/collections/name-necklace",
-        market: "uk",
-        markets: ["uk", "ae", "sa", "id", "my"],
-        position: 18.4,
-        clicks: 9,
-        impressions: 1310,
-        keywords: [
-          kw("gold name necklace", "uk", 2900, 11, "二级独立", "品类聚合页", "行动型", { intent: "Commercial", primary: true }),
-          kw("gold name necklace", "ae", 480, 6, "二级独立", "品类聚合页", "行动型"),
-          kw("gold name necklace", "sa", 210, 14, "二级独立", "品类聚合页", "行动型"),
-          kw("arabic name necklace", "sa", 210, 17, "二级独立", "品类聚合页", "行动型"),
-          kw("necklace", "my", 6600, 19, "四级兜底", "品类聚合页", "混合型"),
-          kw("necklace for women", "id", 1300, 17, "四级兜底", "品类聚合页", "混合型"),
-          kw("mens necklaces", "my", 1900, 13, "二级独立", "品类聚合页", "行动型"),
-        ],
-      },
-      {
         id: "ij-c-bracelet",
         role: "cluster",
         title: "Bracelets 手链与手饰",
@@ -661,6 +639,39 @@ const THEMES: Theme[] = [
         ],
       },
     ],
+  },
+
+  // ── 6a. Name Necklace 定制项链（原 islamic-jewelry 子集群，提升为独立经线行 · 转化最好的子品类）──
+  {
+    id: "name-necklace",
+    name: "定制项链",
+    latin: "NOMEN",
+    clusterKey: "islamic-jewelry",
+    summary: "刻字/名字定制项链——伊斯兰饰品下转化最好的子品类（gold name necklace 2.9K，已上线需优化）。独立成经线行，专注承接定制项链意图。",
+    pillar: {
+      id: "ij-c-necklace",
+      role: "pillar",
+      title: "Name Necklace 定制项链",
+      pageType: "品类聚合页",
+      status: "optimize",
+      url: "/collections/name-necklace",
+      market: "uk",
+      markets: ["uk", "ae", "sa", "id", "my"],
+      position: 18.4,
+      clicks: 9,
+      impressions: 1310,
+      note: "已上线 position 18.4，gold name necklace 2.9K 是站内现成转化点，优化空间大。",
+      keywords: [
+        kw("gold name necklace", "uk", 2900, 11, "二级独立", "品类聚合页", "行动型", { intent: "Commercial", primary: true }),
+        kw("gold name necklace", "ae", 480, 6, "二级独立", "品类聚合页", "行动型"),
+        kw("gold name necklace", "sa", 210, 14, "二级独立", "品类聚合页", "行动型"),
+        kw("arabic name necklace", "sa", 210, 17, "二级独立", "品类聚合页", "行动型"),
+        kw("necklace", "my", 6600, 19, "四级兜底", "品类聚合页", "混合型"),
+        kw("necklace for women", "id", 1300, 17, "四级兜底", "品类聚合页", "混合型"),
+        kw("mens necklaces", "my", 1900, 13, "二级独立", "品类聚合页", "行动型"),
+      ],
+    },
+    clusters: [],
   },
 
   // ── 6b. Tasbih 念珠（品类经线中段：Islamic Jewelry → Tasbih → Zikr Ring）── demo

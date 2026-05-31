@@ -1,12 +1,11 @@
 "use client";
 
 import * as React from "react";
-import { Undo2, Redo2, Package, AlertTriangle, PanelLeftOpen, PanelRightOpen } from "lucide-react";
+import { PanelLeftOpen, PanelRightOpen } from "lucide-react";
 import type { WorkbenchSeed, WbPage, RawKeyword, Territory, MarketRankings, PlanPayload } from "./_workbench";
 import { saveStrategyPlanAction } from "./_plan-actions";
 import {
   detectCannibalization,
-  suggestPlacement,
   isHardCannibalization,
   resolvePageIntent,
   type PageRelation,
@@ -106,8 +105,6 @@ function UnassignConfirmDialog({
 }
 
 // ── State shape ──────────────────────────────────────────────────────────────
-/** @deprecated Loom Grid is now the sole view; kept for backward compat with MapCanvas.tsx (not rendered). */
-export type ViewMode = "radial" | "tree" | "table";
 export type SelectionKind = { type: "page"; id: string } | { type: "keyword"; id: string } | null;
 
 type WbState = {
@@ -430,16 +427,25 @@ export function WorkbenchClient({ seed, rankings, initialPlan }: WorkbenchClient
     for (const sp of seed.pages) {
       if (!existingIds.has(sp.id)) merged.push(sp);
     }
+    // 主题归属以蓝图为准：对蓝图里存在的页 id，用蓝图的结构字段（主题归属 / 角色）覆盖持久化里的旧值。
+    // 让蓝图层的主题重构（如 Name Necklace 从 islamic-jewelry 子页提升为独立经线行）即便在已有
+    // DB / 本地草稿时也能正确生效，且下次保存自动写回新结构、自愈。用户数据（url / 状态 / 备注 / 绑定）保留。
+    const seedById = new Map(seed.pages.map((p) => [p.id, p]));
+    const reconciled = merged.map((p) => {
+      const sp = seedById.get(p.id);
+      if (!sp) return p;
+      return { ...p, themeId: sp.themeId, themeName: sp.themeName, themeLatin: sp.themeLatin, territory: sp.territory, role: sp.role, pillarId: sp.pillarId };
+    });
     const baseBindings = initialPlan ? { ...initialPlan.bindings } : (saved?.bindings ?? { ...seed.bindings });
     // Also merge seed bindings for newly added pages
     const mergedBindings = { ...baseBindings };
     for (const [kwId, pageId] of Object.entries(seed.bindings)) {
-      if (!(kwId in mergedBindings) && merged.some((p) => p.id === pageId)) {
+      if (!(kwId in mergedBindings) && reconciled.some((p) => p.id === pageId)) {
         mergedBindings[kwId] = pageId;
       }
     }
     return {
-      pages: merged,
+      pages: reconciled,
       bindings: mergedBindings,
       parked: initialPlan ? new Set(initialPlan.parked) : (saved?.parked ?? new Set<string>()),
       selection: null,
@@ -601,15 +607,8 @@ export function WorkbenchClient({ seed, rankings, initialPlan }: WorkbenchClient
     [state.pages, boundByPage]
   );
 
-  // recently assigned page id for highlight animation
-  const [highlightPageId, setHighlightPageId] = React.useState<string | null>(null);
-  const highlightTimer = React.useRef<ReturnType<typeof setTimeout>>(undefined);
-
   const handleAssign = React.useCallback((kwIds: string[], pageId: string) => {
     dispatch({ type: "ASSIGN", kwIds, pageId });
-    setHighlightPageId(pageId);
-    if (highlightTimer.current) clearTimeout(highlightTimer.current);
-    highlightTimer.current = setTimeout(() => setHighlightPageId(null), 1200);
   }, []);
 
   // selected page (for right-panel inspector)
@@ -795,6 +794,7 @@ export function WorkbenchClient({ seed, rankings, initialPlan }: WorkbenchClient
                 rankings={rankings}
                 onPageSelect={(id) => dispatch({ type: "SELECT", selection: { type: "page", id } })}
                 onUrlChange={(pageId, url) => dispatch({ type: "SET_PAGE_URL", pageId, url })}
+                onUnassign={requestUnassign}
                 onCollapse={() => setRightCollapsed(true)}
               />
             ) : (

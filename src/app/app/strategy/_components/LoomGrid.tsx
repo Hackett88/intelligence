@@ -1,14 +1,17 @@
 "use client";
 
 /**
- * LoomGrid v2.4 -- Polish pass.
+ * LoomGrid v2.8 -- Excel-style reorder + add 大列/小列.
  *
- * v2.4: #1 no triangles, #2 centered category names + row dividers,
- *        #3 native wheel listener (passive:false) for trackpad pinch,
- *        #4 drag from anywhere (including cells) with threshold
+ * v2.8: rows (品类经线) and 大列 (类型带 = WeftType) are now full mutable state,
+ *       persisted to localStorage. Drag a row's grip (vertical) or a band's grip
+ *       (horizontal) to reorder -- live reorder via document.elementFromPoint, so it
+ *       works under the zoom/pan transform. Two distinct add affordances:
+ *       per-band「+小列」(add a theme into that band) and a trailing「+大列」(add a band).
+ *       Empty bands render a placeholder column so the spanning header never collapses.
  */
 import * as React from "react";
-import { Plus, X, ChevronRight, ZoomOut, ZoomIn, Scan } from "lucide-react";
+import { Plus, X, ChevronRight, ZoomOut, ZoomIn, Scan, GripVertical, GripHorizontal } from "lucide-react";
 import type { WbPage, RawKeyword, Territory } from "./_workbench";
 import { StatusDot, formatSv } from "./_utils";
 
@@ -17,6 +20,7 @@ import { StatusDot, formatSv } from "./_utils";
 type SpineEntry = { id: string; en: string; zh: string };
 const CATEGORY_SPINE_DEFAULT: SpineEntry[] = [
   { id: "islamic-jewelry", en: "Islamic Jewelry", zh: "伊斯兰饰品" },
+  { id: "name-necklace", en: "Name Necklace", zh: "定制项链" },
   { id: "tasbih", en: "Tasbih", zh: "念珠" },
   { id: "zikr-ring", en: "Zikr Ring", zh: "智能念珠戒指" },
 ];
@@ -34,7 +38,6 @@ const WEFT_GROUPS: WeftType[] = [
     { id: "itasbih-tools", en: "iTasbih", zh: "数字念珠" },
   ]},
 ];
-const CORE_CATEGORY = "zikr-ring";
 const SCENARIO_TOKENS: Record<string, Set<string>> = {
   "knowledge-dhikr": new Set(["dhikr", "dzikir", "zikr", "prayer", "salah", "namaz", "sholat"]),
   "muslim-gifts": new Set(["gift", "gifts", "present", "presents", "ramadan", "eid", "umrah", "wedding"]),
@@ -51,6 +54,31 @@ const STOPWORDS = new Set(["the","an","of","for","to","in","on","at","by","is","
 function meaningfulTokens(s: string): string[] { return tokenize(s).filter((w) => !STOPWORDS.has(w)).map(foldPlural); }
 function shortTitle(title: string): string { return title.split(/[（(]/)[0].replace(/[·\-—]+$/, "").trim(); }
 
+// ── Structure persistence + reorder helpers ──────────────────────────────────
+const STRUCT_KEY = "wb-loom-structure-v1";
+type LoomStructure = { rows: SpineEntry[]; bands: WeftType[] };
+function loadStructure(): LoomStructure | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(STRUCT_KEY);
+    if (!raw) return null;
+    const d = JSON.parse(raw);
+    if (!Array.isArray(d?.rows) || !Array.isArray(d?.bands)) return null;
+    return d as LoomStructure;
+  } catch { return null; }
+}
+/** 把 dragId 项移动到 overId 项所在位置（不变则原数组返回，避免无谓重渲）。 */
+function moveById<T>(arr: T[], dragId: string | null, overId: string, keyFn: (t: T) => string): T[] {
+  if (!dragId || dragId === overId) return arr;
+  const from = arr.findIndex((x) => keyFn(x) === dragId);
+  const to = arr.findIndex((x) => keyFn(x) === overId);
+  if (from < 0 || to < 0 || from === to) return arr;
+  const next = arr.slice();
+  const [item] = next.splice(from, 1);
+  next.splice(to, 0, item);
+  return next;
+}
+
 // ── Types ──────────────────────────────────────────────────────────────────
 
 type CellData = {
@@ -58,6 +86,8 @@ type CellData = {
   bestStatus: "live" | "optimize" | "gap"; pageIds: string[];
   pageTitles: { title: string; status: "live" | "optimize" | "gap"; pageId: string }[];
 };
+/** 渲染列：实际场景列(theme) 或 空带占位列(placeholder)。空带占 1 列、不进数据交叉。 */
+type RenderCol = { kind: "theme"; bandType: string; theme: SpineEntry } | { kind: "placeholder"; bandType: string };
 type DrillLevel = { type: "overview" } | { type: "pillar"; themeId: string; themeName: string };
 interface LoomGridProps {
   pages: WbPage[];
@@ -68,9 +98,9 @@ interface LoomGridProps {
   onNewPillar?: (title: string, territory: Territory) => void;
 }
 
-// ── Zoom/Pan Hook v2.4 ───────────────────────────────────────────────────
-// #3: native wheel listener for passive:false (trackpad pinch sends ctrlKey+wheel)
-// #4: drag from anywhere with threshold -- no cell exclusion
+// ── Zoom/Pan Hook ─────────────────────────────────────────────────────────
+// native wheel listener for passive:false (trackpad pinch sends ctrlKey+wheel)
+// drag from anywhere with threshold -- no cell exclusion
 
 const DRAG_THRESHOLD = 5;
 
@@ -85,7 +115,7 @@ function useZoomPan(canvasRef: React.RefObject<HTMLDivElement | null>) {
   const pointerId = React.useRef<number | null>(null);
   const gestureTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // #3: native wheel listener with { passive: false } to intercept trackpad pinch
+  // native wheel listener with { passive: false } to intercept trackpad pinch
   React.useEffect(() => {
     const el = canvasRef.current;
     if (!el) return;
@@ -114,20 +144,15 @@ function useZoomPan(canvasRef: React.RefObject<HTMLDivElement | null>) {
     return () => el.removeEventListener("wheel", handler);
   }, [canvasRef]);
 
-  // #4: Drag from anywhere (including cells). Threshold distinguishes click vs drag.
-  // On pointerup, if didDrag is true, we suppress the click by calling stopPropagation
-  // on the click event (registered in a one-time capture listener).
   const handlePointerDown = React.useCallback((e: React.PointerEvent) => {
     if (e.button !== 0) return;
-    // Don't pan from buttons/inputs
+    // Don't pan from buttons/inputs (grips are <button>, so reorder drags never start a pan)
     const el = e.target as HTMLElement;
     if (el.closest("button") || el.closest("input")) return;
     isPanning.current = true;
     didDrag.current = false;
     pointerId.current = e.pointerId;
     panStart.current = { x: e.clientX, y: e.clientY, tx, ty };
-    // NOTE: intentionally NOT using setPointerCapture -- it redirects click synthesis
-    // to the capturing element and prevents cell onClick from firing on clean clicks.
   }, [tx, ty]);
 
   const handlePointerMove = React.useCallback((e: React.PointerEvent) => {
@@ -136,7 +161,6 @@ function useZoomPan(canvasRef: React.RefObject<HTMLDivElement | null>) {
     const dy = e.clientY - panStart.current.y;
     if (!didDrag.current && Math.abs(dx) + Math.abs(dy) < DRAG_THRESHOLD) return;
     if (!didDrag.current) {
-      // First frame that crosses threshold -- lock body selection to prevent text highlight
       didDrag.current = true;
       setIsGesturing(true);
       document.body.style.userSelect = "none";
@@ -152,18 +176,15 @@ function useZoomPan(canvasRef: React.RefObject<HTMLDivElement | null>) {
     const wasDrag = didDrag.current;
     isPanning.current = false;
     pointerId.current = null;
-    // Restore body text selection after pan and drop GPU hint
     if (wasDrag) {
       document.body.style.userSelect = "";
       (document.body.style as unknown as Record<string, string>).webkitUserSelect = "";
       setIsGesturing(false);
     }
-    // If user dragged, suppress the upcoming click event so cell selection doesn't fire
     if (wasDrag) {
       const container = e.currentTarget as HTMLElement;
       const suppress = (ce: Event) => { ce.stopPropagation(); ce.preventDefault(); };
       container.addEventListener("click", suppress, { capture: true, once: true });
-      // Safety: remove if click never fires (edge case)
       setTimeout(() => container.removeEventListener("click", suppress, { capture: true }), 200);
     }
   }, []);
@@ -178,34 +199,67 @@ function useZoomPan(canvasRef: React.RefObject<HTMLDivElement | null>) {
 // ── Component ──────────────────────────────────────────────────────────────
 
 export function LoomGrid({ pages, boundByPage, selectedPageId, onPageSelect, onNewCluster, onNewPillar }: LoomGridProps) {
+  void onNewPillar; // reserved for future direct-pillar creation from grid
   const sc = "var(--font-sc), 'Cormorant SC', serif";
   const serif = "var(--font-serif), 'EB Garamond', serif";
-  const gridBorder = "1px solid rgba(212,179,111,0.12)";
+  const gridBorder = "1px solid rgba(212,179,111,0.26)";
+  const headerBg = "var(--color-manor-bg2, #08130D)";
 
-  const [extraRows, setExtraRows] = React.useState<SpineEntry[]>([]);
-  const [extraCols, setExtraCols] = React.useState<SpineEntry[]>([]);
+  // ── Structure state (rows = 品类经线; bands = 场景类型大列). Persisted to localStorage. ──
+  const [rows, setRows] = React.useState<SpineEntry[]>(() => loadStructure()?.rows ?? CATEGORY_SPINE_DEFAULT.map((r) => ({ ...r })));
+  const [bands, setBands] = React.useState<WeftType[]>(() => loadStructure()?.bands ?? WEFT_GROUPS.map((b) => ({ ...b, themes: b.themes.map((t) => ({ ...t })) })));
+  React.useEffect(() => {
+    try { window.localStorage.setItem(STRUCT_KEY, JSON.stringify({ rows, bands })); } catch { /* quota / unavailable */ }
+  }, [rows, bands]);
+
+  // ── Add-entry UI state ──
   const [addingRow, setAddingRow] = React.useState(false);
-  const [addingCol, setAddingCol] = React.useState(false);
-  const [newRowEn, setNewRowEn] = React.useState("");
-  const [newRowZh, setNewRowZh] = React.useState("");
-  const [newColEn, setNewColEn] = React.useState("");
-  const [newColZh, setNewColZh] = React.useState("");
-
-  const CATEGORY_SPINE = React.useMemo(() => {
-    const base = [...CATEGORY_SPINE_DEFAULT];
-    const ci = base.findIndex((r) => r.id === CORE_CATEGORY);
-    return [...base.slice(0, ci >= 0 ? ci : base.length), ...extraRows, ...(ci >= 0 ? base.slice(ci) : [])];
-  }, [extraRows]);
-  const weftGroupsWithExtra = React.useMemo(() => {
-    const g = WEFT_GROUPS.map((x) => ({ ...x, themes: [...x.themes] }));
-    if (extraCols.length > 0) { const si = g.findIndex((x) => x.type === "scenario"); if (si >= 0) g[si].themes.push(...extraCols); }
-    return g;
-  }, [extraCols]);
-  const SCENARIO_COLS = React.useMemo(() => weftGroupsWithExtra.flatMap((g) => g.themes), [weftGroupsWithExtra]);
+  const [newRowEn, setNewRowEn] = React.useState(""); const [newRowZh, setNewRowZh] = React.useState("");
+  const [addingBand, setAddingBand] = React.useState(false);
+  const [newBandEn, setNewBandEn] = React.useState(""); const [newBandZh, setNewBandZh] = React.useState("");
+  const [addingThemeFor, setAddingThemeFor] = React.useState<string | null>(null); // band.type
+  const [newThemeEn, setNewThemeEn] = React.useState(""); const [newThemeZh, setNewThemeZh] = React.useState("");
   const _uid = React.useRef(0);
-  function addRow() { if (!newRowEn.trim()) return; setExtraRows((p) => [...p, { id: `user-cat-${_uid.current++}`, en: newRowEn.trim(), zh: newRowZh.trim() || newRowEn.trim() }]); setNewRowEn(""); setNewRowZh(""); setAddingRow(false); }
-  function addCol() { if (!newColEn.trim()) return; setExtraCols((p) => [...p, { id: `user-scn-${_uid.current++}`, en: newColEn.trim(), zh: newColZh.trim() || newColEn.trim() }]); setNewColEn(""); setNewColZh(""); setAddingCol(false); }
 
+  function addRow() { if (!newRowEn.trim()) return; setRows((p) => [...p, { id: `user-cat-${_uid.current++}`, en: newRowEn.trim(), zh: newRowZh.trim() || newRowEn.trim() }]); setNewRowEn(""); setNewRowZh(""); setAddingRow(false); }
+  function addBand() { if (!newBandEn.trim()) return; setBands((p) => [...p, { type: `user-band-${_uid.current++}`, en: newBandEn.trim(), zh: newBandZh.trim() || newBandEn.trim(), themes: [] }]); setNewBandEn(""); setNewBandZh(""); setAddingBand(false); }
+  function addTheme(bandType: string) { if (!newThemeEn.trim()) return; setBands((p) => p.map((b) => b.type === bandType ? { ...b, themes: [...b.themes, { id: `user-scn-${_uid.current++}`, en: newThemeEn.trim(), zh: newThemeZh.trim() || newThemeEn.trim() }] } : b)); setNewThemeEn(""); setNewThemeZh(""); setAddingThemeFor(null); }
+
+  // ── Drag-to-reorder (rows vertical / bands horizontal). Live reorder via elementFromPoint ──
+  const dragKind = React.useRef<null | "row" | "band">(null);
+  const dragPointerId = React.useRef<number | null>(null);
+  const dragIdRef = React.useRef<string | null>(null);
+  const [dragId, setDragId] = React.useState<string | null>(null); // visual feedback only
+
+  const startDrag = React.useCallback((kind: "row" | "band", id: string) => (e: React.PointerEvent) => {
+    if (e.button !== 0) return;
+    e.stopPropagation(); e.preventDefault();
+    dragKind.current = kind; dragPointerId.current = e.pointerId; dragIdRef.current = id; setDragId(id);
+    try { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); } catch { /* ignore */ }
+    document.body.style.userSelect = "none";
+  }, []);
+  const onDragMove = React.useCallback((e: React.PointerEvent) => {
+    if (dragKind.current === null || e.pointerId !== dragPointerId.current) return;
+    e.stopPropagation();
+    const sel = dragKind.current === "row" ? "[data-row-id]" : "[data-band-type]";
+    const overEl = (document.elementFromPoint(e.clientX, e.clientY) as HTMLElement | null)?.closest(sel) as HTMLElement | null;
+    if (!overEl) return;
+    if (dragKind.current === "row") {
+      const overId = overEl.getAttribute("data-row-id"); if (!overId) return;
+      setRows((prev) => moveById(prev, dragIdRef.current, overId, (r) => r.id));
+    } else {
+      const overType = overEl.getAttribute("data-band-type"); if (!overType) return;
+      setBands((prev) => moveById(prev, dragIdRef.current, overType, (b) => b.type));
+    }
+  }, []);
+  const endDrag = React.useCallback((e: React.PointerEvent) => {
+    if (e.pointerId !== dragPointerId.current) return;
+    try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch { /* ignore */ }
+    dragKind.current = null; dragPointerId.current = null; dragIdRef.current = null; setDragId(null);
+    document.body.style.userSelect = "";
+  }, []);
+
+  // ── Drill-down state ──
   const [drillStack, setDrillStack] = React.useState<DrillLevel[]>([{ type: "overview" }]);
   const currentLevel = drillStack[drillStack.length - 1];
   const [newClusterFor, setNewClusterFor] = React.useState<string | null>(null);
@@ -222,12 +276,25 @@ export function LoomGrid({ pages, boundByPage, selectedPageId, onPageSelect, onN
   const canvasRef = React.useRef<HTMLDivElement>(null);
   const zoom = useZoomPan(canvasRef);
 
+  // ── Derived columns: flat scenario list + render list (with placeholders for empty bands) ──
+  const renderCols = React.useMemo<RenderCol[]>(
+    () => bands.flatMap((b): RenderCol[] => (b.themes.length
+      ? b.themes.map((t) => ({ kind: "theme" as const, bandType: b.type, theme: t }))
+      : [{ kind: "placeholder" as const, bandType: b.type }])),
+    [bands]
+  );
+  const SCENARIO_COLS = React.useMemo(
+    () => renderCols.flatMap((c) => (c.kind === "theme" ? [c.theme] : [])),
+    [renderCols]
+  );
+  const totalThemeCols = renderCols.length;
+
   // Derived data
   const pagesByTheme = React.useMemo(() => { const m = new Map<string, WbPage[]>(); for (const p of pages) { if (!m.has(p.themeId)) m.set(p.themeId, []); m.get(p.themeId)!.push(p); } return m; }, [pages]);
   const scenarioOwned = React.useMemo(() => { const m = new Map<string, { count: number; pillarId: string | null }>(); for (const col of SCENARIO_COLS) { const sp = pagesByTheme.get(col.id) ?? []; m.set(col.id, { count: sp.length, pillarId: sp.find((p) => p.role === "pillar")?.id ?? null }); } return m; }, [pagesByTheme, SCENARIO_COLS]);
   const cells = React.useMemo(() => {
     const grid = new Map<string, CellData>();
-    for (const cat of CATEGORY_SPINE) {
+    for (const cat of rows) {
       const catPages = pagesByTheme.get(cat.id) ?? [];
       const catKws: { kw: RawKeyword; pageId: string; page: WbPage }[] = [];
       for (const p of catPages) for (const k of (boundByPage.get(p.id) ?? [])) catKws.push({ kw: k, pageId: p.id, page: p });
@@ -248,12 +315,12 @@ export function LoomGrid({ pages, boundByPage, selectedPageId, onPageSelect, onN
       }
     }
     return grid;
-  }, [CATEGORY_SPINE, SCENARIO_COLS, pagesByTheme, boundByPage]);
-  const categoryStats = React.useMemo(() => { const m = new Map<string, { pillarId: string | null }>(); for (const cat of CATEGORY_SPINE) { const cp = (pagesByTheme.get(cat.id) ?? []).find((p) => p.role === "pillar"); m.set(cat.id, { pillarId: cp?.id ?? null }); } return m; }, [CATEGORY_SPINE, pagesByTheme]);
+  }, [rows, SCENARIO_COLS, pagesByTheme, boundByPage]);
+  const categoryStats = React.useMemo(() => { const m = new Map<string, { pillarId: string | null }>(); for (const cat of rows) { const cp = (pagesByTheme.get(cat.id) ?? []).find((p) => p.role === "pillar"); m.set(cat.id, { pillarId: cp?.id ?? null }); } return m; }, [rows, pagesByTheme]);
   function handleCellClick(cell: CellData) { if (cell.pageIds.length > 0) onPageSelect(cell.pageIds[0]); }
 
   // ═══════════════════════════════════════════════════════════════════════
-  //  DRILL-DOWN VIEW (unchanged from v2.3)
+  //  DRILL-DOWN VIEW
   // ═══════════════════════════════════════════════════════════════════════
   if (currentLevel.type === "pillar") {
     const { themeId, themeName } = currentLevel;
@@ -311,8 +378,6 @@ export function LoomGrid({ pages, boundByPage, selectedPageId, onPageSelect, onN
   // ═══════════════════════════════════════════════════════════════════════
   //  OVERVIEW GRID
   // ═══════════════════════════════════════════════════════════════════════
-  const totalThemeCols = SCENARIO_COLS.length;
-
   return (
     <div className="flex-1 min-h-0 flex flex-col">
       <div className="px-4 py-2 border-b border-manor-line/50 shrink-0 flex items-center gap-2">
@@ -324,7 +389,7 @@ export function LoomGrid({ pages, boundByPage, selectedPageId, onPageSelect, onN
           <button type="button" onClick={zoom.zoomIn} className="w-5 h-5 flex items-center justify-center text-manor-inkDim hover:text-manor-brassHi transition-colors rounded hover:bg-manor-bg3/40" title="Zoom in"><ZoomIn size={12} /></button>
           <button type="button" onClick={zoom.reset} className="h-5 px-1.5 flex items-center justify-center gap-0.5 text-manor-inkDim hover:text-manor-brassHi transition-colors rounded hover:bg-manor-bg3/40 ml-0.5 text-[8px]" title="Reset zoom" style={{ fontFamily: sc }}><Scan size={11} /><span>Fit</span></button>
         </div>
-        <span className="text-[10px] text-manor-inkFaint tabular-nums">{CATEGORY_SPINE.length} x {totalThemeCols}</span>
+        <span className="text-[10px] text-manor-inkFaint tabular-nums">{rows.length} x {totalThemeCols}</span>
       </div>
 
       {/* Zoomable/pannable canvas */}
@@ -337,51 +402,105 @@ export function LoomGrid({ pages, boundByPage, selectedPageId, onPageSelect, onN
         style={{ cursor: "grab", userSelect: "none", WebkitUserSelect: "none" } as React.CSSProperties}
       >
         <div className="p-4 origin-top-left" style={{ transform: `translate(${zoom.tx}px, ${zoom.ty}px) scale(${zoom.scale})`, transformOrigin: "0 0", willChange: zoom.isGesturing ? "transform" : "auto", minWidth: "100%", minHeight: "100%" }}>
-          <div className="inline-grid gap-0" style={{ gridTemplateColumns: `120px repeat(${totalThemeCols}, minmax(150px, 1fr)) 48px`, gridTemplateRows: `auto auto repeat(${CATEGORY_SPINE.length}, minmax(auto, 1fr)) 32px`, minWidth: "100%" }}>
-            {/* Row 1: Type group headers -- #2 top border */}
-            <div style={{ background: "var(--color-manor-bg2, #08130D)", borderTop: gridBorder }} />
-            {weftGroupsWithExtra.map((g) => (
-              <div key={g.type} className="flex items-center justify-center py-2" style={{ gridColumn: `span ${g.themes.length}`, background: "var(--color-manor-bg2, #08130D)", border: gridBorder }}>
-                <span className="text-[11px] tracking-[0.18em] text-manor-brassHi font-semibold" style={{ fontFamily: sc }}>{g.en}</span>
-                <span className="text-[10px] text-manor-ink ml-2">{g.zh}</span>
-              </div>
-            ))}
-            <div className="flex items-center justify-center" style={{ background: "var(--color-manor-bg2, #08130D)", borderTop: gridBorder }}>
-              {!addingCol && <button type="button" onClick={() => setAddingCol(true)} className="w-6 h-6 flex items-center justify-center text-manor-inkFaint hover:text-manor-brassHi transition-colors rounded hover:bg-manor-bg3/40" title="Add scenario column"><Plus size={12} /></button>}
+          <div className="inline-grid gap-0" style={{ gridTemplateColumns: `120px repeat(${totalThemeCols}, minmax(150px, 1fr)) 48px`, gridTemplateRows: `auto auto repeat(${rows.length}, minmax(auto, 1fr)) 32px`, minWidth: "100%", borderTop: gridBorder, borderLeft: gridBorder }}>
+            {/* Row 1: 大列 (type band) headers -- grip to drag, + to add 小列 */}
+            <div style={{ background: headerBg, borderRight: gridBorder, borderBottom: gridBorder }} />
+            {bands.map((band) => {
+              const span = Math.max(1, band.themes.length);
+              const isDragging = dragId === band.type;
+              return (
+                <div
+                  key={band.type}
+                  data-band-type={band.type}
+                  className="relative group flex items-center justify-center py-2"
+                  style={{ gridColumn: `span ${span}`, background: headerBg, borderRight: gridBorder, borderBottom: gridBorder, opacity: isDragging ? 0.45 : 1 }}
+                >
+                  <button
+                    type="button"
+                    onPointerDown={startDrag("band", band.type)} onPointerMove={onDragMove} onPointerUp={endDrag} onPointerCancel={endDrag}
+                    onClick={(e) => e.stopPropagation()}
+                    title="拖动整条类型带换位"
+                    className="absolute left-1 top-1/2 -translate-y-1/2 p-0.5 text-manor-brassDim hover:text-manor-brassHi opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing transition-opacity"
+                  ><GripHorizontal size={12} /></button>
+                  <span className="text-[11px] tracking-[0.18em] text-manor-brassHi font-semibold" style={{ fontFamily: sc }}>{band.en}</span>
+                  <span className="text-[10px] text-manor-ink ml-1.5">{band.zh}</span>
+                  {addingThemeFor === band.type ? (
+                    <div className="absolute right-0 top-full mt-0.5 z-30 flex flex-col gap-1 p-1.5 bg-manor-bg2 border border-manor-brass/40 rounded shadow-lg">
+                      <input autoFocus value={newThemeEn} onChange={(e) => setNewThemeEn(e.target.value)} placeholder="小列(EN)" className="h-5 w-24 px-1 text-[9px] bg-manor-void/60 border border-manor-brass/30 rounded text-manor-ink placeholder:text-manor-inkFaint focus:outline-none" onKeyDown={(e) => { if (e.key === "Enter") addTheme(band.type); if (e.key === "Escape") setAddingThemeFor(null); }} />
+                      <input value={newThemeZh} onChange={(e) => setNewThemeZh(e.target.value)} placeholder="中文" className="h-5 w-24 px-1 text-[9px] bg-manor-void/60 border border-manor-brass/30 rounded text-manor-ink placeholder:text-manor-inkFaint focus:outline-none" onKeyDown={(e) => { if (e.key === "Enter") addTheme(band.type); if (e.key === "Escape") setAddingThemeFor(null); }} />
+                      <div className="flex items-center gap-1"><button type="button" onClick={() => addTheme(band.type)} className="text-[9px] text-manor-sageHi px-1">OK</button><button type="button" onClick={() => setAddingThemeFor(null)} className="text-manor-inkFaint hover:text-manor-ink"><X size={9} /></button></div>
+                    </div>
+                  ) : (
+                    <button type="button" onClick={() => { setAddingThemeFor(band.type); setAddingBand(false); }} title="往这条带加一个场景列（小列）" className="absolute right-1 top-1/2 -translate-y-1/2 p-0.5 text-manor-inkFaint hover:text-manor-brassHi opacity-0 group-hover:opacity-100 transition-opacity"><Plus size={11} /></button>
+                  )}
+                </div>
+              );
+            })}
+            <div className="relative flex items-center justify-center" style={{ background: headerBg, borderRight: gridBorder, borderBottom: gridBorder }}>
+              {addingBand ? (
+                <div className="absolute right-0 top-full mt-0.5 z-30 flex flex-col gap-1 p-1.5 bg-manor-bg2 border border-manor-brass/40 rounded shadow-lg">
+                  <input autoFocus value={newBandEn} onChange={(e) => setNewBandEn(e.target.value)} placeholder="类型(EN)" className="h-5 w-24 px-1 text-[9px] bg-manor-void/60 border border-manor-brass/30 rounded text-manor-ink placeholder:text-manor-inkFaint focus:outline-none" onKeyDown={(e) => { if (e.key === "Enter") addBand(); if (e.key === "Escape") setAddingBand(false); }} />
+                  <input value={newBandZh} onChange={(e) => setNewBandZh(e.target.value)} placeholder="中文" className="h-5 w-24 px-1 text-[9px] bg-manor-void/60 border border-manor-brass/30 rounded text-manor-ink placeholder:text-manor-inkFaint focus:outline-none" onKeyDown={(e) => { if (e.key === "Enter") addBand(); if (e.key === "Escape") setAddingBand(false); }} />
+                  <div className="flex items-center gap-1"><button type="button" onClick={addBand} className="text-[9px] text-manor-sageHi px-1">OK</button><button type="button" onClick={() => setAddingBand(false)} className="text-manor-inkFaint hover:text-manor-ink"><X size={9} /></button></div>
+                </div>
+              ) : (
+                <button type="button" onClick={() => { setAddingBand(true); setAddingThemeFor(null); }} className="flex flex-col items-center justify-center text-manor-inkFaint hover:text-manor-brassHi transition-colors" title="加一条新类型带（大列）"><Plus size={12} /><span className="text-[7px] tracking-[0.1em]" style={{ fontFamily: sc }}>大列</span></button>
+              )}
             </div>
 
-            {/* Row 2: Sub-column headers */}
-            <div className="flex items-end pb-1 px-2" style={{ background: "var(--color-manor-bg2, #08130D)" }}><span className="text-[8px] text-manor-inkFaint" style={{ fontFamily: sc }}>Category</span></div>
-            {SCENARIO_COLS.map((col) => { const owned = scenarioOwned.get(col.id); return (
-              <div key={`col-${col.id}`} className="flex flex-col items-center justify-end gap-0.5 px-2 pb-1.5 pt-1 cursor-pointer hover:bg-manor-bg3/30 transition-colors" style={{ background: "var(--color-manor-bg2, #08130D)", borderLeft: gridBorder, borderBottom: gridBorder }} onClick={() => drillInto(col.id, col.en)} title={`${col.en} ${col.zh}`}>
-                <span className="text-[12px] text-manor-brassHi font-semibold leading-tight text-center" style={{ fontFamily: serif }}>{col.en}</span>
-                <span className="text-[9px] text-manor-ink leading-tight">{col.zh}</span>
-                {owned && owned.count > 0 && <span className="text-[8px] text-manor-inkDim tabular-nums">{owned.count} pg</span>}
-              </div>
-            ); })}
-            <div className="flex items-center justify-center" style={{ background: "var(--color-manor-bg2, #08130D)", borderBottom: gridBorder }}>
-              {addingCol && (<div className="flex flex-col items-center gap-1 p-1"><input autoFocus value={newColEn} onChange={(e) => setNewColEn(e.target.value)} placeholder="Name" className="h-5 w-10 px-1 text-[8px] bg-manor-void/60 border border-manor-brass/30 rounded text-manor-ink focus:outline-none" onKeyDown={(e) => { if (e.key === "Enter") addCol(); if (e.key === "Escape") setAddingCol(false); }} /><button type="button" onClick={() => setAddingCol(false)} className="text-manor-inkFaint hover:text-manor-ink"><X size={8} /></button></div>)}
-            </div>
+            {/* Row 2: sub-column (小列) headers */}
+            <div className="flex items-end pb-1 px-2" style={{ background: headerBg, borderRight: gridBorder, borderBottom: gridBorder }}><span className="text-[8px] text-manor-inkFaint" style={{ fontFamily: sc }}>Category</span></div>
+            {renderCols.map((rc) => {
+              if (rc.kind === "placeholder") {
+                return (
+                  <div key={`ph-${rc.bandType}`} className="flex flex-col items-center justify-end gap-0.5 px-2 pb-1.5 pt-1" style={{ background: headerBg, borderRight: gridBorder, borderBottom: gridBorder }}>
+                    <span className="text-[9px] text-manor-inkFaint italic">空带</span>
+                    <button type="button" onClick={() => setAddingThemeFor(rc.bandType)} className="text-[9px] text-manor-inkFaint hover:text-manor-brassHi flex items-center gap-0.5"><Plus size={9} /> 小列</button>
+                  </div>
+                );
+              }
+              const col = rc.theme; const owned = scenarioOwned.get(col.id);
+              return (
+                <div key={`col-${col.id}`} className="flex flex-col items-center justify-end gap-0.5 px-2 pb-1.5 pt-1 cursor-pointer hover:bg-manor-bg3/30 transition-colors" style={{ background: headerBg, borderRight: gridBorder, borderBottom: gridBorder }} onClick={() => drillInto(col.id, col.en)} title={`${col.en} ${col.zh}`}>
+                  <span className="text-[12px] text-manor-brassHi font-semibold leading-tight text-center" style={{ fontFamily: serif }}>{col.en}</span>
+                  <span className="text-[9px] text-manor-ink leading-tight">{col.zh}</span>
+                  {owned && owned.count > 0 && <span className="text-[8px] text-manor-inkDim tabular-nums">{owned.count} pg</span>}
+                </div>
+              );
+            })}
+            <div style={{ background: headerBg, borderRight: gridBorder, borderBottom: gridBorder }} />
 
-            {/* Data rows -- #1 no triangles, #2 centered + row dividers */}
-            {CATEGORY_SPINE.map((cat) => {
+            {/* Data rows */}
+            {rows.map((cat) => {
               const catSel = selectedPageId != null && categoryStats.get(cat.id)?.pillarId === selectedPageId;
+              const isDragging = dragId === cat.id;
               return (
                 <React.Fragment key={cat.id}>
-                  {/* Row header: #2 centered text + borderBottom for row divider */}
                   <div
-                    className={["flex flex-col items-center justify-center gap-0.5 px-3 py-3 cursor-pointer transition-colors", catSel ? "bg-manor-bg3" : "hover:bg-manor-bg3/40"].join(" ")}
-                    style={{ background: catSel ? undefined : "var(--color-manor-bg2, #08130D)", borderRight: gridBorder, borderBottom: gridBorder }}
+                    data-row-id={cat.id}
+                    className={["relative group flex flex-col items-center justify-center gap-0.5 px-3 py-3 cursor-pointer transition-colors", catSel ? "bg-manor-bg3" : "hover:bg-manor-bg3/40"].join(" ")}
+                    style={{ background: catSel ? undefined : headerBg, borderRight: gridBorder, borderBottom: gridBorder, opacity: isDragging ? 0.45 : 1 }}
                     onClick={() => drillInto(cat.id, cat.en)} title={`${cat.en} ${cat.zh}`}
                   >
+                    <button
+                      type="button"
+                      onPointerDown={startDrag("row", cat.id)} onPointerMove={onDragMove} onPointerUp={endDrag} onPointerCancel={endDrag}
+                      onClick={(e) => e.stopPropagation()}
+                      title="拖动行换位"
+                      className="absolute left-0.5 top-1/2 -translate-y-1/2 p-0.5 text-manor-brassDim hover:text-manor-brassHi opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing transition-opacity"
+                    ><GripVertical size={12} /></button>
                     <span className="text-[13px] font-semibold leading-tight text-manor-brassHi text-center" style={{ fontFamily: serif }}>{cat.en}</span>
                     <span className="text-[9px] text-manor-ink leading-tight text-center">{cat.zh}</span>
                   </div>
-                  {SCENARIO_COLS.map((scen) => {
+                  {renderCols.map((rc) => {
+                    if (rc.kind === "placeholder") {
+                      return <div key={`phc-${cat.id}-${rc.bandType}`} className="min-h-[72px]" style={{ borderRight: gridBorder, borderBottom: gridBorder }} />;
+                    }
+                    const scen = rc.theme;
                     const key = `${cat.id}::${scen.id}`; const cell = cells.get(key); const isGap = !cell || cell.keywords.length === 0;
                     const totalSv = cell?.totalSv ?? 0; const isCellSel = selectedPageId != null && cell?.pageIds.includes(selectedPageId); const titles = cell?.pageTitles ?? [];
                     return (
-                      <div key={key} className={["relative flex flex-col items-start justify-start gap-0.5 p-2 min-h-[72px] cursor-pointer transition-all text-left", isCellSel ? "border-manor-brass/60 bg-manor-bg3" : isGap ? "hover:border-manor-brass/20 hover:bg-manor-bg3/15" : "hover:border-manor-brass/30 hover:bg-manor-bg3/20"].join(" ")} style={{ border: gridBorder }} onClick={() => { if (cell) handleCellClick(cell); }} title={isGap ? `Gap: ${cat.en} x ${scen.en}` : `${cat.en} x ${scen.en}: ${titles.length} pages, ${formatSv(totalSv)} SV`}>
+                      <div key={key} className={["relative flex flex-col items-start justify-start gap-0.5 p-2 min-h-[72px] cursor-pointer transition-all text-left", isCellSel ? "border-manor-brass/60 bg-manor-bg3" : isGap ? "hover:border-manor-brass/20 hover:bg-manor-bg3/15" : "hover:border-manor-brass/30 hover:bg-manor-bg3/20"].join(" ")} style={{ borderRight: gridBorder, borderBottom: gridBorder }} onClick={() => { if (cell) handleCellClick(cell); }} title={isGap ? `Gap: ${cat.en} x ${scen.en}` : `${cat.en} x ${scen.en}: ${titles.length} pages, ${formatSv(totalSv)} SV`}>
                         {isGap ? (<div className="flex-1 flex flex-col items-center justify-center w-full"><span className="absolute inset-2 border border-dashed border-manor-line2/30 rounded pointer-events-none" aria-hidden /><span className="text-[14px] text-manor-inkGhost leading-none" aria-hidden>&#x25A2;</span><span className="text-[8px] text-manor-inkFaint/50 mt-0.5">gap</span></div>
                         ) : (<>
                           {titles.slice(0, 3).map((t, i) => (<div key={i} className="flex items-start gap-1.5 w-full min-w-0"><StatusDot status={t.status} size={5} /><span className="text-[10px] text-manor-ink/90 leading-tight truncate" style={{ fontFamily: serif }}>{t.title}</span></div>))}
@@ -392,15 +511,15 @@ export function LoomGrid({ pages, boundByPage, selectedPageId, onPageSelect, onN
                       </div>
                     );
                   })}
-                  <div style={{ border: gridBorder }} />
+                  <div style={{ borderRight: gridBorder, borderBottom: gridBorder }} />
                 </React.Fragment>
               );
             })}
 
             {/* + row */}
-            <div className="flex items-center justify-center" style={{ background: "var(--color-manor-bg2, #08130D)" }}>{!addingRow && <button type="button" onClick={() => setAddingRow(true)} className="text-[9px] text-manor-inkFaint hover:text-manor-brassHi transition-colors flex items-center gap-0.5" title="Add category row"><Plus size={10} /> Row</button>}</div>
-            {addingRow ? (<div className="flex items-center gap-2 px-2" style={{ gridColumn: `2 / -1` }}><input autoFocus value={newRowEn} onChange={(e) => setNewRowEn(e.target.value)} placeholder="English..." className="h-6 px-2 text-[10px] bg-manor-void/60 border border-manor-brass/30 rounded text-manor-ink placeholder:text-manor-inkFaint focus:outline-none w-28" onKeyDown={(e) => { if (e.key === "Enter") addRow(); if (e.key === "Escape") setAddingRow(false); }} /><input value={newRowZh} onChange={(e) => setNewRowZh(e.target.value)} placeholder="Chinese..." className="h-6 px-2 text-[10px] bg-manor-void/60 border border-manor-brass/30 rounded text-manor-ink placeholder:text-manor-inkFaint focus:outline-none w-20" onKeyDown={(e) => { if (e.key === "Enter") addRow(); if (e.key === "Escape") setAddingRow(false); }} /><button type="button" onClick={addRow} className="text-[9px] text-manor-sageHi">OK</button><button type="button" onClick={() => setAddingRow(false)} className="text-manor-inkFaint hover:text-manor-ink"><X size={10} /></button></div>
-            ) : (<>{SCENARIO_COLS.map((_, i) => <div key={`p${i}`} />)}<div /></>)}
+            <div className="flex items-center justify-center" style={{ background: headerBg, borderRight: gridBorder, borderBottom: gridBorder }}>{!addingRow && <button type="button" onClick={() => setAddingRow(true)} className="text-[9px] text-manor-inkFaint hover:text-manor-brassHi transition-colors flex items-center gap-0.5" title="加一行品类（经线）"><Plus size={10} /> Row</button>}</div>
+            {addingRow ? (<div className="flex items-center gap-2 px-2" style={{ gridColumn: `2 / -1`, borderRight: gridBorder, borderBottom: gridBorder }}><input autoFocus value={newRowEn} onChange={(e) => setNewRowEn(e.target.value)} placeholder="English..." className="h-6 px-2 text-[10px] bg-manor-void/60 border border-manor-brass/30 rounded text-manor-ink placeholder:text-manor-inkFaint focus:outline-none w-28" onKeyDown={(e) => { if (e.key === "Enter") addRow(); if (e.key === "Escape") setAddingRow(false); }} /><input value={newRowZh} onChange={(e) => setNewRowZh(e.target.value)} placeholder="Chinese..." className="h-6 px-2 text-[10px] bg-manor-void/60 border border-manor-brass/30 rounded text-manor-ink placeholder:text-manor-inkFaint focus:outline-none w-20" onKeyDown={(e) => { if (e.key === "Enter") addRow(); if (e.key === "Escape") setAddingRow(false); }} /><button type="button" onClick={addRow} className="text-[9px] text-manor-sageHi">OK</button><button type="button" onClick={() => setAddingRow(false)} className="text-manor-inkFaint hover:text-manor-ink"><X size={10} /></button></div>
+            ) : (<>{renderCols.map((_, i) => <div key={`p${i}`} style={{ borderRight: gridBorder, borderBottom: gridBorder }} />)}<div style={{ borderRight: gridBorder, borderBottom: gridBorder }} /></>)}
           </div>
           <div className="mt-3 flex flex-wrap items-center gap-4 px-1">
             <div className="flex items-center gap-3 text-[10px] text-manor-inkDim">
@@ -408,7 +527,7 @@ export function LoomGrid({ pages, boundByPage, selectedPageId, onPageSelect, onN
               <span className="inline-flex items-center gap-1"><StatusDot status="optimize" size={6} /><span>Optimize</span></span>
               <span className="inline-flex items-center gap-1"><StatusDot status="gap" size={6} /><span>Gap</span></span>
             </div>
-            <span className="text-[9px] text-manor-inkFaint italic ml-auto">Scroll/pinch to zoom / drag to pan</span>
+            <span className="text-[9px] text-manor-inkFaint italic ml-auto">悬停行头/类型带露出抓手可拖动排序 · 滚轮/捏合缩放 · 拖空白平移</span>
           </div>
         </div>
       </div>
