@@ -2,14 +2,7 @@
 
 import * as React from "react";
 import { PanelLeftOpen, PanelRightOpen } from "lucide-react";
-import type { WorkbenchSeed, WbPage, RawKeyword, Territory, MarketRankings, PlanPayload } from "./_workbench";
-import { saveStrategyPlanAction } from "./_plan-actions";
-import {
-  detectCannibalization,
-  isHardCannibalization,
-  resolvePageIntent,
-  type PageRelation,
-} from "./_workbench";
+import type { WorkbenchSeed, WbPage, RawKeyword, Territory, MarketRankings } from "./_workbench";
 import { ALL_KEYWORDS } from "./_all-keywords";
 import { SourcePool } from "./SourcePool";
 import { LoomGrid } from "./LoomGrid";
@@ -370,7 +363,7 @@ function reducer(state: WbState, action: Action): WbState {
 }
 
 // ── localStorage persistence ──────────────────────────────────────────────────
-const STORAGE_KEY = "wb-session-v2";
+const STORAGE_KEY = "wb-session-v3";
 
 function saveToStorage(s: WbState) {
   try {
@@ -402,10 +395,9 @@ function loadFromStorage(seed: WorkbenchSeed): Partial<WbState> | null {
 interface WorkbenchClientProps {
   seed: WorkbenchSeed;
   rankings: MarketRankings;
-  initialPlan: PlanPayload | null;
 }
 
-export function WorkbenchClient({ seed, rankings, initialPlan }: WorkbenchClientProps) {
+export function WorkbenchClient({ seed, rankings }: WorkbenchClientProps) {
   // ── KW_BY_ID: the single truth source for all keyword lookups ──
   const KW_BY_ID = React.useMemo(() => {
     const map = new Map<string, RawKeyword>();
@@ -420,20 +412,20 @@ export function WorkbenchClient({ seed, rankings, initialPlan }: WorkbenchClient
 
   const initState = React.useMemo<WbState>(() => {
     const saved = loadFromStorage(seed);
-    // 优先级：数据库已持久化的规划 > 本地草稿 > 蓝图种子
-    const basePages = initialPlan?.pages ?? saved?.pages ?? seed.pages;
-    // v2.1 seed-merge: 把种子里 DB plan 没有的页面自动并入（按 pageId 去重），
-    // 让新增 demo 主题在有 DB plan 时也能完整下钻。只在前端合并，不动落库逻辑。
+    // 优先级：本地草稿 > 蓝图种子（已无 DB 持久化层）
+    const basePages = saved?.pages ?? seed.pages;
+    // v2.1 seed-merge: 把种子里本地草稿没有的页面自动并入（按 pageId 去重），
+    // 让新增 demo 主题在有本地草稿时也能完整下钻。
     const existingIds = new Set(basePages.map((p) => p.id));
     const merged = [...basePages];
     for (const sp of seed.pages) {
       if (!existingIds.has(sp.id)) merged.push(sp);
     }
-    // 主题归属以蓝图为准：对蓝图里存在的页 id，用蓝图的结构字段（主题归属 / 角色）覆盖持久化里的旧值。
+    // 主题归属以蓝图为准：对蓝图里存在的页 id，用蓝图的结构字段（主题归属 / 角色）覆盖本地草稿里的旧值。
     // 让蓝图层的主题重构（如 Name Necklace 从 islamic-jewelry 子页提升为独立经线行）即便在已有
-    // DB / 本地草稿时也能正确生效，且下次保存自动写回新结构、自愈。用户数据（url / 状态 / 备注 / 绑定）保留。
+    // 本地草稿时也能正确生效，且下次保存自动写回新结构、自愈。用户数据（url / 状态 / 备注 / 绑定）保留。
     const seedById = new Map(seed.pages.map((p) => [p.id, p]));
-    // seed-prune: 蓝图里已删除的页面（如砍掉的 cluster）从持久化里清除。
+    // seed-prune: 蓝图里已删除的页面（如砍掉的 cluster）从本地草稿里清除。
     // 用户自建页（wb-/usr- 前缀）不受影响，只移除"曾属于蓝图但已被蓝图删除"的页面。
     const seedIdSet = new Set(seed.pages.map((p) => p.id));
     const pruned = merged.filter((p) => seedIdSet.has(p.id) || p.id.startsWith("wb-") || p.id.startsWith("usr-"));
@@ -442,7 +434,7 @@ export function WorkbenchClient({ seed, rankings, initialPlan }: WorkbenchClient
       if (!sp) return p;
       return { ...p, themeId: sp.themeId, themeName: sp.themeName, themeLatin: sp.themeLatin, territory: sp.territory, role: sp.role, pillarId: sp.pillarId, scenarioId: sp.scenarioId };
     });
-    const baseBindings = initialPlan ? { ...initialPlan.bindings } : (saved?.bindings ?? { ...seed.bindings });
+    const baseBindings = saved?.bindings ?? { ...seed.bindings };
     // Also merge seed bindings for newly added pages
     const mergedBindings = { ...baseBindings };
     for (const [kwId, pageId] of Object.entries(seed.bindings)) {
@@ -458,55 +450,21 @@ export function WorkbenchClient({ seed, rankings, initialPlan }: WorkbenchClient
     return {
       pages: reconciled,
       bindings: mergedBindings,
-      parked: initialPlan ? new Set(initialPlan.parked) : (saved?.parked ?? new Set<string>()),
+      parked: saved?.parked ?? new Set<string>(),
       selection: null,
       poolSelection: new Set<string>(),
       undoStack: [],
       redoStack: [],
       assignMenuOpen: false,
     };
-  }, [seed, initialPlan]);
+  }, [seed]);
 
   const [state, dispatch] = React.useReducer(reducer, initState);
 
-  // auto-save on bindings/parked/pages change（本地草稿，瞬时、离线兜底）
+  // auto-save on bindings/parked/pages change（本地草稿：localStorage，唯一持久层）
   React.useEffect(() => {
     saveToStorage(state);
   }, [state.bindings, state.parked, state.pages]);
-
-  // 防抖落库（按 owner 持久化；与本地草稿并行，数据库为权威源）。
-  // 用「序列化快照比对」判断是否有实质变化 —— 跳过初始水合，且对 StrictMode 的
-  // 重复挂载免疫（mount/remount 的快照都等于初始值 → 不触发空保存）。
-  const dbSaveTimer = React.useRef<ReturnType<typeof setTimeout>>(undefined);
-  const lastSavedSnap = React.useRef<string | null>(null);
-  React.useEffect(() => {
-    const snap = JSON.stringify({
-      pages: state.pages,
-      bindings: state.bindings,
-      parked: Array.from(state.parked).sort(),
-    });
-    if (lastSavedSnap.current === null) { lastSavedSnap.current = snap; return; } // 初次水合
-    if (snap === lastSavedSnap.current) return; // 无实质变化（含 StrictMode 重挂）
-    lastSavedSnap.current = snap;
-    if (dbSaveTimer.current) clearTimeout(dbSaveTimer.current);
-    dbSaveTimer.current = setTimeout(() => {
-      // P1-safety: filter out demo pages (tb-*) and demo keyword bindings (d0-d99) before saving to DB.
-      // Demo data is display-only via seed-merge; it must never pollute the real persisted plan.
-      const isDemo = (id: string) => /^tb-/.test(id) || /^d\d+$/.test(id);
-      const cleanPages = state.pages.filter((p) => !isDemo(p.id));
-      const cleanBindings: Record<string, string> = {};
-      for (const [kwId, pageId] of Object.entries(state.bindings)) {
-        if (!isDemo(kwId) && !isDemo(pageId)) cleanBindings[kwId] = pageId;
-      }
-      const cleanParked = Array.from(state.parked).filter((id) => !isDemo(id));
-      void saveStrategyPlanAction({
-        pages: cleanPages,
-        bindings: cleanBindings,
-        parked: cleanParked,
-      }).catch(() => { /* 落库失败不阻断操作；本地草稿仍在 */ });
-    }, 1000);
-    return () => { if (dbSaveTimer.current) clearTimeout(dbSaveTimer.current); };
-  }, [state.pages, state.bindings, state.parked]);
 
   // Ctrl+Z / Ctrl+Y
   React.useEffect(() => {
@@ -610,13 +568,6 @@ export function WorkbenchClient({ seed, rankings, initialPlan }: WorkbenchClient
   const unboundCount = poolKeywords.length;
   const parkedCount = state.parked.size;
   const excludedCount = seed.excluded.length;
-
-  // cannibalization —— 注入意图 resolver（从每页绑定词投票得意图族）。
-  // 漏斗层由 URL 推断、意图族由绑定词派生，故依赖 state.pages + boundByPage。
-  const conflicts = React.useMemo<PageRelation[]>(
-    () => detectCannibalization(state.pages, (id) => resolvePageIntent(boundByPage.get(id) ?? [])),
-    [state.pages, boundByPage]
-  );
 
   const handleAssign = React.useCallback((kwIds: string[], pageId: string) => {
     dispatch({ type: "ASSIGN", kwIds, pageId });
@@ -800,7 +751,6 @@ export function WorkbenchClient({ seed, rankings, initialPlan }: WorkbenchClient
                 pages={state.pages}
                 bindings={state.bindings}
                 allKeywords={ALL_KEYWORDS}
-                conflicts={conflicts}
                 boundByPage={boundByPage}
                 rankings={rankings}
                 onPageSelect={(id) => dispatch({ type: "SELECT", selection: { type: "page", id } })}
@@ -811,7 +761,6 @@ export function WorkbenchClient({ seed, rankings, initialPlan }: WorkbenchClient
             ) : (
               <Worklist
                 pages={state.pages}
-                conflicts={conflicts}
                 poolKeywords={poolKeywords}
                 boundByPage={boundByPage}
                 onPageSelect={(id) => dispatch({ type: "SELECT", selection: { type: "page", id } })}
@@ -890,9 +839,6 @@ export function WorkbenchClient({ seed, rankings, initialPlan }: WorkbenchClient
       <WorkbenchDock
         parkedCount={parkedCount}
         parkedKeywords={parkedKeywords}
-        conflictCount={conflicts.filter(isHardCannibalization).length}
-        conflicts={conflicts}
-        pages={state.pages}
         canUndo={state.undoStack.length > 0}
         canRedo={state.redoStack.length > 0}
         onUndo={() => dispatch({ type: "UNDO" })}

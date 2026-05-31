@@ -56,8 +56,8 @@ export function AssignMenu({
     );
   }, [pages, search]);
 
-  // Group by pillar
-  const pillars = filtered.filter((p) => p.role === "pillar");
+  // Top-level pillars (always from full page set for tree structure)
+  const pillars = pages.filter((p) => p.role === "pillar");
 
   const selectedKws = keywords.filter((k) => selectedKwIds.includes(k.id));
 
@@ -118,40 +118,88 @@ export function AssignMenu({
 
             {/* Page list */}
             <div className="flex-1 min-h-0 overflow-y-auto" style={{ scrollbarGutter: "stable" }}>
-              {pillars.map((pillar) => {
-                const clusters = filtered.filter((p) => p.pillarId === pillar.id);
-                return (
-                  <div key={pillar.id}>
-                    {/* Pillar */}
+              {search ? (
+                /* ── Search mode: flat list of all matched pages ── */
+                <>
+                  {filtered.length === 0 && (
+                    <div className="py-6 text-center text-xs text-manor-inkFaint">无匹配页面</div>
+                  )}
+                  {filtered.map((page) => (
                     <button
+                      key={page.id}
                       type="button"
-                      onClick={() => onAssign(pillar.id)}
-                      className="w-full flex items-center gap-2 px-4 py-2 text-left hover:bg-manor-bg3 transition-colors border-b border-manor-line/30"
+                      onClick={() => onAssign(page.id)}
+                      className="w-full flex items-center gap-2 px-4 py-1.5 text-left hover:bg-manor-bg3 transition-colors border-b border-manor-line/20"
                     >
-                      <RoleMark role="pillar" size={8} />
-                      <span className="text-xs text-manor-ink truncate flex-1">{pillar.title}</span>
-                      <StatusChip status={pillar.status} size="sm" />
-                      <ArrowRight size={12} className="text-manor-inkFaint" />
+                      <RoleMark role={page.role} size={page.role === "pillar" ? 8 : 7} />
+                      <span className="text-xs text-manor-inkDim truncate flex-1">{page.title}</span>
+                      <StatusChip status={page.status} size="sm" />
+                      <ArrowRight size={10} className="text-manor-inkFaint" />
                     </button>
-                    {/* Clusters under this pillar */}
-                    {clusters.map((cluster) => (
-                      <button
-                        key={cluster.id}
-                        type="button"
-                        onClick={() => onAssign(cluster.id)}
-                        className="w-full flex items-center gap-2 px-4 pl-8 py-1.5 text-left hover:bg-manor-bg3 transition-colors border-b border-manor-line/20"
-                      >
-                        <RoleMark role="cluster" size={7} />
-                        <span className="text-xs text-manor-inkDim truncate flex-1">{cluster.title}</span>
-                        <StatusChip status={cluster.status} size="sm" />
-                        <ArrowRight size={10} className="text-manor-inkFaint" />
-                      </button>
-                    ))}
-                  </div>
-                );
-              })}
-              {filtered.length === 0 && (
-                <div className="py-6 text-center text-xs text-manor-inkFaint">无匹配页面</div>
+                  ))}
+                </>
+              ) : (
+                /* ── Tree mode: pillar → sub-pillar → cluster (3 levels) ── */
+                <>
+                  {pillars.map((pillar) => {
+                    // Direct children: sub-pillars + clusters whose pillarId === this pillar
+                    const directChildren = pages.filter((p) => p.pillarId === pillar.id);
+                    return (
+                      <div key={pillar.id}>
+                        {/* Level 0 — Pillar */}
+                        <button
+                          type="button"
+                          onClick={() => onAssign(pillar.id)}
+                          className="w-full flex items-center gap-2 px-4 py-2 text-left hover:bg-manor-bg3 transition-colors border-b border-manor-line/30"
+                        >
+                          <RoleMark role="pillar" size={8} />
+                          <span className="text-xs text-manor-ink truncate flex-1">{pillar.title}</span>
+                          <StatusChip status={pillar.status} size="sm" />
+                          <ArrowRight size={12} className="text-manor-inkFaint" />
+                        </button>
+
+                        {/* Level 1 — Direct children (sub-pillars or clusters) */}
+                        {directChildren.map((child) => {
+                          const grandchildren = child.role === "sub-pillar"
+                            ? pages.filter((p) => p.pillarId === child.id)
+                            : [];
+                          return (
+                            <div key={child.id}>
+                              <button
+                                type="button"
+                                onClick={() => onAssign(child.id)}
+                                className="w-full flex items-center gap-2 pl-8 pr-4 py-1.5 text-left hover:bg-manor-bg3 transition-colors border-b border-manor-line/20"
+                              >
+                                <RoleMark role={child.role} size={7} />
+                                <span className="text-xs text-manor-inkDim truncate flex-1">{child.title}</span>
+                                <StatusChip status={child.status} size="sm" />
+                                <ArrowRight size={10} className="text-manor-inkFaint" />
+                              </button>
+
+                              {/* Level 2 — Grandchildren (clusters under a sub-pillar) */}
+                              {grandchildren.map((gc) => (
+                                <button
+                                  key={gc.id}
+                                  type="button"
+                                  onClick={() => onAssign(gc.id)}
+                                  className="w-full flex items-center gap-2 pl-12 pr-4 py-1.5 text-left hover:bg-manor-bg3 transition-colors border-b border-manor-line/15"
+                                >
+                                  <RoleMark role="cluster" size={6} />
+                                  <span className="text-[11px] text-manor-inkFaint truncate flex-1">{gc.title}</span>
+                                  <StatusChip status={gc.status} size="sm" />
+                                  <ArrowRight size={10} className="text-manor-inkFaint" />
+                                </button>
+                              ))}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })}
+                  {pillars.length === 0 && (
+                    <div className="py-6 text-center text-xs text-manor-inkFaint">无匹配页面</div>
+                  )}
+                </>
               )}
             </div>
 
@@ -232,8 +280,10 @@ export function AssignMenu({
               onChange={(e) => setNewPillarId(e.target.value)}
               className="w-full h-7 px-1.5 text-[11px] bg-manor-void/60 border border-manor-brass/25 rounded text-manor-ink"
             >
-              {pages.filter((p) => p.role === "pillar").map((p) => (
-                <option key={p.id} value={p.id}>{p.title}</option>
+              {pages.filter((p) => p.role === "pillar" || p.role === "sub-pillar").map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.role === "sub-pillar" ? `└ ${p.title}` : p.title}
+                </option>
               ))}
             </select>
             <input

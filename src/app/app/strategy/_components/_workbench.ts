@@ -42,14 +42,8 @@ export type Territory = "产品" | "知识" | "工具" | "场景" | "品牌";
 export const TERRITORY_BY_THEME: Record<string, Territory> = {
   "zikr-ring": "产品",
   "islamic-jewelry": "产品",
-  "name-necklace": "产品", // 原 islamic-jewelry 子集群，提升为独立经线行
-  "tasbih": "产品", // demo · 品类经线中段
-  "knowledge-dhikr": "知识",
-  "slow-living": "场景", // v2.1: 老板明确 Slow Living 属于场景
-  "itasbih-tools": "工具",
-  "qibla-finder": "工具",
-  "muslim-gifts": "场景",
-  "brand": "品牌",
+  "name-necklace": "产品",
+  "tasbih": "产品",
 };
 
 // ── 工作台页面节点（扁平；集群用 pillarId 指向支柱）────────────────────────

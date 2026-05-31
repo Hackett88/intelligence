@@ -11,7 +11,7 @@
  *       Empty bands render a placeholder column so the spanning header never collapses.
  */
 import * as React from "react";
-import { Plus, X, ChevronRight, ZoomOut, ZoomIn, Scan, GripVertical, GripHorizontal } from "lucide-react";
+import { Plus, X, ChevronRight, ChevronDown, ZoomOut, ZoomIn, Scan, GripVertical, GripHorizontal } from "lucide-react";
 import type { WbPage, RawKeyword, Territory } from "./_workbench";
 import { StatusDot, RoleMark, formatSv } from "./_utils";
 
@@ -37,13 +37,16 @@ const WEFT_GROUPS: WeftType[] = [
     { id: "qibla-finder", en: "Qibla", zh: "朝向" },
     { id: "itasbih-tools", en: "iTasbih", zh: "数字念珠" },
   ]},
+  { type: "brand", en: "Brand", zh: "品牌", themes: [
+    { id: "brand", en: "Brand", zh: "品牌" },
+  ]},
 ];
 // ── Helpers ────────────────────────────────────────────────────────────────
 
 function shortTitle(title: string): string { return title.split(/[（(]/)[0].replace(/[·\-—]+$/, "").trim(); }
 
 // ── Structure persistence + reorder helpers ──────────────────────────────────
-const STRUCT_KEY = "wb-loom-structure-v2";
+const STRUCT_KEY = "wb-loom-structure-v4";
 type LoomStructure = { rows: SpineEntry[]; bands: WeftType[] };
 function loadStructure(): LoomStructure | null {
   if (typeof window === "undefined") return null;
@@ -69,12 +72,18 @@ function moveById<T>(arr: T[], dragId: string | null, overId: string, keyFn: (t:
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
+type CellSubPillar = {
+  id: string; title: string; status: "live" | "optimize" | "gap";
+  clusters: { id: string; title: string; status: "live" | "optimize" | "gap" }[];
+};
 type CellData = {
   categoryId: string; scenarioId: string; totalSv: number;
   bestStatus: "live" | "optimize" | "gap"; pageIds: string[];
-  pageTitles: { title: string; status: "live" | "optimize" | "gap"; pageId: string }[];
+  subPillars: CellSubPillar[];
   /** 落进本格的子支柱数量 */
   subCount: number;
+  /** 所有爸爸的孙子数之和 */
+  clusterCount: number;
 };
 /** 渲染列：实际场景列(theme) 或 空带占位列(placeholder)。空带占 1 列、不进数据交叉。 */
 type RenderCol = { kind: "theme"; bandType: string; theme: SpineEntry } | { kind: "placeholder"; bandType: string };
@@ -108,6 +117,11 @@ function useZoomPan(canvasRef: React.RefObject<HTMLDivElement | null>) {
   const pointerId = React.useRef<number | null>(null);
   const gestureTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Ref that always holds the latest {scale,tx,ty} so the wheel handler
+  // can read without depending on stale closures or nesting setStates.
+  const viewRef = React.useRef({ scale, tx, ty });
+  viewRef.current = { scale, tx, ty };
+
   // native wheel listener with { passive: false } to intercept trackpad pinch
   React.useEffect(() => {
     const el = canvasRef.current;
@@ -121,16 +135,21 @@ function useZoomPan(canvasRef: React.RefObject<HTMLDivElement | null>) {
         setIsGesturing(true);
         if (gestureTimer.current) clearTimeout(gestureTimer.current);
         gestureTimer.current = setTimeout(() => setIsGesturing(false), 200);
+
         const rect = el.getBoundingClientRect();
         const mx = e.clientX - rect.left;
         const my = e.clientY - rect.top;
-        setScale((prev) => {
-          const next = Math.max(0.4, Math.min(2.0, prev - e.deltaY * 0.003));
-          const ratio = next / prev;
-          setTx((ptx) => mx - ratio * (mx - ptx));
-          setTy((pty) => my - ratio * (my - pty));
-          return next;
-        });
+
+        const { scale: prevScale, tx: ptx, ty: pty } = viewRef.current;
+        const next = Math.max(0.4, Math.min(2.0, prevScale - e.deltaY * 0.003));
+        const ratio = next / prevScale;
+        const ntx = mx - ratio * (mx - ptx);
+        const nty = my - ratio * (my - pty);
+
+        setScale(next);
+        setTx(ntx);
+        setTy(nty);
+        viewRef.current = { scale: next, tx: ntx, ty: nty };
       }
     };
     el.addEventListener("wheel", handler, { passive: false });
@@ -268,6 +287,10 @@ export function LoomGrid({ pages, boundByPage, selectedPageId, onPageSelect, onN
   const [newClusterTitle, setNewClusterTitle] = React.useState("");
   const [addingSubPillar, setAddingSubPillar] = React.useState(false);
   const [newSubPillarTitle, setNewSubPillarTitle] = React.useState("");
+  const [collapsedSubs, setCollapsedSubs] = React.useState<Set<string>>(new Set());
+  const toggleSub = React.useCallback((id: string) => {
+    setCollapsedSubs((prev) => { const next = new Set(prev); if (next.has(id)) next.delete(id); else next.add(id); return next; });
+  }, []);
   function drillInto(themeId: string, themeName: string) { setDrillStack((s) => [...s, { type: "pillar", themeId, themeName }]); }
   function drillBack() { setDrillStack((s) => (s.length > 1 ? s.slice(0, -1) : s)); }
   React.useEffect(() => {
@@ -317,10 +340,19 @@ export function LoomGrid({ pages, boundByPage, selectedPageId, onPageSelect, onN
           }
         }
         const bs: "live" | "optimize" | "gap" = allStatuses.some((s) => s === "live") ? "live" : allStatuses.some((s) => s === "optimize") ? "optimize" : "gap";
-        const pt: CellData["pageTitles"] = cellSubs.map((sp) => ({ title: shortTitle(sp.title), status: sp.status, pageId: sp.id }));
+        // 构建嵌套结构：每个爸爸带上它的孙子
+        let clusterCount = 0;
+        const sps: CellSubPillar[] = cellSubs.map((sp) => {
+          const children = pages.filter((p) => p.role === "cluster" && p.pillarId === sp.id);
+          clusterCount += children.length;
+          return {
+            id: sp.id, title: shortTitle(sp.title), status: sp.status,
+            clusters: children.map((c) => ({ id: c.id, title: shortTitle(c.title), status: c.status })),
+          };
+        });
         grid.set(`${cat.id}::${scen.id}`, {
           categoryId: cat.id, scenarioId: scen.id, totalSv, bestStatus: bs,
-          pageIds: cellSubs.map((sp) => sp.id), pageTitles: pt, subCount: cellSubs.length,
+          pageIds: cellSubs.map((sp) => sp.id), subPillars: sps, subCount: cellSubs.length, clusterCount,
         });
       }
     }
@@ -548,7 +580,7 @@ export function LoomGrid({ pages, boundByPage, selectedPageId, onPageSelect, onN
         style={{ cursor: "grab", userSelect: "none", WebkitUserSelect: "none" } as React.CSSProperties}
       >
         <div className="p-4 origin-top-left" style={{ transform: `translate(${zoom.tx}px, ${zoom.ty}px) scale(${zoom.scale})`, transformOrigin: "0 0", willChange: zoom.isGesturing ? "transform" : "auto", minWidth: "100%", minHeight: "100%" }}>
-          <div className="inline-grid gap-0" style={{ gridTemplateColumns: `120px repeat(${totalThemeCols}, minmax(150px, 1fr)) 48px`, gridTemplateRows: `auto auto repeat(${rows.length}, minmax(auto, 1fr)) 32px`, minWidth: "100%", borderTop: gridBorder, borderLeft: gridBorder }}>
+          <div className="inline-grid gap-0" style={{ gridTemplateColumns: `minmax(120px, max-content) repeat(${totalThemeCols}, minmax(max-content, 1fr)) 48px`, gridTemplateRows: `auto auto repeat(${rows.length}, minmax(auto, 1fr)) 32px`, minWidth: "100%", borderTop: gridBorder, borderLeft: gridBorder }}>
             {/* Row 1: 大列 (type band) headers -- grip to drag, + to add 小列 */}
             <div style={{ background: headerBg, borderRight: gridBorder, borderBottom: gridBorder }} />
             {bands.map((band) => {
@@ -616,8 +648,8 @@ export function LoomGrid({ pages, boundByPage, selectedPageId, onPageSelect, onN
                     title="拖动小列（仅在本类型带内换位）"
                     className="absolute top-0.5 left-1/2 -translate-x-1/2 p-0.5 text-manor-brassDim hover:text-manor-brassHi opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing transition-opacity"
                   ><GripHorizontal size={11} /></button>
-                  <span className="text-[12px] text-manor-brassHi font-semibold leading-tight text-center" style={{ fontFamily: serif }}>{col.en}</span>
-                  <span className="text-[9px] text-manor-ink leading-tight">{col.zh}</span>
+                  <span className="text-[12px] text-manor-brassHi font-semibold leading-tight text-center whitespace-nowrap" style={{ fontFamily: serif }}>{col.en}</span>
+                  <span className="text-[9px] text-manor-ink leading-tight whitespace-nowrap">{col.zh}</span>
                   {owned && owned.count > 0 && <span className="text-[8px] text-manor-inkDim tabular-nums">{owned.count} pg</span>}
                 </div>
               );
@@ -628,11 +660,19 @@ export function LoomGrid({ pages, boundByPage, selectedPageId, onPageSelect, onN
             {rows.map((cat) => {
               const catSel = selectedPageId != null && categoryStats.get(cat.id)?.pillarId === selectedPageId;
               const isDragging = dragId === cat.id;
+              // ── Pillar page info for row header ──
+              const catPages = pagesByTheme.get(cat.id) ?? [];
+              const catPillar = catPages.find((p) => p.role === "pillar");
+              // 子树 SV: pillar 自身 + 所有后代页绑定词 SV 之和
+              let catTreeSv = 0;
+              for (const pg of catPages) {
+                for (const k of (boundByPage.get(pg.id) ?? [])) catTreeSv += k.sv ?? 0;
+              }
               return (
                 <React.Fragment key={cat.id}>
                   <div
                     data-row-id={cat.id}
-                    className={["relative group flex flex-col items-center justify-center gap-0.5 px-3 py-3 cursor-pointer transition-colors", catSel ? "bg-manor-bg3" : "hover:bg-manor-bg3/40"].join(" ")}
+                    className={["relative group flex flex-col items-start justify-center gap-0.5 pl-5 pr-3 py-3 cursor-pointer transition-colors", catSel ? "bg-manor-bg3" : "hover:bg-manor-bg3/40"].join(" ")}
                     style={{ background: catSel ? undefined : headerBg, borderRight: gridBorder, borderBottom: gridBorder, opacity: isDragging ? 0.45 : 1 }}
                     onClick={() => drillInto(cat.id, cat.en)} title={`${cat.en} ${cat.zh}`}
                   >
@@ -643,8 +683,18 @@ export function LoomGrid({ pages, boundByPage, selectedPageId, onPageSelect, onN
                       title="拖动行换位"
                       className="absolute left-0.5 top-1/2 -translate-y-1/2 p-0.5 text-manor-brassDim hover:text-manor-brassHi opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing transition-opacity"
                     ><GripVertical size={12} /></button>
-                    <span className="text-[13px] font-semibold leading-tight text-manor-brassHi text-center" style={{ fontFamily: serif }}>{cat.en}</span>
-                    <span className="text-[9px] text-manor-ink leading-tight text-center">{cat.zh}</span>
+                    {/* Line 1: pillar identity mark + category name */}
+                    <div className="flex items-center gap-1">
+                      <RoleMark role="pillar" size={9} />
+                      <span className="text-[13px] font-semibold leading-tight text-manor-brassHi text-left whitespace-nowrap" style={{ fontFamily: serif }}>{cat.en}</span>
+                    </div>
+                    <span className="text-[9px] text-manor-ink leading-tight text-left whitespace-nowrap">{cat.zh}</span>
+                    {/* Line 2: status dot + tree SV */}
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      {catPillar && <StatusDot status={catPillar.status} size={6} />}
+                      {catTreeSv > 0 && <span className="text-[8px] text-manor-brassDim tabular-nums">{formatSv(catTreeSv)}</span>}
+                      {!catPillar && <span className="text-[8px] text-manor-inkFaint italic">no pillar</span>}
+                    </div>
                   </div>
                   {renderCols.map((rc) => {
                     if (rc.kind === "placeholder") {
@@ -652,15 +702,51 @@ export function LoomGrid({ pages, boundByPage, selectedPageId, onPageSelect, onN
                     }
                     const scen = rc.theme;
                     const key = `${cat.id}::${scen.id}`; const cell = cells.get(key); const isGap = !cell || cell.subCount === 0;
-                    const totalSv = cell?.totalSv ?? 0; const titles = cell?.pageTitles ?? [];
+                    const totalSv = cell?.totalSv ?? 0;
                     return (
-                      <div key={key} className={["relative flex flex-col items-start justify-start gap-0.5 p-2 min-h-[72px] cursor-pointer transition-all text-left", isGap ? "hover:border-manor-brass/20 hover:bg-manor-bg3/15" : "hover:border-manor-brass/30 hover:bg-manor-bg3/20"].join(" ")} style={{ borderRight: gridBorder, borderBottom: gridBorder }} onClick={() => { setDrillStack((s) => [...s, { type: "cell", categoryId: cat.id, categoryName: cat.en, scenarioId: scen.id, scenarioName: scen.en }]); }} title={isGap ? `Gap: ${cat.en} x ${scen.en} — click to add` : `${cat.en} x ${scen.en}: ${cell!.subCount} sub-pillars, ${formatSv(totalSv)} SV`}>
+                      <div key={key} className={["relative flex flex-col items-start justify-start gap-0.5 p-2 min-h-[72px] cursor-pointer transition-all text-left", isGap ? "hover:border-manor-brass/20 hover:bg-manor-bg3/15" : "hover:border-manor-brass/30 hover:bg-manor-bg3/20"].join(" ")} style={{ borderRight: gridBorder, borderBottom: gridBorder }} onClick={() => { setDrillStack((s) => [...s, { type: "cell", categoryId: cat.id, categoryName: cat.en, scenarioId: scen.id, scenarioName: scen.en }]); }} title={isGap ? `Gap: ${cat.en} x ${scen.en} — click to add` : `${cat.en} x ${scen.en}: ${cell!.subCount} sub-pillars, ${cell!.clusterCount} clusters, ${formatSv(totalSv)} SV`}>
                         {isGap ? (<div className="flex-1 flex flex-col items-center justify-center w-full"><span className="absolute inset-2 border border-dashed border-manor-line2/30 rounded pointer-events-none" aria-hidden /><span className="text-[14px] text-manor-inkGhost leading-none" aria-hidden>&#x25A2;</span><span className="text-[8px] text-manor-inkFaint/50 mt-0.5">gap</span></div>
                         ) : (<>
-                          {titles.slice(0, 3).map((t, i) => (<div key={i} className="flex items-start gap-1.5 w-full min-w-0"><StatusDot status={t.status} size={5} /><span className="text-[10px] text-manor-ink/90 leading-tight truncate" style={{ fontFamily: serif }}>{t.title}</span></div>))}
-                          {titles.length > 3 && <span className="text-[8px] text-manor-inkFaint">+{titles.length - 3} more</span>}
+                          {/* 爸爸→孙子缩进小树：每个爸爸=一张带框可折叠小卡 */}
+                          {cell!.subPillars.map((sp) => {
+                            const isCollapsed = collapsedSubs.has(sp.id);
+                            const hasChildren = sp.clusters.length > 0;
+                            return (
+                            <div key={sp.id} className="w-max border border-manor-brass/35 rounded px-1 py-0.5 mb-1" style={{ background: "rgba(212,179,111,0.035)" }}>
+                              {/* 卡头：折叠箭头 + 爸爸行 */}
+                              <div className="flex items-center gap-1">
+                                {hasChildren ? (
+                                  <button type="button" className="flex-none flex items-center justify-center p-0 bg-transparent border-none cursor-pointer text-manor-inkFaint hover:text-manor-ink transition-colors" onClick={(e) => { e.stopPropagation(); toggleSub(sp.id); }} aria-label={isCollapsed ? "Expand" : "Collapse"}>
+                                    {isCollapsed ? <ChevronRight size={10} /> : <ChevronDown size={10} />}
+                                  </button>
+                                ) : (
+                                  <span className="flex-none" style={{ width: 10 }} />
+                                )}
+                                <RoleMark role="sub-pillar" size={6} />
+                                <StatusDot status={sp.status} size={5} />
+                                <span className="text-[10px] text-manor-ink/90 whitespace-nowrap leading-tight" style={{ fontFamily: serif }}>{sp.title}</span>
+                              </div>
+                              {/* 孙子行（缩进，封顶3条）-- 仅展开态渲染 */}
+                              {hasChildren && !isCollapsed && (<>
+                                {sp.clusters.slice(0, 3).map((cl) => (
+                                  <div key={cl.id} className="flex items-center gap-1 pl-3 mt-px">
+                                    <span className="text-[8px] text-manor-inkFaint/40 leading-none select-none" aria-hidden>&#x2514;</span>
+                                    <RoleMark role="cluster" size={5} />
+                                    <StatusDot status={cl.status} size={4} />
+                                    <span className="text-[9px] text-manor-ink/70 whitespace-nowrap leading-tight" style={{ fontFamily: serif }}>{cl.title}</span>
+                                  </div>
+                                ))}
+                                {sp.clusters.length > 3 && (
+                                  <div className="pl-3 mt-px">
+                                    <span className="text-[8px] text-manor-inkFaint">+{sp.clusters.length - 3} more</span>
+                                  </div>
+                                )}
+                              </>)}
+                            </div>
+                            );
+                          })}
+                          {/* footer: SV only (no parent/child count) */}
                           <div className="mt-auto pt-1 flex items-center gap-1.5 w-full">
-                            <span className="text-[8px] text-manor-brassDim/60 tabular-nums">{cell!.subCount} 子支柱</span>
                             <span className="text-[8px] text-manor-brassDim/60 tabular-nums">{formatSv(totalSv)}</span>
                             <span className="flex-1 h-px" style={{ background: `linear-gradient(90deg, rgba(212,179,111,${Math.min(0.4, totalSv / 10000)}) 0%, transparent 100%)` }} />
                           </div>

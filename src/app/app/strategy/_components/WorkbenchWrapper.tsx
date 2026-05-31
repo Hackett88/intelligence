@@ -1,12 +1,11 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import type { WorkbenchSeed, MarketRankings, PlanPayload } from "./_workbench";
+import type { WorkbenchSeed, MarketRankings } from "./_workbench";
 
 interface WorkbenchWrapperProps {
   seed: WorkbenchSeed;
   rankings: MarketRankings;
-  initialPlan: PlanPayload | null;
 }
 
 const WorkbenchClientDynamic = dynamic(
@@ -21,6 +20,6 @@ const WorkbenchClientDynamic = dynamic(
   }
 );
 
-export function WorkbenchWrapper({ seed, rankings, initialPlan }: WorkbenchWrapperProps) {
-  return <WorkbenchClientDynamic seed={seed} rankings={rankings} initialPlan={initialPlan} />;
+export function WorkbenchWrapper({ seed, rankings }: WorkbenchWrapperProps) {
+  return <WorkbenchClientDynamic seed={seed} rankings={rankings} />;
 }

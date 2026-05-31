@@ -1,23 +1,20 @@
 "use client";
 
 import * as React from "react";
-import { AlertTriangle, ChevronDown, Pencil, X } from "lucide-react";
+import { ChevronDown, Pencil, X } from "lucide-react";
 import type { WbPage, RawKeyword, Market, MarketRankings } from "./_workbench";
 import {
   opportunityScore,
   opportunityTier,
   dedupeKeywords,
   resolvePageIntent,
-  isHardCannibalization,
   urlFunnelLayer,
-  type PageRelation,
 } from "./_workbench";
 import {
   RoleMark,
   StatusChip,
   FunnelChip,
   FUNNEL_META,
-  RELATION_META,
   INTENT_FAMILY_META,
   formatSv,
   positionText,
@@ -72,7 +69,6 @@ interface InspectorPanelProps {
   pages: WbPage[];
   bindings: Record<string, string>;
   allKeywords: RawKeyword[];
-  conflicts: PageRelation[];
   boundByPage: Map<string, RawKeyword[]>;
   rankings: MarketRankings;
   onPageSelect: (id: string) => void;
@@ -88,7 +84,6 @@ export function InspectorPanel({
   pages,
   bindings,
   allKeywords,
-  conflicts,
   boundByPage,
   rankings,
   onPageSelect,
@@ -116,7 +111,6 @@ export function InspectorPanel({
   return <PageInspector
     page={selectedPage}
     pages={pages}
-    conflicts={conflicts}
     boundByPage={boundByPage}
     allKeywords={allKeywords}
     bindings={bindings}
@@ -132,7 +126,6 @@ export function InspectorPanel({
 function PageInspector({
   page,
   pages,
-  conflicts,
   boundByPage,
   allKeywords,
   bindings,
@@ -144,7 +137,6 @@ function PageInspector({
 }: {
   page: WbPage;
   pages: WbPage[];
-  conflicts: PageRelation[];
   boundByPage: Map<string, RawKeyword[]>;
   allKeywords: RawKeyword[];
   bindings: Record<string, string>;
@@ -182,11 +174,6 @@ function PageInspector({
     : 0;
   const pageOppScore = opportunityScore(totalSv, avgKd, page.status);
   const tier = opportunityTier(pageOppScore);
-
-  // Cannibalization for this page
-  const pageConflicts = conflicts.filter(
-    (c) => c.aId === page.id || c.bId === page.id
-  );
 
   // Intent distribution of bound keywords
   const intentDist = React.useMemo(() => {
@@ -375,46 +362,6 @@ function PageInspector({
             </span>
           </div>
 
-          {/* 页面关系（蚕食检测）—— 四色：真蚕食红 / 待核黄 / 漏斗协作绿 / 跨主题灰 */}
-          {pageConflicts.length > 0 && (
-            <div className="mb-2">
-              <div className="flex items-baseline gap-1.5 mb-1">
-                <span className="text-[10px] text-manor-brassHi/70">页面关系</span>
-                <span className="text-[9px] text-manor-inkFaint italic">重合% 为演示值</span>
-              </div>
-              <div className="space-y-1.5">
-                {pageConflicts
-                  .slice()
-                  .sort((a, b) => (isHardCannibalization(b) ? 1 : 0) - (isHardCannibalization(a) ? 1 : 0))
-                  .map((c, i) => {
-                    const otherId = c.aId === page.id ? c.bId : c.aId;
-                    const other = pages.find((p) => p.id === otherId);
-                    const m = RELATION_META[c.relationType];
-                    const hard = isHardCannibalization(c);
-                    return (
-                      <div key={i} className="text-[10px]">
-                        <div className="flex items-center gap-1.5">
-                          {hard && <AlertTriangle size={11} className="text-manor-oxbloodHi shrink-0" />}
-                          <span className={`inline-flex items-center px-1 py-0 rounded border text-[9px] shrink-0 ${m.chip}`}>
-                            {m.label}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => onPageSelect(otherId)}
-                            className="text-manor-inkDim hover:text-manor-brassHi hover:underline truncate min-w-0 flex-1 text-left"
-                            title={other?.title ?? otherId}
-                          >
-                            {other?.title ?? otherId}
-                          </button>
-                          <span className="text-manor-inkFaint tabular-nums shrink-0">{c.overlap}%</span>
-                        </div>
-                        <div className="text-manor-inkFaint mt-0.5 leading-snug">{c.advice}</div>
-                      </div>
-                    );
-                  })}
-              </div>
-            </div>
-          )}
         </div>
 
         <div className="h-px bg-manor-line" />

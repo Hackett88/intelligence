@@ -2,19 +2,18 @@
 
 /**
  * 行动清单（IUDICIUM · 作战台）—— 服务北极星「行动」决策。
- * 把现有数据(页面状态/蚕食/源池词)转成"下一步该干什么"的优先级待办,而非静态展示。
- * 默认占据右栏(未选页面时):蚕食待解 > 待优化 > 内容缺口 > 未归位高价值词。每条可点击定位。
+ * 把现有数据(页面状态/源池词)转成"下一步该干什么"的优先级待办,而非静态展示。
+ * 默认占据右栏(未选页面时):待优化 > 内容缺口 > 未归位高价值词。每条可点击定位。
  * 全部数据来自现有 props,零新数据源、零迁移。
  */
 import * as React from "react";
-import { AlertTriangle, TrendingDown, Plus, Inbox, Target } from "lucide-react";
-import type { WbPage, RawKeyword, PageRelation } from "./_workbench";
-import { isHardCannibalization, suggestPlacement } from "./_workbench";
+import { TrendingDown, Plus, Inbox, Target } from "lucide-react";
+import type { WbPage, RawKeyword } from "./_workbench";
+import { suggestPlacement } from "./_workbench";
 import { formatSv, marketFlag, positionText } from "./_utils";
 
 interface WorklistProps {
   pages: WbPage[];
-  conflicts: PageRelation[];
   poolKeywords: RawKeyword[];
   boundByPage: Map<string, RawKeyword[]>;
   onPageSelect: (id: string) => void;
@@ -26,10 +25,9 @@ interface WorklistProps {
 
 const GAP_LIMIT = 6;
 
-export function Worklist({ pages, conflicts, poolKeywords, boundByPage, onPageSelect, onKeywordOpen, onAssign, onCollapse }: WorklistProps) {
+export function Worklist({ pages, poolKeywords, boundByPage, onPageSelect, onKeywordOpen, onAssign, onCollapse }: WorklistProps) {
   const sc = "var(--font-sc), 'Cormorant SC', serif";
 
-  const cannibal = React.useMemo(() => conflicts.filter(isHardCannibalization), [conflicts]);
   const toOptimize = React.useMemo(() => pages.filter((p) => p.status === "optimize"), [pages]);
   const gaps = React.useMemo(
     () => pages.filter((p) => p.status === "gap").sort((a, b) => a.role === "pillar" ? -1 : b.role === "pillar" ? 1 : 0),
@@ -40,7 +38,7 @@ export function Worklist({ pages, conflicts, poolKeywords, boundByPage, onPageSe
     [poolKeywords]
   );
 
-  const total = cannibal.length + toOptimize.length + gaps.length + unplaced.length;
+  const total = toOptimize.length + gaps.length + unplaced.length;
 
   const Row = ({
     onClick,
@@ -106,29 +104,7 @@ export function Worklist({ pages, conflicts, poolKeywords, boundByPage, onPageSe
           <div className="text-center py-10 text-[11px] text-manor-inkFaint">规划很健康,暂无待办 ✓</div>
         )}
 
-        {/* 1. 蚕食待解(最急) */}
-        {cannibal.length > 0 && (
-          <div>
-            <SectionHead icon={<AlertTriangle size={12} />} label="蚕食待解 · 两页在抢同一个词" count={cannibal.length} cls="text-manor-oxbloodHi" />
-            {cannibal.map((c, i) => {
-              const a = pages.find((p) => p.id === c.aId);
-              const b = pages.find((p) => p.id === c.bId);
-              return (
-                <Row key={i} onClick={() => onPageSelect(c.aId)}>
-                  <span className="w-1 self-stretch rounded bg-manor-oxbloodHi/60 shrink-0" />
-                  <span className="flex-1 min-w-0">
-                    <span className="text-[11px] text-manor-ink/90 block truncate">
-                      {a?.title ?? c.aId} <span className="text-manor-inkFaint">×</span> {b?.title ?? c.bId}
-                    </span>
-                    <span className="text-[10px] text-manor-inkFaint">合并到权威页 或 重新分配主词</span>
-                  </span>
-                </Row>
-              );
-            })}
-          </div>
-        )}
-
-        {/* 2. 待优化(排名靠后) */}
+        {/* 1. 待优化(排名靠后) */}
         {toOptimize.length > 0 && (
           <div>
             <SectionHead icon={<TrendingDown size={12} />} label="待优化 · 已上线但排名偏后" count={toOptimize.length} cls="text-manor-brassHi" />
@@ -146,7 +122,7 @@ export function Worklist({ pages, conflicts, poolKeywords, boundByPage, onPageSe
           </div>
         )}
 
-        {/* 3. 内容缺口(待新建) */}
+        {/* 2. 内容缺口(待新建) */}
         {gaps.length > 0 && (
           <div>
             <SectionHead icon={<Plus size={12} />} label="内容缺口 · 该词群还没页承接" count={gaps.length} cls="text-manor-sageHi" />
@@ -165,7 +141,7 @@ export function Worklist({ pages, conflicts, poolKeywords, boundByPage, onPageSe
           </div>
         )}
 
-        {/* 4. 未归位高价值词 */}
+        {/* 3. 未归位高价值词 */}
         {unplaced.length > 0 && (
           <div>
             <SectionHead icon={<Inbox size={12} />} label="未归位 · 高价值词还没派给页面" count={poolKeywords.length} cls="text-manor-inkDim" />
