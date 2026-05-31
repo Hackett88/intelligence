@@ -31,10 +31,11 @@ export function marketFlag(m: string | null | undefined): string {
 // ── 角色：支柱(pillar) / 集群(cluster)───────────────────────────────────────
 export const ROLE_META: Record<PageRole, { label: string; latin: string }> = {
   pillar: { label: "支柱", latin: "COLUMNA" },
+  "sub-pillar": { label: "子支柱", latin: "SUB-COLUMNA" },
   cluster: { label: "集群", latin: "SATELLES" },
 };
 
-/** 支柱 = 实心铜菱形；集群 = 空心铜圆点。沿用收录树 PillarMark/SpokeMark 语汇。 */
+/** 支柱 = 实心铜菱形；子支柱 = 半实心铜菱形(小)；集群 = 空心铜圆点。沿用收录树 PillarMark/SpokeMark 语汇。 */
 export function RoleMark({ role, size = 9 }: { role: PageRole; size?: number }) {
   if (role === "pillar") {
     return (
@@ -47,6 +48,22 @@ export function RoleMark({ role, size = 9 }: { role: PageRole; size?: number }) 
           display: "inline-block",
           background: "linear-gradient(135deg, #F8E6B0 0%, #D4B36F 55%, #A08850 100%)",
           boxShadow: "0 0 8px rgba(239,216,154,.7)",
+        }}
+      />
+    );
+  }
+  if (role === "sub-pillar") {
+    return (
+      <span
+        aria-hidden="true"
+        style={{
+          width: size - 1,
+          height: size - 1,
+          transform: "rotate(45deg)",
+          display: "inline-block",
+          border: "1.5px solid rgba(212,179,111,.7)",
+          background: "linear-gradient(135deg, rgba(248,230,176,0.35) 0%, rgba(212,179,111,0.2) 100%)",
+          boxShadow: "0 0 5px rgba(239,216,154,.35)",
         }}
       />
     );

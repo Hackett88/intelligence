@@ -155,7 +155,7 @@ export function Worklist({ pages, conflicts, poolKeywords, boundByPage, onPageSe
                 <span className="w-1 self-stretch rounded bg-manor-sageDim/60 shrink-0" />
                 <span className="flex-1 min-w-0">
                   <span className="text-[11px] text-manor-ink/90 block truncate">{p.title}</span>
-                  <span className="text-[10px] text-manor-inkFaint">待新建 · {p.role === "pillar" ? "支柱页" : "集群页"}</span>
+                  <span className="text-[10px] text-manor-inkFaint">待新建 · {p.role === "pillar" ? "支柱页" : p.role === "sub-pillar" ? "子支柱页" : "集群页"}</span>
                 </span>
               </Row>
             ))}

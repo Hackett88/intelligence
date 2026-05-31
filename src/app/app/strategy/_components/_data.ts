@@ -31,8 +31,8 @@ export type PagePlanningIntent =
 export type BehaviorIntent =
   | "了解型" | "行动型" | "混合型" | "官网导航" | "对比型" | "线下到访";
 
-/** 页面在主题里的角色：支柱(hub) / 集群(spoke) */
-export type PageRole = "pillar" | "cluster";
+/** 页面在主题里的角色：支柱(hub) / 子支柱(sub-hub) / 集群(spoke) */
+export type PageRole = "pillar" | "cluster" | "sub-pillar";
 
 /** 页面映射状态：已上线 / 需优化 / 待新建 */
 export type PlanStatus = "live" | "optimize" | "gap";
@@ -74,6 +74,10 @@ export type PageNode = {
   keywords: PlanKeyword[];
   /** 备注：规划理由 / 提醒 */
   note?: string;
+  /** 直接上级 id；爸爸指向爷爷、孙子指向爸爸；缺省 = 直接挂爷爷 */
+  parentId?: string;
+  /** 子支柱所属的场景列 id；决定它落进哪一格。缺省=不进矩阵格子，只在行头树里出现 */
+  scenarioId?: string;
 };
 
 export type Theme = {
@@ -477,10 +481,45 @@ const THEMES: Theme[] = [
       ],
     },
     clusters: [
+      // ── Sub-pillar: 节日礼物 ──
+      {
+        id: "mg-sp-festival",
+        role: "sub-pillar",
+        title: "Festival Gifts · 节日礼物",
+        pageType: "场景使用页",
+        status: "gap",
+        url: "/collections/festival-gifts",
+        market: "uk",
+        markets: ["uk"],
+        position: null,
+        clicks: null,
+        impressions: null,
+        keywords: [
+          kw("eid ramadan gifts", "uk", 480, 18, "二级独立", "场景使用页", "行动型", { primary: true }),
+        ],
+      },
+      // ── Sub-pillar: 场合礼物 ──
+      {
+        id: "mg-sp-occasion",
+        role: "sub-pillar",
+        title: "Occasion Gifts · 场合礼物",
+        pageType: "场景使用页",
+        status: "gap",
+        url: "/collections/occasion-gifts",
+        market: "uk",
+        markets: ["uk"],
+        position: null,
+        clicks: null,
+        impressions: null,
+        keywords: [
+          kw("muslim occasion gifts", "uk", 260, 16, "二级独立", "场景使用页", "行动型", { primary: true }),
+        ],
+      },
       {
         id: "mg-c-ramadan",
         role: "cluster",
         title: "Ramadan Gifts 斋月礼物",
+        parentId: "mg-sp-festival",
         pageType: "场景使用页",
         status: "gap",
         url: "/collections/ramadan-gifts",
@@ -500,6 +539,7 @@ const THEMES: Theme[] = [
         id: "mg-c-eid",
         role: "cluster",
         title: "Eid Gifts 开斋节礼物",
+        parentId: "mg-sp-festival",
         pageType: "场景使用页",
         status: "gap",
         url: "/collections/eid-gifts",
@@ -517,6 +557,7 @@ const THEMES: Theme[] = [
         id: "mg-c-umrah",
         role: "cluster",
         title: "Umrah Gifts 朝觐礼物",
+        parentId: "mg-sp-occasion",
         pageType: "场景使用页",
         status: "gap",
         url: "/collections/umrah-gifts",
@@ -534,6 +575,7 @@ const THEMES: Theme[] = [
         id: "mg-c-wedding",
         role: "cluster",
         title: "Islamic Wedding Gifts 婚礼礼物",
+        parentId: "mg-sp-occasion",
         pageType: "场景使用页",
         status: "gap",
         url: "/collections/islamic-wedding-gifts",
@@ -558,7 +600,7 @@ const THEMES: Theme[] = [
     name: "伊斯兰饰品",
     latin: "ORNAMENTUM",
     clusterKey: "islamic-jewelry",
-    summary: "品类词量大但站内仅零散弱页。需一个总合集支柱 + 按品类拆集群（项链/手链/耳饰/戒指）。",
+    summary: "品类词量大但站内仅零散弱页。需一个总合集支柱 + 按品类拆集群（手链）。",
     pillar: {
       id: "ij-pillar",
       role: "pillar",
@@ -599,43 +641,6 @@ const THEMES: Theme[] = [
           kw("hand chain", "my", 3600, 9, "二级独立", "品类聚合页", "行动型"),
           kw("hand chain", "sa", 590, 12, "二级独立", "品类聚合页", "行动型"),
           kw("bracelet for girls", "sa", 210, 19, "二级独立", "品类聚合页", "行动型"),
-        ],
-      },
-      {
-        id: "ij-c-earrings",
-        role: "cluster",
-        title: "Earrings 耳饰",
-        pageType: "品类聚合页",
-        status: "gap",
-        url: "/collections/earrings",
-        market: "my",
-        markets: ["my"],
-        position: null,
-        clicks: null,
-        impressions: null,
-        keywords: [
-          kw("bow earrings", "my", 2900, 12, "二级独立", "品类聚合页", "行动型", { primary: true }),
-          kw("hoop earrings", "my", 1600, 15, "二级独立", "品类聚合页", "行动型"),
-          kw("ladies gold earrings", "my", 1900, 10, "二级独立", "品类聚合页", "行动型"),
-        ],
-      },
-      {
-        id: "ij-c-rings",
-        role: "cluster",
-        title: "Rings & Aqeeq 戒指与宝石",
-        pageType: "品类聚合页",
-        status: "gap",
-        url: "/collections/rings",
-        market: "sa",
-        markets: ["sa"],
-        position: null,
-        clicks: null,
-        impressions: null,
-        keywords: [
-          kw("nose ring", "sa", 1600, 21, "二级独立", "品类聚合页", "行动型", { primary: true }),
-          kw("aqeeq stone", "sa", 880, 17, "四级兜底", "品类聚合页", "混合型"),
-          kw("aqeeq ring", "sa", 210, 14, "四级兜底", "品类聚合页", "混合型"),
-          kw("anklet", "sa", 880, 14, "四级兜底", "品类聚合页", "混合型"),
         ],
       },
     ],
@@ -701,10 +706,100 @@ const THEMES: Theme[] = [
       ],
     },
     clusters: [
+      // ── Sub-pillar: 材质（off-matrix，不加 scenarioId）──
+      {
+        id: "tb-sp-material",
+        role: "sub-pillar",
+        title: "By Material · 材质",
+        pageType: "品类聚合页",
+        status: "gap",
+        url: "/collections/tasbih-materials",
+        market: "us",
+        markets: ["us", "uk"],
+        position: null,
+        clicks: null,
+        impressions: null,
+        keywords: [
+          kw("tasbih bead types", "us", 170, 12, "二级独立", "品类聚合页", "了解型", { primary: true }),
+        ],
+      },
+      // ── Sub-pillar: 送礼 → scenarioId="muslim-gifts" ──
+      {
+        id: "tb-sp-gift",
+        role: "sub-pillar",
+        title: "Tasbih Gift Set · 念珠礼盒",
+        scenarioId: "muslim-gifts",
+        pageType: "场景使用页",
+        status: "gap",
+        url: "/collections/tasbih-gifts",
+        market: "uk",
+        markets: ["uk", "us"],
+        position: null,
+        clicks: null,
+        impressions: null,
+        keywords: [
+          kw("tasbih gift ideas", "uk", 210, 10, "二级独立", "场景使用页", "行动型", { primary: true }),
+        ],
+      },
+      // ── Sub-pillar: 斋月念珠礼（新增）→ scenarioId="muslim-gifts" ──
+      {
+        id: "tb-sp-ramadan-gift",
+        role: "sub-pillar",
+        title: "Ramadan Tasbih · 斋月念珠礼",
+        scenarioId: "muslim-gifts",
+        pageType: "场景使用页",
+        status: "gap",
+        url: "/collections/ramadan-tasbih-gifts",
+        market: "uk",
+        markets: ["uk"],
+        position: null,
+        clicks: null,
+        impressions: null,
+        keywords: [
+          kw("ramadan tasbih gift", "uk", 390, 14, "二级独立", "场景使用页", "行动型", { primary: true }),
+        ],
+      },
+      // ── Sub-pillar: 数字念珠 → scenarioId="itasbih-tools" ──
+      {
+        id: "tb-sp-tool",
+        role: "sub-pillar",
+        title: "Digital Tasbih · 数字念珠",
+        scenarioId: "itasbih-tools",
+        pageType: "知识深度页",
+        status: "gap",
+        url: "/pages/tasbih-tools",
+        market: "us",
+        markets: ["us", "uk"],
+        position: null,
+        clicks: null,
+        impressions: null,
+        keywords: [
+          kw("how to use tasbih", "us", 260, 11, "三级变体", "知识深度页", "了解型", { q: "how", primary: true }),
+        ],
+      },
+      // ── Sub-pillar: 念珠用于念诵（新增）→ scenarioId="knowledge-dhikr" ──
+      {
+        id: "tb-sp-dhikr-use",
+        role: "sub-pillar",
+        title: "Tasbih for Dhikr · 念珠用于念诵",
+        scenarioId: "knowledge-dhikr",
+        pageType: "知识深度页",
+        status: "gap",
+        url: "/blogs/tasbih/tasbih-for-dhikr-guide",
+        market: "us",
+        markets: ["us", "uk"],
+        position: null,
+        clicks: null,
+        impressions: null,
+        keywords: [
+          kw("tasbih dhikr guide", "us", 170, 12, "二级独立", "知识深度页", "了解型", { primary: true }),
+        ],
+      },
       {
         id: "tb-c-wood", // demo
         role: "cluster",
         title: "Wood Tasbih 木质念珠",
+        parentId: "tb-sp-material",
         pageType: "品类聚合页",
         status: "gap",
         url: "/collections/wood-tasbih",
@@ -722,6 +817,7 @@ const THEMES: Theme[] = [
         id: "tb-c-gemstone", // demo
         role: "cluster",
         title: "Gemstone Tasbih 宝石念珠",
+        parentId: "tb-sp-material",
         pageType: "品类聚合页",
         status: "gap",
         url: "/collections/gemstone-tasbih",
@@ -738,6 +834,7 @@ const THEMES: Theme[] = [
         id: "tb-c-gift", // demo
         role: "cluster",
         title: "Tasbih Gift Set 念珠礼盒",
+        parentId: "tb-sp-gift",
         pageType: "场景使用页",
         status: "gap",
         url: "/collections/tasbih-gift",
@@ -752,9 +849,10 @@ const THEMES: Theme[] = [
         ],
       },
       {
-        id: "tb-c-ramadan", // demo
+        id: "tb-c-ramadan", // demo — 挂到斋月念珠礼爸爸
         role: "cluster",
         title: "Ramadan Tasbih 斋月念珠",
+        parentId: "tb-sp-ramadan-gift",
         pageType: "场景使用页",
         status: "gap",
         url: "/collections/ramadan-tasbih",
@@ -772,6 +870,7 @@ const THEMES: Theme[] = [
         id: "tb-c-digital", // demo
         role: "cluster",
         title: "Digital Tasbih Counter 数字念珠",
+        parentId: "tb-sp-tool",
         pageType: "工具生态页",
         status: "optimize",
         url: "/pages/digital-tasbih",
@@ -786,9 +885,10 @@ const THEMES: Theme[] = [
         ],
       },
       {
-        id: "tb-c-dhikr", // demo
+        id: "tb-c-dhikr", // demo — 挂到念珠用于念诵爸爸
         role: "cluster",
         title: "Tasbih for Dhikr 念诵用念珠指南",
+        parentId: "tb-sp-dhikr-use",
         pageType: "知识深度页",
         status: "gap",
         url: "/blogs/tasbih/tasbih-for-dhikr",

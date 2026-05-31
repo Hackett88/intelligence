@@ -130,7 +130,7 @@ type Action =
   | { type: "PARK"; kwIds: string[] }
   | { type: "UNPARK"; kwIds: string[] }
   | { type: "NEW_PILLAR"; title: string; territory: Territory }
-  | { type: "NEW_CLUSTER"; title: string; pillarId: string }
+  | { type: "NEW_CLUSTER"; title: string; pillarId: string; role?: "cluster" | "sub-pillar"; scenarioId?: string }
   | { type: "SET_PAGE_URL"; pageId: string; url: string }
   | { type: "CREATE_AND_ASSIGN"; role: "pillar" | "cluster"; pillarId: string | null; title: string; territory: Territory; kwIds: string[] }
   | { type: "SELECT"; selection: SelectionKind }
@@ -245,10 +245,11 @@ function reducer(state: WbState, action: Action): WbState {
       const hist = snapshot(state);
       const pillar = state.pages.find((p) => p.id === action.pillarId);
       if (!pillar) return state;
-      const id = nextId("wb-cls");
+      const role = action.role ?? "cluster";
+      const id = nextId(role === "sub-pillar" ? "wb-sp" : "wb-cls");
       const page: WbPage = {
         id,
-        role: "cluster",
+        role,
         pillarId: action.pillarId,
         title: action.title,
         primaryKeyword: action.title.toLowerCase(),
@@ -264,6 +265,7 @@ function reducer(state: WbState, action: Action): WbState {
         themeName: pillar.themeName,
         themeLatin: pillar.themeLatin,
         territory: pillar.territory,
+        ...(action.scenarioId ? { scenarioId: action.scenarioId } : {}),
       };
       return {
         ...state,
@@ -431,10 +433,14 @@ export function WorkbenchClient({ seed, rankings, initialPlan }: WorkbenchClient
     // 让蓝图层的主题重构（如 Name Necklace 从 islamic-jewelry 子页提升为独立经线行）即便在已有
     // DB / 本地草稿时也能正确生效，且下次保存自动写回新结构、自愈。用户数据（url / 状态 / 备注 / 绑定）保留。
     const seedById = new Map(seed.pages.map((p) => [p.id, p]));
-    const reconciled = merged.map((p) => {
+    // seed-prune: 蓝图里已删除的页面（如砍掉的 cluster）从持久化里清除。
+    // 用户自建页（wb-/usr- 前缀）不受影响，只移除"曾属于蓝图但已被蓝图删除"的页面。
+    const seedIdSet = new Set(seed.pages.map((p) => p.id));
+    const pruned = merged.filter((p) => seedIdSet.has(p.id) || p.id.startsWith("wb-") || p.id.startsWith("usr-"));
+    const reconciled = pruned.map((p) => {
       const sp = seedById.get(p.id);
       if (!sp) return p;
-      return { ...p, themeId: sp.themeId, themeName: sp.themeName, themeLatin: sp.themeLatin, territory: sp.territory, role: sp.role, pillarId: sp.pillarId };
+      return { ...p, themeId: sp.themeId, themeName: sp.themeName, themeLatin: sp.themeLatin, territory: sp.territory, role: sp.role, pillarId: sp.pillarId, scenarioId: sp.scenarioId };
     });
     const baseBindings = initialPlan ? { ...initialPlan.bindings } : (saved?.bindings ?? { ...seed.bindings });
     // Also merge seed bindings for newly added pages
@@ -443,6 +449,11 @@ export function WorkbenchClient({ seed, rankings, initialPlan }: WorkbenchClient
       if (!(kwId in mergedBindings) && reconciled.some((p) => p.id === pageId)) {
         mergedBindings[kwId] = pageId;
       }
+    }
+    // binding-prune: 删掉指向已不存在页面的悬空绑定，让那些词回到未绑定池。
+    const finalPageIds = new Set(reconciled.map((p) => p.id));
+    for (const kwId of Object.keys(mergedBindings)) {
+      if (!finalPageIds.has(mergedBindings[kwId])) delete mergedBindings[kwId];
     }
     return {
       pages: reconciled,
@@ -761,7 +772,7 @@ export function WorkbenchClient({ seed, rankings, initialPlan }: WorkbenchClient
             boundByPage={boundByPage}
             selectedPageId={state.selection?.type === "page" ? state.selection.id : null}
             onPageSelect={(id) => dispatch({ type: "SELECT", selection: { type: "page", id } })}
-            onNewCluster={(title, pillarId) => dispatch({ type: "NEW_CLUSTER", title, pillarId })}
+            onNewCluster={(title, pillarId, role, scenarioId) => dispatch({ type: "NEW_CLUSTER", title, pillarId, role, scenarioId })}
             onNewPillar={(title, territory) => dispatch({ type: "NEW_PILLAR", title, territory })}
           />
         </div>

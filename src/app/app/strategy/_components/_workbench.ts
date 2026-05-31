@@ -72,6 +72,8 @@ export type WbPage = {
   themeName: string;
   themeLatin: string;
   territory: Territory;
+  /** 子支柱所属的场景列 id；决定它落进哪一格。缺省=不进矩阵格子，只在行头树里出现 */
+  scenarioId?: string;
 };
 
 // keyword + market 的稳定键（用来把 blueprint 的预绑词对到真实 176 词上）
@@ -120,6 +122,7 @@ export function getWorkbenchSeed(): WorkbenchSeed {
         position: p.position, clicks: p.clicks, impressions: p.impressions,
         note: p.note,
         themeId: t.id, themeName: t.name, themeLatin: t.latin, territory,
+        ...(p.scenarioId ? { scenarioId: p.scenarioId } : {}),
       });
       for (const k of p.keywords) {
         const kk = keyOf(k.keyword, k.market);
@@ -127,7 +130,7 @@ export function getWorkbenchSeed(): WorkbenchSeed {
       }
     };
     pushPage(t.pillar, "pillar", null);
-    for (const c of t.clusters) pushPage(c, "cluster", t.pillar.id);
+    for (const c of t.clusters) pushPage(c, c.role ?? "cluster", c.parentId ?? t.pillar.id);
   }
 
   // 噪声键

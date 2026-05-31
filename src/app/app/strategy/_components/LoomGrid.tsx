@@ -13,7 +13,7 @@
 import * as React from "react";
 import { Plus, X, ChevronRight, ZoomOut, ZoomIn, Scan, GripVertical, GripHorizontal } from "lucide-react";
 import type { WbPage, RawKeyword, Territory } from "./_workbench";
-import { StatusDot, formatSv } from "./_utils";
+import { StatusDot, RoleMark, formatSv } from "./_utils";
 
 // ── Constants ───────────────────────────────────────────────────────────────
 
@@ -26,36 +26,24 @@ const CATEGORY_SPINE_DEFAULT: SpineEntry[] = [
 ];
 type WeftType = { type: string; en: string; zh: string; themes: SpineEntry[] };
 const WEFT_GROUPS: WeftType[] = [
-  { type: "scenario", en: "Scenario", zh: "场景", themes: [
-    { id: "muslim-gifts", en: "Gifts", zh: "送礼" },
-    { id: "slow-living", en: "Slow Living", zh: "慢生活" },
-  ]},
   { type: "knowledge", en: "Knowledge", zh: "知识", themes: [
     { id: "knowledge-dhikr", en: "Dhikr", zh: "念诵" },
+  ]},
+  { type: "scenario", en: "Scenario", zh: "场景", themes: [
+    { id: "slow-living", en: "Slow Living", zh: "慢生活" },
+    { id: "muslim-gifts", en: "Gifts", zh: "送礼" },
   ]},
   { type: "tool", en: "Tool", zh: "工具", themes: [
     { id: "qibla-finder", en: "Qibla", zh: "朝向" },
     { id: "itasbih-tools", en: "iTasbih", zh: "数字念珠" },
   ]},
 ];
-const SCENARIO_TOKENS: Record<string, Set<string>> = {
-  "knowledge-dhikr": new Set(["dhikr", "dzikir", "zikr", "prayer", "salah", "namaz", "sholat"]),
-  "muslim-gifts": new Set(["gift", "gifts", "present", "presents", "ramadan", "eid", "umrah", "wedding"]),
-  "qibla-finder": new Set(["qibla", "qiblah", "kaaba", "kaba", "mecca", "compass", "direction"]),
-  "itasbih-tools": new Set(["itasbih", "counter", "digital", "tasbeeh", "online", "app", "electronic"]),
-  "slow-living": new Set(["slow", "living", "routine", "night", "skincare", "lifestyle"]),
-};
-
 // ── Helpers ────────────────────────────────────────────────────────────────
 
-function tokenize(s: string): string[] { return s.toLowerCase().replace(/[^\p{L}\p{N}\s]/gu, " ").split(/\s+/).filter((w) => w.length > 1); }
-function foldPlural(t: string): string { if (t.length > 4 && t.endsWith("es")) return t.slice(0, -2); if (t.length > 3 && t.endsWith("s")) return t.slice(0, -1); return t; }
-const STOPWORDS = new Set(["the","an","of","for","to","in","on","at","by","is","are","was","be","do","does","did","what","how","why","where","when","which","who","and","or","with","my","your","you","vs","from","as","it","its"]);
-function meaningfulTokens(s: string): string[] { return tokenize(s).filter((w) => !STOPWORDS.has(w)).map(foldPlural); }
 function shortTitle(title: string): string { return title.split(/[（(]/)[0].replace(/[·\-—]+$/, "").trim(); }
 
 // ── Structure persistence + reorder helpers ──────────────────────────────────
-const STRUCT_KEY = "wb-loom-structure-v1";
+const STRUCT_KEY = "wb-loom-structure-v2";
 type LoomStructure = { rows: SpineEntry[]; bands: WeftType[] };
 function loadStructure(): LoomStructure | null {
   if (typeof window === "undefined") return null;
@@ -82,19 +70,24 @@ function moveById<T>(arr: T[], dragId: string | null, overId: string, keyFn: (t:
 // ── Types ──────────────────────────────────────────────────────────────────
 
 type CellData = {
-  categoryId: string; scenarioId: string; keywords: RawKeyword[]; totalSv: number;
+  categoryId: string; scenarioId: string; totalSv: number;
   bestStatus: "live" | "optimize" | "gap"; pageIds: string[];
   pageTitles: { title: string; status: "live" | "optimize" | "gap"; pageId: string }[];
+  /** 落进本格的子支柱数量 */
+  subCount: number;
 };
 /** 渲染列：实际场景列(theme) 或 空带占位列(placeholder)。空带占 1 列、不进数据交叉。 */
 type RenderCol = { kind: "theme"; bandType: string; theme: SpineEntry } | { kind: "placeholder"; bandType: string };
-type DrillLevel = { type: "overview" } | { type: "pillar"; themeId: string; themeName: string };
+type DrillLevel =
+  | { type: "overview" }
+  | { type: "pillar"; themeId: string; themeName: string }
+  | { type: "cell"; categoryId: string; categoryName: string; scenarioId: string; scenarioName: string };
 interface LoomGridProps {
   pages: WbPage[];
   boundByPage: Map<string, RawKeyword[]>;
   selectedPageId: string | null;
   onPageSelect: (id: string) => void;
-  onNewCluster?: (title: string, pillarId: string) => void;
+  onNewCluster?: (title: string, pillarId: string, role?: "cluster" | "sub-pillar", scenarioId?: string) => void;
   onNewPillar?: (title: string, territory: Territory) => void;
 }
 
@@ -226,36 +219,45 @@ export function LoomGrid({ pages, boundByPage, selectedPageId, onPageSelect, onN
   function addTheme(bandType: string) { if (!newThemeEn.trim()) return; setBands((p) => p.map((b) => b.type === bandType ? { ...b, themes: [...b.themes, { id: `user-scn-${_uid.current++}`, en: newThemeEn.trim(), zh: newThemeZh.trim() || newThemeEn.trim() }] } : b)); setNewThemeEn(""); setNewThemeZh(""); setAddingThemeFor(null); }
 
   // ── Drag-to-reorder (rows vertical / bands horizontal). Live reorder via elementFromPoint ──
-  const dragKind = React.useRef<null | "row" | "band">(null);
+  const dragKind = React.useRef<null | "row" | "band" | "theme">(null);
   const dragPointerId = React.useRef<number | null>(null);
   const dragIdRef = React.useRef<string | null>(null);
+  const dragBandRef = React.useRef<string | null>(null); // 小列拖拽时锁定所属大列，禁止跨带
   const [dragId, setDragId] = React.useState<string | null>(null); // visual feedback only
 
-  const startDrag = React.useCallback((kind: "row" | "band", id: string) => (e: React.PointerEvent) => {
+  const startDrag = React.useCallback((kind: "row" | "band" | "theme", id: string, bandType?: string) => (e: React.PointerEvent) => {
     if (e.button !== 0) return;
     e.stopPropagation(); e.preventDefault();
-    dragKind.current = kind; dragPointerId.current = e.pointerId; dragIdRef.current = id; setDragId(id);
+    dragKind.current = kind; dragPointerId.current = e.pointerId; dragIdRef.current = id; dragBandRef.current = bandType ?? null; setDragId(id);
     try { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); } catch { /* ignore */ }
     document.body.style.userSelect = "none";
   }, []);
   const onDragMove = React.useCallback((e: React.PointerEvent) => {
     if (dragKind.current === null || e.pointerId !== dragPointerId.current) return;
     e.stopPropagation();
-    const sel = dragKind.current === "row" ? "[data-row-id]" : "[data-band-type]";
+    const sel = dragKind.current === "row" ? "[data-row-id]" : dragKind.current === "band" ? "[data-band-type]" : "[data-theme-id]";
     const overEl = (document.elementFromPoint(e.clientX, e.clientY) as HTMLElement | null)?.closest(sel) as HTMLElement | null;
     if (!overEl) return;
     if (dragKind.current === "row") {
       const overId = overEl.getAttribute("data-row-id"); if (!overId) return;
       setRows((prev) => moveById(prev, dragIdRef.current, overId, (r) => r.id));
-    } else {
+    } else if (dragKind.current === "band") {
       const overType = overEl.getAttribute("data-band-type"); if (!overType) return;
       setBands((prev) => moveById(prev, dragIdRef.current, overType, (b) => b.type));
+    } else {
+      // 小列：仅在所属大列内换位 —— 落到别的带上不动
+      const overId = overEl.getAttribute("data-theme-id");
+      const overBand = overEl.getAttribute("data-theme-band");
+      if (!overId || overBand !== dragBandRef.current || overId === dragIdRef.current) return;
+      setBands((prev) => prev.map((b) => b.type === dragBandRef.current
+        ? { ...b, themes: moveById(b.themes, dragIdRef.current, overId, (t) => t.id) }
+        : b));
     }
   }, []);
   const endDrag = React.useCallback((e: React.PointerEvent) => {
     if (e.pointerId !== dragPointerId.current) return;
     try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch { /* ignore */ }
-    dragKind.current = null; dragPointerId.current = null; dragIdRef.current = null; setDragId(null);
+    dragKind.current = null; dragPointerId.current = null; dragIdRef.current = null; dragBandRef.current = null; setDragId(null);
     document.body.style.userSelect = "";
   }, []);
 
@@ -295,29 +297,36 @@ export function LoomGrid({ pages, boundByPage, selectedPageId, onPageSelect, onN
   const cells = React.useMemo(() => {
     const grid = new Map<string, CellData>();
     for (const cat of rows) {
-      const catPages = pagesByTheme.get(cat.id) ?? [];
-      const catKws: { kw: RawKeyword; pageId: string; page: WbPage }[] = [];
-      for (const p of catPages) for (const k of (boundByPage.get(p.id) ?? [])) catKws.push({ kw: k, pageId: p.id, page: p });
       for (const scen of SCENARIO_COLS) {
-        const st = SCENARIO_TOKENS[scen.id]; const matched: { kw: RawKeyword; pageId: string; page: WbPage }[] = [];
-        if (st) {
-          for (const e of catKws) if (meaningfulTokens(e.kw.keyword).some((t) => st.has(t))) matched.push(e);
-          const scenPages = pagesByTheme.get(scen.id) ?? []; const ct = new Set<string>(); const cp = catPages.find((p) => p.role === "pillar");
-          if (cp) for (const t of meaningfulTokens(cp.primaryKeyword)) ct.add(t);
-          for (const t of meaningfulTokens(cat.id.replace(/-/g, " "))) ct.add(t);
-          for (const sp of scenPages) for (const k of (boundByPage.get(sp.id) ?? [])) if (meaningfulTokens(k.keyword).some((t) => ct.has(t)) && !matched.some((m) => m.kw.id === k.id)) matched.push({ kw: k, pageId: sp.id, page: sp });
+        // 格子 = 品类(行) x 场景(列) 的坑位里的所有子支柱（按 scenarioId 坐标取数）
+        const cellSubs = pages.filter(
+          (p) => p.role === "sub-pillar" && p.themeId === cat.id && p.scenarioId === scen.id
+        );
+        // 子树 SV：每个爸爸自身 + 它的 children cluster 的绑定词 SV
+        let totalSv = 0;
+        const allStatuses: ("live" | "optimize" | "gap")[] = [];
+        for (const sp of cellSubs) {
+          // 爸爸自身的绑定词 SV
+          for (const k of (boundByPage.get(sp.id) ?? [])) totalSv += k.sv ?? 0;
+          allStatuses.push(sp.status);
+          // 爸爸的 children (cluster)
+          const children = pages.filter((p) => p.role === "cluster" && p.pillarId === sp.id);
+          for (const ch of children) {
+            for (const k of (boundByPage.get(ch.id) ?? [])) totalSv += k.sv ?? 0;
+            allStatuses.push(ch.status);
+          }
         }
-        const totalSv = matched.reduce((s, m) => s + (m.kw.sv ?? 0), 0); const ip = matched.map((m) => m.page);
-        const bs: "live"|"optimize"|"gap" = ip.some((p) => p.status === "live") ? "live" : ip.some((p) => p.status === "optimize") ? "optimize" : "gap";
-        const seen = new Set<string>(); const pt: CellData["pageTitles"] = [];
-        for (const m of matched) if (!seen.has(m.pageId)) { seen.add(m.pageId); pt.push({ title: shortTitle(m.page.title), status: m.page.status, pageId: m.pageId }); }
-        grid.set(`${cat.id}::${scen.id}`, { categoryId: cat.id, scenarioId: scen.id, keywords: matched.map((m) => m.kw), totalSv, bestStatus: bs, pageIds: [...seen], pageTitles: pt });
+        const bs: "live" | "optimize" | "gap" = allStatuses.some((s) => s === "live") ? "live" : allStatuses.some((s) => s === "optimize") ? "optimize" : "gap";
+        const pt: CellData["pageTitles"] = cellSubs.map((sp) => ({ title: shortTitle(sp.title), status: sp.status, pageId: sp.id }));
+        grid.set(`${cat.id}::${scen.id}`, {
+          categoryId: cat.id, scenarioId: scen.id, totalSv, bestStatus: bs,
+          pageIds: cellSubs.map((sp) => sp.id), pageTitles: pt, subCount: cellSubs.length,
+        });
       }
     }
     return grid;
-  }, [rows, SCENARIO_COLS, pagesByTheme, boundByPage]);
+  }, [rows, SCENARIO_COLS, pages, boundByPage]);
   const categoryStats = React.useMemo(() => { const m = new Map<string, { pillarId: string | null }>(); for (const cat of rows) { const cp = (pagesByTheme.get(cat.id) ?? []).find((p) => p.role === "pillar"); m.set(cat.id, { pillarId: cp?.id ?? null }); } return m; }, [rows, pagesByTheme]);
-  function handleCellClick(cell: CellData) { if (cell.pageIds.length > 0) onPageSelect(cell.pageIds[0]); }
 
   // ═══════════════════════════════════════════════════════════════════════
   //  DRILL-DOWN VIEW
@@ -326,12 +335,12 @@ export function LoomGrid({ pages, boundByPage, selectedPageId, onPageSelect, onN
     const { themeId, themeName } = currentLevel;
     const themePages = pagesByTheme.get(themeId) ?? [];
     const pillar = themePages.find((p) => p.role === "pillar");
-    const clusters = themePages.filter((p) => p.role === "cluster");
-    const groupMap = new Map<string, WbPage[]>(); const ungrouped: WbPage[] = [];
-    for (const c of clusters) { const ws = c.title.split(/[\s·()（）\-—]+/).filter(Boolean); const gw = ws.find((w) => /^[A-Z]/.test(w) && w.toLowerCase() !== themeId) ?? null; if (gw) { if (!groupMap.has(gw)) groupMap.set(gw, []); groupMap.get(gw)!.push(c); } else ungrouped.push(c); }
-    const groups = [...groupMap.entries()].map(([k, ps]) => ({ label: k, pages: ps }));
-    if (ungrouped.length > 0) groups.push({ label: "Other", pages: ungrouped });
+    const subPillars = themePages.filter((p) => p.role === "sub-pillar");
+    const allClusters = themePages.filter((p) => p.role === "cluster");
+    const childrenOf = (parentId: string) => allClusters.filter((c) => c.pillarId === parentId);
+    const directClusters = pillar ? allClusters.filter((c) => c.pillarId === pillar.id) : allClusters;
     const pillarKws = pillar ? (boundByPage.get(pillar.id) ?? []) : [];
+    const totalChildren = subPillars.length + allClusters.length;
     return (
       <div className="flex-1 min-h-0 flex flex-col">
         <div className="px-4 py-2 border-b border-manor-line/50 shrink-0 flex items-center gap-2">
@@ -339,36 +348,173 @@ export function LoomGrid({ pages, boundByPage, selectedPageId, onPageSelect, onN
           <ChevronRight size={10} className="text-manor-inkFaint" />
           <span className="text-[12px] text-manor-brassHi font-semibold" style={{ fontFamily: serif }}>{themeName}</span>
           <span className="flex-1" />
-          <span className="text-[10px] text-manor-inkFaint tabular-nums">{clusters.length} clusters</span>
+          <span className="text-[10px] text-manor-inkFaint tabular-nums">{subPillars.length > 0 ? `${subPillars.length} sub-pillars · ` : ""}{allClusters.length} clusters</span>
           <span className="text-[9px] text-manor-inkFaint italic ml-2">Esc = back</span>
         </div>
         <div className="flex-1 min-h-0 overflow-auto p-5" style={{ animation: "loom-drill-in 0.3s ease-out" }}>
+          {/* Pillar card (grandpa) */}
           {pillar && (
             <div className="mb-6 p-4 rounded-lg border border-manor-brass/30 cursor-pointer hover:border-manor-brass/50 transition-colors" style={{ background: "linear-gradient(135deg, rgba(212,179,111,0.06) 0%, rgba(8,19,13,0.95) 100%)" }} onClick={() => onPageSelect(pillar.id)}>
-              <div className="flex items-center gap-2 mb-1"><span className="w-2 h-2 rounded-sm" style={{ background: "linear-gradient(135deg, #F8E6B0, #D4B36F)" }} /><span className="text-[14px] font-semibold text-manor-ink" style={{ fontFamily: serif }}>{shortTitle(pillar.title)}</span><StatusDot status={pillar.status} size={7} /></div>
+              <div className="flex items-center gap-2 mb-1"><RoleMark role="pillar" size={9} /><span className="text-[14px] font-semibold text-manor-ink" style={{ fontFamily: serif }}>{shortTitle(pillar.title)}</span><StatusDot status={pillar.status} size={7} /></div>
               {pillar.url && <span className="text-[10px] font-mono text-manor-brassDim/70 block mb-1">{pillar.url}</span>}
               <span className="text-[10px] text-manor-inkDim">{pillarKws.length} keywords{pillarKws.length > 0 && ` / ${formatSv(pillarKws.reduce((s, k) => s + (k.sv ?? 0), 0))} SV`}</span>
             </div>
           )}
+
+          {/* Sub-pillar cards (dad) with their children (grandkids) */}
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {groups.map((g) => (
-              <div key={g.label} className="rounded-lg border border-manor-line/40 overflow-hidden" style={{ background: "rgba(8,19,13,0.6)" }}>
-                <div className="px-3 py-2 border-b border-manor-line/30" style={{ background: "rgba(212,179,111,0.04)" }}><span className="text-[12px] font-semibold text-manor-brass" style={{ fontFamily: serif }}>{g.label}</span><span className="text-[10px] text-manor-inkDim ml-2">{g.pages.length} pages</span></div>
+            {subPillars.map((sp) => {
+              const spKws = boundByPage.get(sp.id) ?? [];
+              const spSv = spKws.reduce((s, k) => s + (k.sv ?? 0), 0);
+              const children = childrenOf(sp.id);
+              const isSpSel = selectedPageId === sp.id;
+              return (
+                <div key={sp.id} className="rounded-lg border border-manor-line/40 overflow-hidden" style={{ background: "rgba(8,19,13,0.6)" }}>
+                  {/* Sub-pillar header (clickable to select in Inspector) */}
+                  <div
+                    className={["px-3 py-2.5 border-b border-manor-line/30 cursor-pointer transition-colors", isSpSel ? "bg-manor-bg3" : "hover:bg-manor-bg3/40"].join(" ")}
+                    style={{ background: isSpSel ? undefined : "rgba(212,179,111,0.06)" }}
+                    onClick={() => onPageSelect(sp.id)}
+                  >
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <RoleMark role="sub-pillar" size={8} />
+                      <span className="text-[12px] font-semibold text-manor-brassHi" style={{ fontFamily: serif }}>{shortTitle(sp.title)}</span>
+                      <StatusDot status={sp.status} size={6} />
+                    </div>
+                    {sp.url && <span className="text-[9px] font-mono text-manor-brassDim/60 block">{sp.url}</span>}
+                    <div className="flex items-center gap-2 mt-0.5">
+                      {spSv > 0 && <span className="text-[9px] text-manor-brassDim tabular-nums">{formatSv(spSv)} SV</span>}
+                      <span className="text-[9px] text-manor-inkFaint">{spKws.length} kw</span>
+                      <span className="text-[9px] text-manor-inkFaint">{children.length} pages</span>
+                    </div>
+                  </div>
+                  {/* Children list */}
+                  <div className="p-2 space-y-1">
+                    {children.map((c) => { const cKws = boundByPage.get(c.id) ?? []; const cSv = cKws.reduce((s, k) => s + (k.sv ?? 0), 0); const isSel = selectedPageId === c.id; return (
+                      <div key={c.id} className={["flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer transition-all text-[11px]", isSel ? "bg-manor-bg3 border border-manor-brass/40" : "hover:bg-manor-bg3/50 border border-transparent"].join(" ")} onClick={() => onPageSelect(c.id)}><StatusDot status={c.status} size={6} /><span className="text-manor-ink truncate flex-1 min-w-0" style={{ fontFamily: serif }}>{shortTitle(c.title)}</span>{cSv > 0 && <span className="text-[9px] text-manor-brassDim tabular-nums shrink-0">{formatSv(cSv)}</span>}</div>
+                    ); })}
+                    {/* + add child cluster under this sub-pillar */}
+                    {newClusterFor === sp.id ? (<div className="flex items-center gap-1 px-1 pt-1"><input autoFocus value={newClusterTitle} onChange={(e) => setNewClusterTitle(e.target.value)} placeholder="New page title..." className="h-5 px-1.5 text-[10px] bg-manor-void/60 border border-manor-brass/30 rounded text-manor-ink placeholder:text-manor-inkFaint focus:outline-none focus:border-manor-brass/60 flex-1" onKeyDown={(e) => { if (e.key === "Enter" && newClusterTitle.trim() && onNewCluster) { onNewCluster(newClusterTitle.trim(), sp.id); setNewClusterTitle(""); setNewClusterFor(null); } if (e.key === "Escape") setNewClusterFor(null); }} /><button type="button" onClick={() => setNewClusterFor(null)} className="text-manor-inkFaint hover:text-manor-ink"><X size={9} /></button></div>
+                    ) : (<button type="button" onClick={() => setNewClusterFor(sp.id)} className="flex items-center gap-1 px-2 py-0.5 text-[9px] text-manor-inkFaint hover:text-manor-brassHi transition-colors"><Plus size={9} /> New page</button>)}
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* Direct clusters (orphans attached directly to pillar, no sub-pillar parent) */}
+            {directClusters.length > 0 && (
+              <div className="rounded-lg border border-manor-line/40 overflow-hidden" style={{ background: "rgba(8,19,13,0.6)" }}>
+                <div className="px-3 py-2 border-b border-manor-line/30" style={{ background: "rgba(212,179,111,0.02)" }}>
+                  <span className="text-[12px] font-semibold text-manor-brass/70" style={{ fontFamily: serif }}>Direct Pages</span>
+                  <span className="text-[10px] text-manor-inkDim ml-2">{directClusters.length} pages</span>
+                </div>
                 <div className="p-2 space-y-1">
-                  {g.pages.map((c) => { const cKws = boundByPage.get(c.id) ?? []; const cSv = cKws.reduce((s, k) => s + (k.sv ?? 0), 0); const isSel = selectedPageId === c.id; return (
+                  {directClusters.map((c) => { const cKws = boundByPage.get(c.id) ?? []; const cSv = cKws.reduce((s, k) => s + (k.sv ?? 0), 0); const isSel = selectedPageId === c.id; return (
                     <div key={c.id} className={["flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer transition-all text-[11px]", isSel ? "bg-manor-bg3 border border-manor-brass/40" : "hover:bg-manor-bg3/50 border border-transparent"].join(" ")} onClick={() => onPageSelect(c.id)}><StatusDot status={c.status} size={6} /><span className="text-manor-ink truncate flex-1 min-w-0" style={{ fontFamily: serif }}>{shortTitle(c.title)}</span>{cSv > 0 && <span className="text-[9px] text-manor-brassDim tabular-nums shrink-0">{formatSv(cSv)}</span>}</div>
                   ); })}
-                  {newClusterFor === g.label ? (<div className="flex items-center gap-1 px-1 pt-1"><input autoFocus value={newClusterTitle} onChange={(e) => setNewClusterTitle(e.target.value)} placeholder="New page title..." className="h-5 px-1.5 text-[10px] bg-manor-void/60 border border-manor-brass/30 rounded text-manor-ink placeholder:text-manor-inkFaint focus:outline-none focus:border-manor-brass/60 flex-1" onKeyDown={(e) => { if (e.key === "Enter" && newClusterTitle.trim() && pillar && onNewCluster) { onNewCluster(newClusterTitle.trim(), pillar.id); setNewClusterTitle(""); setNewClusterFor(null); } if (e.key === "Escape") setNewClusterFor(null); }} /><button type="button" onClick={() => setNewClusterFor(null)} className="text-manor-inkFaint hover:text-manor-ink"><X size={9} /></button></div>
-                  ) : (<button type="button" onClick={() => setNewClusterFor(g.label)} className="flex items-center gap-1 px-2 py-0.5 text-[9px] text-manor-inkFaint hover:text-manor-brassHi transition-colors"><Plus size={9} /> New page</button>)}
+                  {/* + add page under pillar directly */}
+                  {newClusterFor === "__direct__" ? (<div className="flex items-center gap-1 px-1 pt-1"><input autoFocus value={newClusterTitle} onChange={(e) => setNewClusterTitle(e.target.value)} placeholder="New page title..." className="h-5 px-1.5 text-[10px] bg-manor-void/60 border border-manor-brass/30 rounded text-manor-ink placeholder:text-manor-inkFaint focus:outline-none focus:border-manor-brass/60 flex-1" onKeyDown={(e) => { if (e.key === "Enter" && newClusterTitle.trim() && pillar && onNewCluster) { onNewCluster(newClusterTitle.trim(), pillar.id); setNewClusterTitle(""); setNewClusterFor(null); } if (e.key === "Escape") setNewClusterFor(null); }} /><button type="button" onClick={() => setNewClusterFor(null)} className="text-manor-inkFaint hover:text-manor-ink"><X size={9} /></button></div>
+                  ) : (<button type="button" onClick={() => setNewClusterFor("__direct__")} className="flex items-center gap-1 px-2 py-0.5 text-[9px] text-manor-inkFaint hover:text-manor-brassHi transition-colors"><Plus size={9} /> New page</button>)}
                 </div>
               </div>
-            ))}
+            )}
           </div>
+
+          {/* + add a new sub-pillar */}
           <div className="mt-4">
-            {addingSubPillar ? (<div className="flex items-center gap-2"><input autoFocus value={newSubPillarTitle} onChange={(e) => setNewSubPillarTitle(e.target.value)} placeholder="New sub-pillar name..." className="h-6 px-2 text-[10px] bg-manor-void/60 border border-manor-brass/30 rounded text-manor-ink placeholder:text-manor-inkFaint focus:outline-none focus:border-manor-brass/60 w-40" onKeyDown={(e) => { if (e.key === "Enter" && newSubPillarTitle.trim() && pillar && onNewCluster) { onNewCluster(newSubPillarTitle.trim(), pillar.id); setNewSubPillarTitle(""); setAddingSubPillar(false); } if (e.key === "Escape") setAddingSubPillar(false); }} /><button type="button" onClick={() => setAddingSubPillar(false)} className="text-manor-inkFaint hover:text-manor-ink"><X size={10} /></button></div>
-            ) : (<button type="button" onClick={() => setAddingSubPillar(true)} className="flex items-center gap-1 text-[10px] text-manor-inkFaint hover:text-manor-brassHi transition-colors border border-dashed border-manor-line2/40 rounded px-3 py-1.5 hover:border-manor-brass/40"><Plus size={10} /> New sub-pillar / type</button>)}
+            {addingSubPillar ? (<div className="flex items-center gap-2"><input autoFocus value={newSubPillarTitle} onChange={(e) => setNewSubPillarTitle(e.target.value)} placeholder="New sub-pillar name..." className="h-6 px-2 text-[10px] bg-manor-void/60 border border-manor-brass/30 rounded text-manor-ink placeholder:text-manor-inkFaint focus:outline-none focus:border-manor-brass/60 w-40" onKeyDown={(e) => { if (e.key === "Enter" && newSubPillarTitle.trim() && pillar && onNewCluster) { onNewCluster(newSubPillarTitle.trim(), pillar.id, "sub-pillar"); setNewSubPillarTitle(""); setAddingSubPillar(false); } if (e.key === "Escape") setAddingSubPillar(false); }} /><button type="button" onClick={() => setAddingSubPillar(false)} className="text-manor-inkFaint hover:text-manor-ink"><X size={10} /></button></div>
+            ) : (<button type="button" onClick={() => setAddingSubPillar(true)} className="flex items-center gap-1 text-[10px] text-manor-inkFaint hover:text-manor-brassHi transition-colors border border-dashed border-manor-line2/40 rounded px-3 py-1.5 hover:border-manor-brass/40"><Plus size={10} /> New sub-pillar</button>)}
           </div>
-          {clusters.length === 0 && <div className="text-center text-manor-inkFaint text-[12px] py-8 italic">No clusters yet</div>}
+          {totalChildren === 0 && <div className="text-center text-manor-inkFaint text-[12px] py-8 italic">No clusters yet</div>}
+        </div>
+        <style jsx>{`@keyframes loom-drill-in { from { transform: scale(0.92); opacity: 0.5; } to { transform: scale(1); opacity: 1; } }`}</style>
+      </div>
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════
+  //  CELL DRILL-DOWN VIEW (品类 x 场景 格子下钻)
+  // ═══════════════════════════════════════════════════════════════════════
+  if (currentLevel.type === "cell") {
+    const { categoryId, categoryName, scenarioId: cellScenarioId, scenarioName } = currentLevel;
+    const cellSubs = pages.filter(
+      (p) => p.role === "sub-pillar" && p.themeId === categoryId && p.scenarioId === cellScenarioId
+    );
+    const allClusters = pages.filter((p) => p.role === "cluster" && p.themeId === categoryId);
+    const childrenOf = (parentId: string) => allClusters.filter((c) => c.pillarId === parentId);
+    // 该品类的 pillar（用于创建新爸爸时指定 parentId）
+    const catPillar = pages.find((p) => p.role === "pillar" && p.themeId === categoryId);
+
+    return (
+      <div className="flex-1 min-h-0 flex flex-col">
+        <div className="px-4 py-2 border-b border-manor-line/50 shrink-0 flex items-center gap-2">
+          <button type="button" onClick={drillBack} className="inline-flex items-center gap-1 text-[10px] text-manor-brassDim hover:text-manor-brassHi transition-colors" style={{ fontFamily: sc }}><ZoomOut size={12} /><span className="tracking-[0.14em]">Overview</span></button>
+          <ChevronRight size={10} className="text-manor-inkFaint" />
+          <span className="text-[12px] text-manor-brassHi font-semibold" style={{ fontFamily: serif }}>{categoryName}</span>
+          <span className="text-[10px] text-manor-inkFaint mx-1">&times;</span>
+          <span className="text-[12px] text-manor-brassHi font-semibold" style={{ fontFamily: serif }}>{scenarioName}</span>
+          <span className="flex-1" />
+          <span className="text-[10px] text-manor-inkFaint tabular-nums">{cellSubs.length} sub-pillars</span>
+          <span className="text-[9px] text-manor-inkFaint italic ml-2">Esc = back</span>
+        </div>
+        <div className="flex-1 min-h-0 overflow-auto p-5" style={{ animation: "loom-drill-in 0.3s ease-out" }}>
+          {cellSubs.length === 0 ? (
+            /* 空格态 */
+            <div className="flex flex-col items-center justify-center py-16 gap-4">
+              <span className="text-[40px] text-manor-inkGhost leading-none" aria-hidden>&#x25A2;</span>
+              <span className="text-[13px] text-manor-inkDim" style={{ fontFamily: serif }}>
+                {categoryName} &times; {scenarioName} -- 尚无子支柱
+              </span>
+              <span className="text-[11px] text-manor-inkFaint italic">这是一个 Gap 坑位，可以在下方添加第一个子支柱来占位</span>
+            </div>
+          ) : (
+            /* 爸爸卡列表 */
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+              {cellSubs.map((sp) => {
+                const spKws = boundByPage.get(sp.id) ?? [];
+                const spSv = spKws.reduce((s, k) => s + (k.sv ?? 0), 0);
+                const children = childrenOf(sp.id);
+                const isSpSel = selectedPageId === sp.id;
+                return (
+                  <div key={sp.id} className="rounded-lg border border-manor-line/40 overflow-hidden" style={{ background: "rgba(8,19,13,0.6)" }}>
+                    {/* Sub-pillar header */}
+                    <div
+                      className={["px-3 py-2.5 border-b border-manor-line/30 cursor-pointer transition-colors", isSpSel ? "bg-manor-bg3" : "hover:bg-manor-bg3/40"].join(" ")}
+                      style={{ background: isSpSel ? undefined : "rgba(212,179,111,0.06)" }}
+                      onClick={() => onPageSelect(sp.id)}
+                    >
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <RoleMark role="sub-pillar" size={8} />
+                        <span className="text-[12px] font-semibold text-manor-brassHi" style={{ fontFamily: serif }}>{shortTitle(sp.title)}</span>
+                        <StatusDot status={sp.status} size={6} />
+                      </div>
+                      {sp.url && <span className="text-[9px] font-mono text-manor-brassDim/60 block">{sp.url}</span>}
+                      <div className="flex items-center gap-2 mt-0.5">
+                        {spSv > 0 && <span className="text-[9px] text-manor-brassDim tabular-nums">{formatSv(spSv)} SV</span>}
+                        <span className="text-[9px] text-manor-inkFaint">{spKws.length} kw</span>
+                        <span className="text-[9px] text-manor-inkFaint">{children.length} pages</span>
+                      </div>
+                    </div>
+                    {/* Children list */}
+                    <div className="p-2 space-y-1">
+                      {children.map((c) => { const cKws = boundByPage.get(c.id) ?? []; const cSv = cKws.reduce((s, k) => s + (k.sv ?? 0), 0); const isSel = selectedPageId === c.id; return (
+                        <div key={c.id} className={["flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer transition-all text-[11px]", isSel ? "bg-manor-bg3 border border-manor-brass/40" : "hover:bg-manor-bg3/50 border border-transparent"].join(" ")} onClick={() => onPageSelect(c.id)}><StatusDot status={c.status} size={6} /><span className="text-manor-ink truncate flex-1 min-w-0" style={{ fontFamily: serif }}>{shortTitle(c.title)}</span>{cSv > 0 && <span className="text-[9px] text-manor-brassDim tabular-nums shrink-0">{formatSv(cSv)}</span>}</div>
+                      ); })}
+                      {/* + add child cluster under this sub-pillar */}
+                      {newClusterFor === sp.id ? (<div className="flex items-center gap-1 px-1 pt-1"><input autoFocus value={newClusterTitle} onChange={(e) => setNewClusterTitle(e.target.value)} placeholder="New page title..." className="h-5 px-1.5 text-[10px] bg-manor-void/60 border border-manor-brass/30 rounded text-manor-ink placeholder:text-manor-inkFaint focus:outline-none focus:border-manor-brass/60 flex-1" onKeyDown={(e) => { if (e.key === "Enter" && newClusterTitle.trim() && onNewCluster) { onNewCluster(newClusterTitle.trim(), sp.id); setNewClusterTitle(""); setNewClusterFor(null); } if (e.key === "Escape") setNewClusterFor(null); }} /><button type="button" onClick={() => setNewClusterFor(null)} className="text-manor-inkFaint hover:text-manor-ink"><X size={9} /></button></div>
+                      ) : (<button type="button" onClick={() => setNewClusterFor(sp.id)} className="flex items-center gap-1 px-2 py-0.5 text-[9px] text-manor-inkFaint hover:text-manor-brassHi transition-colors"><Plus size={9} /> New page</button>)}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* + 加一个子支柱到本格 */}
+          <div className="mt-4">
+            {addingSubPillar ? (<div className="flex items-center gap-2"><input autoFocus value={newSubPillarTitle} onChange={(e) => setNewSubPillarTitle(e.target.value)} placeholder="New sub-pillar name..." className="h-6 px-2 text-[10px] bg-manor-void/60 border border-manor-brass/30 rounded text-manor-ink placeholder:text-manor-inkFaint focus:outline-none focus:border-manor-brass/60 w-40" onKeyDown={(e) => { if (e.key === "Enter" && newSubPillarTitle.trim() && catPillar && onNewCluster) { onNewCluster(newSubPillarTitle.trim(), catPillar.id, "sub-pillar", cellScenarioId); setNewSubPillarTitle(""); setAddingSubPillar(false); } if (e.key === "Escape") setAddingSubPillar(false); }} /><button type="button" onClick={() => setAddingSubPillar(false)} className="text-manor-inkFaint hover:text-manor-ink"><X size={10} /></button></div>
+            ) : (<button type="button" onClick={() => setAddingSubPillar(true)} className="flex items-center gap-1 text-[10px] text-manor-inkFaint hover:text-manor-brassHi transition-colors border border-dashed border-manor-line2/40 rounded px-3 py-1.5 hover:border-manor-brass/40"><Plus size={10} /> 加一个子支柱到本格</button>)}
+          </div>
         </div>
         <style jsx>{`@keyframes loom-drill-in { from { transform: scale(0.92); opacity: 0.5; } to { transform: scale(1); opacity: 1; } }`}</style>
       </div>
@@ -460,8 +606,16 @@ export function LoomGrid({ pages, boundByPage, selectedPageId, onPageSelect, onN
                 );
               }
               const col = rc.theme; const owned = scenarioOwned.get(col.id);
+              const isThemeDragging = dragId === col.id;
               return (
-                <div key={`col-${col.id}`} className="flex flex-col items-center justify-end gap-0.5 px-2 pb-1.5 pt-1 cursor-pointer hover:bg-manor-bg3/30 transition-colors" style={{ background: headerBg, borderRight: gridBorder, borderBottom: gridBorder }} onClick={() => drillInto(col.id, col.en)} title={`${col.en} ${col.zh}`}>
+                <div key={`col-${col.id}`} data-theme-id={col.id} data-theme-band={rc.bandType} className="relative group flex flex-col items-center justify-end gap-0.5 px-2 pb-1.5 pt-1 cursor-pointer hover:bg-manor-bg3/30 transition-colors" style={{ background: headerBg, borderRight: gridBorder, borderBottom: gridBorder, opacity: isThemeDragging ? 0.45 : 1 }} onClick={() => drillInto(col.id, col.en)} title={`${col.en} ${col.zh}`}>
+                  <button
+                    type="button"
+                    onPointerDown={startDrag("theme", col.id, rc.bandType)} onPointerMove={onDragMove} onPointerUp={endDrag} onPointerCancel={endDrag}
+                    onClick={(e) => e.stopPropagation()}
+                    title="拖动小列（仅在本类型带内换位）"
+                    className="absolute top-0.5 left-1/2 -translate-x-1/2 p-0.5 text-manor-brassDim hover:text-manor-brassHi opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing transition-opacity"
+                  ><GripHorizontal size={11} /></button>
                   <span className="text-[12px] text-manor-brassHi font-semibold leading-tight text-center" style={{ fontFamily: serif }}>{col.en}</span>
                   <span className="text-[9px] text-manor-ink leading-tight">{col.zh}</span>
                   {owned && owned.count > 0 && <span className="text-[8px] text-manor-inkDim tabular-nums">{owned.count} pg</span>}
@@ -497,17 +651,20 @@ export function LoomGrid({ pages, boundByPage, selectedPageId, onPageSelect, onN
                       return <div key={`phc-${cat.id}-${rc.bandType}`} className="min-h-[72px]" style={{ borderRight: gridBorder, borderBottom: gridBorder }} />;
                     }
                     const scen = rc.theme;
-                    const key = `${cat.id}::${scen.id}`; const cell = cells.get(key); const isGap = !cell || cell.keywords.length === 0;
-                    const totalSv = cell?.totalSv ?? 0; const isCellSel = selectedPageId != null && cell?.pageIds.includes(selectedPageId); const titles = cell?.pageTitles ?? [];
+                    const key = `${cat.id}::${scen.id}`; const cell = cells.get(key); const isGap = !cell || cell.subCount === 0;
+                    const totalSv = cell?.totalSv ?? 0; const titles = cell?.pageTitles ?? [];
                     return (
-                      <div key={key} className={["relative flex flex-col items-start justify-start gap-0.5 p-2 min-h-[72px] cursor-pointer transition-all text-left", isCellSel ? "border-manor-brass/60 bg-manor-bg3" : isGap ? "hover:border-manor-brass/20 hover:bg-manor-bg3/15" : "hover:border-manor-brass/30 hover:bg-manor-bg3/20"].join(" ")} style={{ borderRight: gridBorder, borderBottom: gridBorder }} onClick={() => { if (cell) handleCellClick(cell); }} title={isGap ? `Gap: ${cat.en} x ${scen.en}` : `${cat.en} x ${scen.en}: ${titles.length} pages, ${formatSv(totalSv)} SV`}>
+                      <div key={key} className={["relative flex flex-col items-start justify-start gap-0.5 p-2 min-h-[72px] cursor-pointer transition-all text-left", isGap ? "hover:border-manor-brass/20 hover:bg-manor-bg3/15" : "hover:border-manor-brass/30 hover:bg-manor-bg3/20"].join(" ")} style={{ borderRight: gridBorder, borderBottom: gridBorder }} onClick={() => { setDrillStack((s) => [...s, { type: "cell", categoryId: cat.id, categoryName: cat.en, scenarioId: scen.id, scenarioName: scen.en }]); }} title={isGap ? `Gap: ${cat.en} x ${scen.en} — click to add` : `${cat.en} x ${scen.en}: ${cell!.subCount} sub-pillars, ${formatSv(totalSv)} SV`}>
                         {isGap ? (<div className="flex-1 flex flex-col items-center justify-center w-full"><span className="absolute inset-2 border border-dashed border-manor-line2/30 rounded pointer-events-none" aria-hidden /><span className="text-[14px] text-manor-inkGhost leading-none" aria-hidden>&#x25A2;</span><span className="text-[8px] text-manor-inkFaint/50 mt-0.5">gap</span></div>
                         ) : (<>
                           {titles.slice(0, 3).map((t, i) => (<div key={i} className="flex items-start gap-1.5 w-full min-w-0"><StatusDot status={t.status} size={5} /><span className="text-[10px] text-manor-ink/90 leading-tight truncate" style={{ fontFamily: serif }}>{t.title}</span></div>))}
                           {titles.length > 3 && <span className="text-[8px] text-manor-inkFaint">+{titles.length - 3} more</span>}
-                          <div className="mt-auto pt-1 flex items-center gap-1.5 w-full"><span className="text-[8px] text-manor-brassDim/60 tabular-nums">{formatSv(totalSv)}</span><span className="flex-1 h-px" style={{ background: `linear-gradient(90deg, rgba(212,179,111,${Math.min(0.4, totalSv / 10000)}) 0%, transparent 100%)` }} /></div>
+                          <div className="mt-auto pt-1 flex items-center gap-1.5 w-full">
+                            <span className="text-[8px] text-manor-brassDim/60 tabular-nums">{cell!.subCount} 子支柱</span>
+                            <span className="text-[8px] text-manor-brassDim/60 tabular-nums">{formatSv(totalSv)}</span>
+                            <span className="flex-1 h-px" style={{ background: `linear-gradient(90deg, rgba(212,179,111,${Math.min(0.4, totalSv / 10000)}) 0%, transparent 100%)` }} />
+                          </div>
                         </>)}
-                        {isCellSel && <span className="absolute inset-0 border-2 border-manor-brass/60 pointer-events-none" style={{ boxShadow: "0 0 10px rgba(239,216,154,.25)" }} aria-hidden />}
                       </div>
                     );
                   })}
