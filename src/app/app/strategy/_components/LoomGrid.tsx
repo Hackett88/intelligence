@@ -12,13 +12,16 @@
  */
 import * as React from "react";
 import { Plus, X, ChevronRight, ChevronDown, ZoomOut, ZoomIn, Scan, GripVertical, GripHorizontal } from "lucide-react";
-import type { WbPage, RawKeyword, Territory } from "./_workbench";
+import type { WbPage, RawKeyword, Territory, IndexedMatches } from "./_workbench";
+import { effectiveStatus } from "./_workbench";
 import { StatusDot, RoleMark, formatSv } from "./_utils";
 
 // ── Constants ───────────────────────────────────────────────────────────────
 
 type SpineEntry = { id: string; en: string; zh: string };
 const CATEGORY_SPINE_DEFAULT: SpineEntry[] = [
+  // 念诵知识行：行头不显示名（en/zh 留空），仅 ◆pillar 标记 + 数据
+  { id: "dhikr-knowledge", en: "", zh: "" },
   { id: "islamic-jewelry", en: "Islamic Jewelry", zh: "伊斯兰饰品" },
   { id: "name-necklace", en: "Name Necklace", zh: "定制项链" },
   { id: "tasbih", en: "Tasbih", zh: "念珠" },
@@ -35,10 +38,10 @@ const WEFT_GROUPS: WeftType[] = [
   ]},
   { type: "tool", en: "Tool", zh: "工具", themes: [
     { id: "qibla-finder", en: "Qibla", zh: "朝向" },
-    { id: "itasbih-tools", en: "iTasbih", zh: "数字念珠" },
+    { id: "itasbih-tools", en: "APP", zh: "应用" },
   ]},
   { type: "brand", en: "Brand", zh: "品牌", themes: [
-    { id: "brand", en: "Brand", zh: "品牌" },
+    { id: "brand", en: "Weslamic", zh: "品牌名称" },
   ]},
 ];
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -48,6 +51,33 @@ function shortTitle(title: string): string { return title.split(/[（(]/)[0].rep
 // ── Structure persistence + reorder helpers ──────────────────────────────────
 const STRUCT_KEY = "wb-loom-structure-v4";
 type LoomStructure = { rows: SpineEntry[]; bands: WeftType[] };
+// 内置大列/子列的标签（en/zh）以代码 WEFT_GROUPS 为准——它们没有改名 UI，只能拖动/新增，
+// 所以加载旧 localStorage 时按 id 对齐刷新内置项的标签（用户的换位/新增列保持不动）。
+const BUILTIN_BAND_LABELS = new Map(WEFT_GROUPS.map((b) => [b.type, { en: b.en, zh: b.zh }] as const));
+const BUILTIN_THEME_LABELS = new Map(
+  WEFT_GROUPS.flatMap((b) => b.themes.map((t) => [t.id, { en: t.en, zh: t.zh }] as const)),
+);
+function reconcileBuiltinLabels(bands: WeftType[]): WeftType[] {
+  return bands.map((b) => {
+    const band = BUILTIN_BAND_LABELS.get(b.type);
+    return {
+      ...b,
+      ...(band ?? {}),
+      themes: b.themes.map((t) => ({ ...t, ...(BUILTIN_THEME_LABELS.get(t.id) ?? {}) })),
+    };
+  });
+}
+// 内置品类行同理：旧 localStorage 缺的内置行按 id 并入（新增行插到行首，保留用户已有排序），
+// 并以代码 CATEGORY_SPINE_DEFAULT 刷新内置行标签。用户自建行（非内置 id）原样保留。
+function reconcileRows(rows: SpineEntry[]): SpineEntry[] {
+  const existing = new Set(rows.map((r) => r.id));
+  const missing = CATEGORY_SPINE_DEFAULT.filter((r) => !existing.has(r.id));
+  const refreshed = rows.map((r) => {
+    const def = CATEGORY_SPINE_DEFAULT.find((d) => d.id === r.id);
+    return def ? { ...r, en: def.en, zh: def.zh } : r;
+  });
+  return [...missing, ...refreshed];
+}
 function loadStructure(): LoomStructure | null {
   if (typeof window === "undefined") return null;
   try {
@@ -55,7 +85,7 @@ function loadStructure(): LoomStructure | null {
     if (!raw) return null;
     const d = JSON.parse(raw);
     if (!Array.isArray(d?.rows) || !Array.isArray(d?.bands)) return null;
-    return d as LoomStructure;
+    return { rows: reconcileRows(d.rows), bands: reconcileBuiltinLabels(d.bands) };
   } catch { return null; }
 }
 /** 把 dragId 项移动到 overId 项所在位置（不变则原数组返回，避免无谓重渲）。 */
@@ -113,6 +143,7 @@ type DrillLevel =
 interface LoomGridProps {
   pages: WbPage[];
   boundByPage: Map<string, RawKeyword[]>;
+  indexedMatches: IndexedMatches;
   selectedPageId: string | null;
   onPageSelect: (id: string) => void;
   onNewCluster?: (title: string, pillarId: string, role?: "cluster" | "sub-pillar", scenarioId?: string) => void;
@@ -229,7 +260,7 @@ function useZoomPan(canvasRef: React.RefObject<HTMLDivElement | null>) {
 
 // ── Component ──────────────────────────────────────────────────────────────
 
-export function LoomGrid({ pages, boundByPage, selectedPageId, onPageSelect, onNewCluster, onNewPillar }: LoomGridProps) {
+export function LoomGrid({ pages, boundByPage, indexedMatches, selectedPageId, onPageSelect, onNewCluster, onNewPillar }: LoomGridProps) {
   void onNewPillar; // reserved for future direct-pillar creation from grid
   const sc = "var(--font-sc), 'Cormorant SC', serif";
   const serif = "var(--font-serif), 'EB Garamond', serif";
@@ -392,12 +423,12 @@ export function LoomGrid({ pages, boundByPage, selectedPageId, onPageSelect, onN
         for (const sp of cellSubs) {
           // 爸爸自身的绑定词 SV
           for (const k of (boundByPage.get(sp.id) ?? [])) totalSv += k.sv ?? 0;
-          allStatuses.push(sp.status);
+          allStatuses.push(effectiveStatus(sp.url, sp.status, indexedMatches));
           // 爸爸的 children (cluster)
           const children = pages.filter((p) => p.role === "cluster" && p.pillarId === sp.id);
           for (const ch of children) {
             for (const k of (boundByPage.get(ch.id) ?? [])) totalSv += k.sv ?? 0;
-            allStatuses.push(ch.status);
+            allStatuses.push(effectiveStatus(ch.url, ch.status, indexedMatches));
           }
         }
         const bs: "live" | "optimize" | "gap" = allStatuses.some((s) => s === "live") ? "live" : allStatuses.some((s) => s === "optimize") ? "optimize" : "gap";
@@ -407,8 +438,8 @@ export function LoomGrid({ pages, boundByPage, selectedPageId, onPageSelect, onN
           const children = pages.filter((p) => p.role === "cluster" && p.pillarId === sp.id);
           clusterCount += children.length;
           return {
-            id: sp.id, title: shortTitle(sp.title), status: sp.status,
-            clusters: children.map((c) => ({ id: c.id, title: shortTitle(c.title), status: c.status })),
+            id: sp.id, title: shortTitle(sp.title), status: effectiveStatus(sp.url, sp.status, indexedMatches),
+            clusters: children.map((c) => ({ id: c.id, title: shortTitle(c.title), status: effectiveStatus(c.url, c.status, indexedMatches) })),
           };
         });
         grid.set(`${cat.id}::${scen.id}`, {
@@ -418,7 +449,7 @@ export function LoomGrid({ pages, boundByPage, selectedPageId, onPageSelect, onN
       }
     }
     return grid;
-  }, [rows, SCENARIO_COLS, pages, boundByPage]);
+  }, [rows, SCENARIO_COLS, pages, boundByPage, indexedMatches]);
   const categoryStats = React.useMemo(() => { const m = new Map<string, { pillarId: string | null }>(); for (const cat of rows) { const cp = (pagesByTheme.get(cat.id) ?? []).find((p) => p.role === "pillar"); m.set(cat.id, { pillarId: cp?.id ?? null }); } return m; }, [rows, pagesByTheme]);
 
   // ═══════════════════════════════════════════════════════════════════════
@@ -618,13 +649,12 @@ export function LoomGrid({ pages, boundByPage, selectedPageId, onPageSelect, onN
   //  OVERVIEW GRID
   // ═══════════════════════════════════════════════════════════════════════
 
-  // 被改过宽/高的轨道改用固定 px；CSS grid 单元默认 min-width:auto 不肯缩，所以给被改的格子补 min-*:0 + overflow:hidden 让它真正听话。
-  const colOverflowStyle = (key: string): React.CSSProperties | undefined => (colWidths[key] != null ? { minWidth: 0, overflow: "hidden" } : undefined);
-  const cellOverflowStyle = (colKey: string, catId: string): React.CSSProperties | undefined => {
-    const c = colWidths[colKey] != null, r = rowHeights[catId] != null;
-    if (!c && !r) return undefined;
-    return { ...(c ? { minWidth: 0 } : null), ...(r ? { minHeight: 0 } : null), overflow: "hidden" };
-  };
+  // 列宽自适应优先：列轨道下限恒为 max-content（内容多宽列就多宽，绝不横向截断），
+  // 拖拽值仅作「上限」（只能加宽留白）。故列向无需再 overflow:hidden。
+  // 仅「行高被手动固定」时才裁纵向溢出（防止拖矮后内容把行撑回去）。
+  const colOverflowStyle = (_key: string): React.CSSProperties | undefined => undefined;
+  const cellOverflowStyle = (_colKey: string, catId: string): React.CSSProperties | undefined =>
+    rowHeights[catId] != null ? { minHeight: 0, overflow: "hidden" } : undefined;
   const colHandle = (key: string) => (
     <div
       onPointerDown={startResize("col", key)} onPointerMove={onResizeMove} onPointerUp={endResize} onPointerCancel={endResize}
@@ -643,7 +673,8 @@ export function LoomGrid({ pages, boundByPage, selectedPageId, onPageSelect, onN
       style={{ touchAction: "none" }}
     />
   );
-  const gridTemplateColumns = `${colWidths[CAT_COL_KEY] != null ? `${colWidths[CAT_COL_KEY]}px` : "minmax(120px, max-content)"} ${renderCols.map((rc) => { const k = colKeyOf(rc); return colWidths[k] != null ? `${colWidths[k]}px` : "minmax(max-content, 1fr)"; }).join(" ")} 48px`;
+  // 下限恒 max-content（不截断）；拖拽值仅作上限（minmax(max-content, Npx)：内容更宽时撑过 Npx，故只能加宽留白）。
+  const gridTemplateColumns = `${colWidths[CAT_COL_KEY] != null ? `minmax(max-content, ${colWidths[CAT_COL_KEY]}px)` : "minmax(120px, max-content)"} ${renderCols.map((rc) => { const k = colKeyOf(rc); return colWidths[k] != null ? `minmax(max-content, ${colWidths[k]}px)` : "minmax(max-content, 1fr)"; }).join(" ")} 48px`;
   const gridTemplateRows = `auto auto ${rows.map((cat) => (rowHeights[cat.id] != null ? `${rowHeights[cat.id]}px` : "minmax(auto, 1fr)")).join(" ")} 32px`;
 
   return (
@@ -775,15 +806,15 @@ export function LoomGrid({ pages, boundByPage, selectedPageId, onPageSelect, onN
                       title="拖动行换位"
                       className="absolute left-0.5 top-1/2 -translate-y-1/2 p-0.5 text-manor-brassDim hover:text-manor-brassHi opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing transition-opacity"
                     ><GripVertical size={12} /></button>
-                    {/* Line 1: pillar identity mark + category name */}
+                    {/* Line 1: pillar identity mark + category name（空名 = 只留标记，如念诵知识行）*/}
                     <div className="flex items-center gap-1">
                       <RoleMark role="pillar" size={9} />
-                      <span className="text-[13px] font-semibold leading-tight text-manor-brassHi text-left whitespace-nowrap" style={{ fontFamily: serif }}>{cat.en}</span>
+                      {cat.en && <span className="text-[13px] font-semibold leading-tight text-manor-brassHi text-left whitespace-nowrap" style={{ fontFamily: serif }}>{cat.en}</span>}
                     </div>
-                    <span className="text-[9px] text-manor-ink leading-tight text-left whitespace-nowrap">{cat.zh}</span>
+                    {cat.zh && <span className="text-[9px] text-manor-ink leading-tight text-left whitespace-nowrap">{cat.zh}</span>}
                     {/* Line 2: status dot + tree SV */}
                     <div className="flex items-center gap-1.5 mt-0.5">
-                      {catPillar && <StatusDot status={catPillar.status} size={6} />}
+                      {catPillar && <StatusDot status={effectiveStatus(catPillar.url, catPillar.status, indexedMatches)} size={6} />}
                       {catTreeSv > 0 && <span className="text-[8px] text-manor-brassDim tabular-nums">{formatSv(catTreeSv)}</span>}
                       {!catPillar && <span className="text-[8px] text-manor-inkFaint italic">no pillar</span>}
                     </div>
@@ -819,9 +850,9 @@ export function LoomGrid({ pages, boundByPage, selectedPageId, onPageSelect, onN
                                 <StatusDot status={sp.status} size={5} />
                                 <span className="text-[10px] text-manor-ink/90 whitespace-nowrap leading-tight" style={{ fontFamily: serif }}>{sp.title}</span>
                               </div>
-                              {/* 孙子行（缩进，封顶3条）-- 仅展开态渲染 */}
+                              {/* 孙子行（缩进，全部展开）-- 仅展开态渲染 */}
                               {hasChildren && !isCollapsed && (<>
-                                {sp.clusters.slice(0, 3).map((cl) => (
+                                {sp.clusters.map((cl) => (
                                   <div key={cl.id} className="flex items-center gap-1 pl-3 mt-px">
                                     <span className="text-[8px] text-manor-inkFaint/40 leading-none select-none" aria-hidden>&#x2514;</span>
                                     <RoleMark role="cluster" size={5} />
@@ -829,11 +860,6 @@ export function LoomGrid({ pages, boundByPage, selectedPageId, onPageSelect, onN
                                     <span className="text-[9px] text-manor-ink/70 whitespace-nowrap leading-tight" style={{ fontFamily: serif }}>{cl.title}</span>
                                   </div>
                                 ))}
-                                {sp.clusters.length > 3 && (
-                                  <div className="pl-3 mt-px">
-                                    <span className="text-[8px] text-manor-inkFaint">+{sp.clusters.length - 3} more</span>
-                                  </div>
-                                )}
                               </>)}
                             </div>
                             );

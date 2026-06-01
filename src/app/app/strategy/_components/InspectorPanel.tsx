@@ -1,15 +1,40 @@
 "use client";
 
 import * as React from "react";
-import { ChevronDown, Pencil, X } from "lucide-react";
-import type { WbPage, RawKeyword, Market, MarketRankings } from "./_workbench";
+import { ChevronDown, Pencil, X, ExternalLink } from "lucide-react";
+import type { WbPage, RawKeyword, Market, MarketRankings, IndexedMatches, IndexedUrlMatch } from "./_workbench";
 import {
   opportunityScore,
   opportunityTier,
   dedupeKeywords,
   resolvePageIntent,
   urlFunnelLayer,
+  matchIndexed,
+  effectiveStatus,
 } from "./_workbench";
+
+// 聚合多个 locale/market 变体的查询词：同词跨变体合并，clicks/impressions 累加，position 按曝光加权平均。
+function aggregateQueries(matches: IndexedUrlMatch[]): { query: string; clicks: number; impressions: number; position: number }[] {
+  const m = new Map<string, { query: string; clicks: number; impressions: number; position: number; _w: number }>();
+  for (const mt of matches) {
+    for (const q of mt.queries) {
+      const key = q.query.trim().toLowerCase();
+      const g = m.get(key);
+      const w = q.impressions || 1;
+      if (!g) m.set(key, { query: q.query, clicks: q.clicks, impressions: q.impressions, position: q.position, _w: w });
+      else {
+        g.clicks += q.clicks;
+        g.impressions += q.impressions;
+        g.position = (g.position * g._w + q.position * w) / (g._w + w);
+        g._w += w;
+      }
+    }
+  }
+  return [...m.values()]
+    .map(({ _w, ...r }) => ({ ...r, position: Math.round(r.position * 10) / 10 }))
+    .sort((a, b) => b.clicks - a.clicks);
+}
+const norm = (s: string) => s.trim().toLowerCase();
 import {
   RoleMark,
   StatusChip,
@@ -64,6 +89,80 @@ function UrlEditor({ url, onSave }: { url: string | null; onSave: (u: string) =>
   );
 }
 
+// 辅助词编辑器：chip + 删除 × + 尾部添加输入
+function AuxKeywordEditor({ words, onWordsChange }: { words: string[]; onWordsChange?: (words: string[]) => void }) {
+  const [adding, setAdding] = React.useState(false);
+  const [draft, setDraft] = React.useState("");
+  const inputRef = React.useRef<HTMLInputElement>(null);
+  React.useEffect(() => { if (adding) inputRef.current?.focus(); }, [adding]);
+
+  const commitAdd = () => {
+    const val = draft.trim();
+    if (val && onWordsChange && !words.some((w) => w.toLowerCase() === val.toLowerCase())) {
+      onWordsChange([...words, val]);
+    }
+    setDraft("");
+    setAdding(false);
+  };
+  const cancelAdd = () => { setDraft(""); setAdding(false); };
+  const removeWord = (idx: number) => {
+    if (!onWordsChange) return;
+    onWordsChange(words.filter((_, i) => i !== idx));
+  };
+
+  // 空辅助词且无编辑能力时不渲染
+  if (words.length === 0 && !onWordsChange) return null;
+
+  return (
+    <div className="mt-2 pt-1.5 border-t border-manor-line/50">
+      <span className="text-[9px] text-manor-inkFaint block mb-0.5">辅助词 · 实体（写作覆盖，无搜索量）</span>
+      <div className="flex flex-wrap gap-1 items-center">
+        {words.map((w, i) => (
+          <span key={i} className="group/aux inline-flex items-center text-[9px] text-manor-inkDim/80 px-1 py-0.5 border border-manor-line2/40 rounded">
+            {w}
+            {onWordsChange && (
+              <button
+                type="button"
+                onClick={() => removeWord(i)}
+                title={`删除「${w}」`}
+                aria-label={`删除辅助词 ${w}`}
+                className="ml-0.5 -mr-0.5 p-0 text-manor-inkFaint hover:text-manor-oxbloodHi opacity-0 group-hover/aux:opacity-100 focus:opacity-100 transition-opacity"
+              >
+                <X size={9} />
+              </button>
+            )}
+          </span>
+        ))}
+        {onWordsChange && (
+          adding ? (
+            <input
+              ref={inputRef}
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") { e.preventDefault(); commitAdd(); }
+                else if (e.key === "Escape") cancelAdd();
+              }}
+              onBlur={commitAdd}
+              placeholder="新辅助词"
+              spellCheck={false}
+              className="w-20 bg-manor-void/60 border border-manor-brass/45 rounded px-1 py-0.5 text-[9px] text-manor-ink focus:outline-none focus:border-manor-brass focus:ring-1 focus:ring-manor-brass/30"
+            />
+          ) : (
+            <button
+              type="button"
+              onClick={() => setAdding(true)}
+              className="text-[9px] text-manor-inkFaint/70 hover:text-manor-brassHi px-1 py-0.5 border border-dashed border-manor-line2/40 rounded transition-colors"
+            >
+              + 添加
+            </button>
+          )
+        )}
+      </div>
+    </div>
+  );
+}
+
 interface InspectorPanelProps {
   selectedPage: WbPage | null;
   pages: WbPage[];
@@ -71,8 +170,11 @@ interface InspectorPanelProps {
   allKeywords: RawKeyword[];
   boundByPage: Map<string, RawKeyword[]>;
   rankings: MarketRankings;
+  indexedMatches: IndexedMatches;
   onPageSelect: (id: string) => void;
   onUrlChange: (pageId: string, url: string) => void;
+  /** 辅助词增删回调：传入该页完整的新辅助词数组 */
+  onAuxChange?: (pageId: string, words: string[]) => void;
   /** 移出已绑词（走二次验印确认）。传入该页该词文本的全部市场变体 id。 */
   onUnassign?: (kwIds: string[]) => void;
   /** v2.4: optional collapse callback */
@@ -86,8 +188,10 @@ export function InspectorPanel({
   allKeywords,
   boundByPage,
   rankings,
+  indexedMatches,
   onPageSelect,
   onUrlChange,
+  onAuxChange,
   onUnassign,
   onCollapse,
 }: InspectorPanelProps) {
@@ -115,8 +219,10 @@ export function InspectorPanel({
     allKeywords={allKeywords}
     bindings={bindings}
     rankings={rankings}
+    indexedMatches={indexedMatches}
     onPageSelect={onPageSelect}
     onUrlChange={onUrlChange}
+    onAuxChange={onAuxChange}
     onUnassign={onUnassign}
     onCollapse={onCollapse}
   />;
@@ -130,8 +236,10 @@ function PageInspector({
   allKeywords,
   bindings,
   rankings,
+  indexedMatches,
   onPageSelect,
   onUrlChange,
+  onAuxChange,
   onUnassign,
   onCollapse,
 }: {
@@ -141,8 +249,10 @@ function PageInspector({
   allKeywords: RawKeyword[];
   bindings: Record<string, string>;
   rankings: MarketRankings;
+  indexedMatches: IndexedMatches;
   onPageSelect: (id: string) => void;
   onUrlChange: (pageId: string, url: string) => void;
+  onAuxChange?: (pageId: string, words: string[]) => void;
   onUnassign?: (kwIds: string[]) => void;
   onCollapse?: () => void;
 }) {
@@ -192,6 +302,28 @@ function PageInspector({
   );
   const kwsToShow = showAllKws ? dedupedKws : dedupedKws.slice(0, 10);
 
+  // ── 收录索引匹配：命中的变体（多语种）+ 实际查询词 + 计划∩实际命中集 ──
+  const matches = React.useMemo(() => matchIndexed(page.url, indexedMatches), [page.url, indexedMatches]);
+  const isLive = matches.length > 0; // URL 命中收录索引（任一变体）→ 视为已上线
+  const actualQueries = React.useMemo(() => aggregateQueries(matches), [matches]);
+  const plannedTexts = React.useMemo(() => new Set(dedupedKws.map((g) => norm(g.keyword))), [dedupedKws]);
+  const actualTexts = React.useMemo(() => new Set(actualQueries.map((q) => norm(q.query))), [actualQueries]);
+  const effStatus = effectiveStatus(page.url, page.status, indexedMatches);
+  // 关键词标签页：计划词 / 实际词
+  const [kwTab, setKwTab] = React.useState<"planned" | "actual">("planned");
+  // 辅助词[实体]：M6 起以 page.auxKeywords 为权威。
+  // 用户编辑过(auxEdited=true，含清空到 0 个) → 严格用 auxKeywords，绝不回退 note（否则清空后又被 note 旧值填回）。
+  // 未编辑(旧草稿无此字段) → auxKeywords 有值用之，否则回退解析 note 兜底。
+  const auxWords = React.useMemo(() => {
+    if (page.auxEdited) return page.auxKeywords ?? [];
+    if (page.auxKeywords && page.auxKeywords.length > 0) return page.auxKeywords;
+    const m = page.note?.match(/辅助词?\[实体\][：:]\s*(.+)$/);
+    return m
+      ? m[1].split(/\s*[·•/]\s*/).map((s) => s.replace(/[…\s]+$/, "").trim()).filter(Boolean)
+      : [];
+  }, [page.auxKeywords, page.auxEdited, page.note]);
+  const actualShown = showAllKws ? actualQueries : actualQueries.slice(0, 12);
+
   return (
     <div className="flex flex-col h-full overflow-y-auto" style={{ scrollbarGutter: "stable" }}>
       {/* Header */}
@@ -228,7 +360,12 @@ function PageInspector({
             </div>
             <div>
               <span className="text-manor-inkFaint block text-[10px]">状态</span>
-              <StatusChip status={page.status} size="sm" />
+              <div className="flex items-center gap-1">
+                <StatusChip status={effStatus} size="sm" />
+                {isLive && page.status !== "live" && (
+                  <span className="text-[8px] text-manor-sageHi" title="URL 命中收录与索引，自动判为已上线">· 收录命中</span>
+                )}
+              </div>
             </div>
             <div>
               <span className="text-manor-inkFaint block text-[10px]">页面类型</span>
@@ -248,6 +385,37 @@ function PageInspector({
             <span className="text-manor-inkFaint block text-[10px] mb-0.5">目标 URL</span>
             <UrlEditor url={page.url} onSave={(u) => onUrlChange(page.id, u)} />
           </div>
+
+          {/* 收录索引命中：URL 命中的所有变体（多语种/多市场），点击进入收录与索引对应页 */}
+          {matches.length > 0 ? (
+            <div>
+              <span className="text-manor-inkFaint block text-[10px] mb-0.5">
+                收录索引命中 · <span className="text-manor-sageHi font-semibold">{matches.length}</span> 个 URL
+              </span>
+              <div className="space-y-0.5">
+                {matches.map((mt) => (
+                  <a
+                    key={mt.pageId}
+                    href={`/app/indexing?focus=${encodeURIComponent(mt.pageId)}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    title={`${mt.fullUrl} · 点击进入「收录与索引」对应页`}
+                    className="group flex items-center gap-1.5 text-[10px] text-manor-inkDim hover:text-manor-brassHi transition-colors"
+                  >
+                    <span className="w-3 text-center shrink-0">{marketFlag(mt.market as Market)}</span>
+                    <span className="truncate flex-1 font-mono">{mt.basePath}</span>
+                    <span className="text-manor-sageHi tabular-nums shrink-0">#{Math.round(mt.position * 10) / 10}</span>
+                    <span className="text-manor-inkFaint tabular-nums shrink-0">{mt.clicks.toLocaleString()}</span>
+                    <ExternalLink size={9} className="opacity-0 group-hover:opacity-70 shrink-0" />
+                  </a>
+                ))}
+              </div>
+            </div>
+          ) : page.url ? (
+            <div>
+              <span className="text-[10px] text-manor-inkFaint italic">该 URL 未在收录与索引中命中（待新建 / 未上线）</span>
+            </div>
+          ) : null}
 
           {/* 市场 — 可点选；下方 GSC 排名随所选市场变（来自收录与索引，有则显示） */}
           <div>
@@ -366,48 +534,96 @@ function PageInspector({
 
         <div className="h-px bg-manor-line" />
 
-        {/* Bound keywords */}
+        {/* 关键词 · 标签页（计划词 / 收录索引实际词）—— 命中(计划∩实际)以绿色强调 */}
         <div>
-          <span className="text-[10px] tracking-[0.15em] text-manor-brassHi/70 block mb-1.5" style={{ fontFamily: sc }}>
-            已绑定关键词 ({dedupedKws.length}{dedupedKws.length !== boundKws.length ? ` · 合并自 ${boundKws.length}` : ""})
-          </span>
-          {kwsToShow.length > 0 ? (
+          <div className="flex items-center gap-1 mb-1.5">
+            {([
+              ["planned", `计划词 ${dedupedKws.length}`],
+              ["actual", `实际词 ${actualQueries.length}`],
+            ] as const).map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setKwTab(key)}
+                className={[
+                  "px-2 py-0.5 rounded text-[10px] tracking-[0.08em] border transition-colors",
+                  kwTab === key
+                    ? "border-manor-brass/55 bg-manor-brassDim/15 text-manor-brassHi"
+                    : "border-manor-line2/40 text-manor-inkFaint hover:text-manor-ink hover:border-manor-brass/30",
+                ].join(" ")}
+                style={{ fontFamily: sc }}
+              >
+                {label}
+              </button>
+            ))}
+            <span className="ml-auto text-[8px] text-manor-inkFaint italic">绿 = 计划与实际命中</span>
+          </div>
+
+          {kwTab === "planned" ? (
+            dedupedKws.length > 0 ? (
+              <div className="space-y-0.5">
+                {kwsToShow.map((g) => {
+                  const hit = actualTexts.has(norm(g.keyword));
+                  return (
+                    <div key={g.key} className={`group flex items-center gap-1.5 text-[10px] ${hit ? "text-manor-sageHi" : "text-manor-inkDim"}`}>
+                      <span className="w-3 text-center shrink-0">{marketFlag(g.reprMarket)}</span>
+                      <span className="truncate flex-1">{g.keyword}</span>
+                      {hit && <span className="text-[8px] text-manor-sageHi shrink-0" title="该计划词已在收录索引拿到实际曝光/点击">命中</span>}
+                      {g.count > 1 && <span className="text-[9px] text-manor-inkFaint shrink-0" title={`${g.count} 个市场变体合并`}>×{g.count}</span>}
+                      <span className="tabular-nums text-manor-inkFaint shrink-0">{formatSv(g.totalSv)}</span>
+                      {onUnassign && (
+                        <button
+                          type="button"
+                          onClick={() => onUnassign(g.ids)}
+                          title={g.count > 1 ? `移出该词的 ${g.count} 个市场变体（移回源池）` : "移出该词（移回源池）"}
+                          aria-label="移出该词"
+                          className="shrink-0 p-0.5 -mr-0.5 text-manor-inkFaint hover:text-manor-oxbloodHi opacity-0 group-hover:opacity-100 focus:opacity-100 transition-all"
+                        >
+                          <X size={11} />
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+                {dedupedKws.length > 10 && (
+                  <button type="button" onClick={() => setShowAllKws(!showAllKws)} className="text-[10px] text-manor-inkFaint hover:text-manor-brassHi flex items-center gap-0.5 pt-1">
+                    <ChevronDown size={10} className={showAllKws ? "rotate-180" : ""} />
+                    {showAllKws ? "收起" : `展开全部 (${dedupedKws.length})`}
+                  </button>
+                )}
+              </div>
+            ) : (
+              <span className="text-[10px] text-manor-inkFaint">尚无计划词</span>
+            )
+          ) : actualQueries.length > 0 ? (
             <div className="space-y-0.5">
-              {kwsToShow.map((g) => (
-                <div key={g.key} className="group flex items-center gap-1.5 text-[10px] text-manor-inkDim">
-                  <span className="w-3 text-center">{marketFlag(g.reprMarket)}</span>
-                  <span className="truncate flex-1">{g.keyword}</span>
-                  {g.count > 1 && (
-                    <span className="text-[9px] text-manor-inkFaint" title={`${g.count} 个市场变体合并`}>×{g.count}</span>
-                  )}
-                  <span className="tabular-nums text-manor-inkFaint">{formatSv(g.totalSv)}</span>
-                  {onUnassign && (
-                    <button
-                      type="button"
-                      onClick={() => onUnassign(g.ids)}
-                      title={g.count > 1 ? `移出该词的 ${g.count} 个市场变体（移回源池）` : "移出该词（移回源池）"}
-                      aria-label="移出该词"
-                      className="shrink-0 p-0.5 -mr-0.5 text-manor-inkFaint hover:text-manor-oxbloodHi opacity-0 group-hover:opacity-100 focus:opacity-100 transition-all"
-                    >
-                      <X size={11} />
-                    </button>
-                  )}
-                </div>
-              ))}
-              {dedupedKws.length > 10 && (
-                <button
-                  type="button"
-                  onClick={() => setShowAllKws(!showAllKws)}
-                  className="text-[10px] text-manor-inkFaint hover:text-manor-brassHi flex items-center gap-0.5 pt-1"
-                >
+              {actualShown.map((q) => {
+                const planned = plannedTexts.has(norm(q.query));
+                return (
+                  <div key={q.query} className={`flex items-center gap-1.5 text-[10px] ${planned ? "text-manor-sageHi" : "text-manor-inkDim"}`}>
+                    <span className="truncate flex-1">{q.query}</span>
+                    {planned && <span className="text-[8px] text-manor-sageHi shrink-0" title="该实际查询词正是规划的计划词">已规划</span>}
+                    <span className="tabular-nums text-manor-inkFaint shrink-0" title="加权平均排名">#{q.position}</span>
+                    <span className="tabular-nums text-manor-inkFaint shrink-0" title="点击">{q.clicks.toLocaleString()}</span>
+                  </div>
+                );
+              })}
+              {actualQueries.length > 12 && (
+                <button type="button" onClick={() => setShowAllKws(!showAllKws)} className="text-[10px] text-manor-inkFaint hover:text-manor-brassHi flex items-center gap-0.5 pt-1">
                   <ChevronDown size={10} className={showAllKws ? "rotate-180" : ""} />
-                  {showAllKws ? "收起" : `展开全部 (${dedupedKws.length})`}
+                  {showAllKws ? "收起" : `展开全部 (${actualQueries.length})`}
                 </button>
               )}
             </div>
           ) : (
-            <span className="text-[10px] text-manor-inkFaint">尚无绑定词</span>
+            <span className="text-[10px] text-manor-inkFaint">{page.url ? "该 URL 在收录与索引暂无查询词数据" : "设 URL 后显示实际命中的查询词"}</span>
           )}
+
+          {/* 辅助词 · 实体（写作语义覆盖，无搜索量；可增删） */}
+          <AuxKeywordEditor
+            words={auxWords}
+            onWordsChange={onAuxChange ? (words) => onAuxChange(page.id, words) : undefined}
+          />
         </div>
       </div>
     </div>

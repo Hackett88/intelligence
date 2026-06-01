@@ -64,3 +64,11 @@ test-evidence/
 /ga4-screenshots/
 /截图/
 /验证截图/
+
+# 浏览器实测临时快照（take_snapshot 文本 dump / playwright MCP 产物）
+/.playwright-mcp/
+/snapshot-temp*.txt
+/snapshot-aux.txt
+
+# 数据库数据备份（运维物料，非源码，不入仓库）
+/备份/

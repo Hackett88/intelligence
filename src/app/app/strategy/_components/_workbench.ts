@@ -9,8 +9,7 @@
  *   · 意图匹配 / 蚕食 / 机会分  → 用库里真实字段真算
  *   · SERP 重合度 / 覆盖缺口    → 演示值（无真实 SERP 抓取，用确定性近似，UI 标"示例"）
  */
-import { getBlueprint } from "./_data";
-import { ALL_KEYWORDS } from "./_all-keywords";
+import { getBlueprint, parseAuxFromNote } from "./_data";
 import type {
   Market, LayerLevel, PagePlanningIntent, BehaviorIntent, PageRole, PlanStatus,
 } from "./_data";
@@ -36,6 +35,24 @@ export type MarketRank = { position: number; clicks: number; impressions: number
 /** basePath（去掉 locale 前缀的路径）→ market → 排名；有则有，无则查不到 */
 export type MarketRankings = Record<string, Partial<Record<Market, MarketRank>>>;
 
+// ── 收录与索引匹配（按 basePath 聚合所有 locale/market 变体 + 各自查询词）─────────
+// 用途：① URL 命中收录索引（任一变体）即亮绿灯；② 抽屉「实际词」栏 = 变体的真实查询词；
+//      ③ 抽屉列出命中的 URL 清单 / 数量 / 可跳转收录索引对应页。
+export type IndexedQueryRow = { query: string; clicks: number; impressions: number; position: number };
+export type IndexedUrlMatch = {
+  pageId: string;        // 收录索引页 id（deep-link 跳转用）
+  basePath: string;      // 去 locale 前缀的路径
+  fullUrl: string;       // 完整 URL（显示 / 外链）
+  market: Market | string;
+  position: number;
+  clicks: number;
+  impressions: number;
+  indexState: string;
+  queries: IndexedQueryRow[];
+};
+/** basePath → 命中该路径的所有变体（多语种 / 多市场，按 clicks 降序） */
+export type IndexedMatches = Record<string, IndexedUrlMatch[]>;
+
 // ── 领域（仅作分组标签，不是嵌套层级）──────────────────────────────────────
 export type Territory = "产品" | "知识" | "工具" | "场景" | "品牌";
 
@@ -44,6 +61,7 @@ export const TERRITORY_BY_THEME: Record<string, Territory> = {
   "islamic-jewelry": "产品",
   "name-necklace": "产品",
   "tasbih": "产品",
+  "dhikr-knowledge": "知识",
 };
 
 // ── 工作台页面节点（扁平；集群用 pillarId 指向支柱）────────────────────────
@@ -62,6 +80,10 @@ export type WbPage = {
   clicks: number | null;
   impressions: number | null;
   note?: string;
+  /** 辅助词（实体）：写作语义覆盖，无搜索量。M6 起为权威字段（落库 aux_keywords）；缺省回退解析 note */
+  auxKeywords?: string[];
+  /** 辅助词是否被用户手工改过（落库 aux_edited）。true 时 reconcile 不再用 seed 回填（尊重用户清空） */
+  auxEdited?: boolean;
   themeId: string;
   themeName: string;
   themeLatin: string;
@@ -95,11 +117,12 @@ export type PlanPayload = {
   parked: string[];                 // kwId[]
 };
 
-let _seed: WorkbenchSeed | null = null;
-
-export function getWorkbenchSeed(): WorkbenchSeed {
-  if (_seed) return _seed;
-
+/**
+ * 由蓝图主题派生页面节点，并把传入的「关键词宇宙」（allKeywords，实时来自 DB）分拣成
+ * 预绑定 / 源池 / 噪声。allKeywords 由调用方实时读库后注入（见 _keyword-source.ts），
+ * 故不再做模块级缓存 —— 数据会随关键词库变化。
+ */
+export function getWorkbenchSeed(allKeywords: RawKeyword[]): WorkbenchSeed {
   const bp = getBlueprint();
   const pages: WbPage[] = [];
   // keyOf → pageId（预绑映射）
@@ -115,6 +138,7 @@ export function getWorkbenchSeed(): WorkbenchSeed {
         market: p.market, markets: p.markets,
         position: p.position, clicks: p.clicks, impressions: p.impressions,
         note: p.note,
+        auxKeywords: p.auxKeywords ?? parseAuxFromNote(p.note),
         themeId: t.id, themeName: t.name, themeLatin: t.latin, territory,
         ...(p.scenarioId ? { scenarioId: p.scenarioId } : {}),
       });
@@ -134,7 +158,7 @@ export function getWorkbenchSeed(): WorkbenchSeed {
   const pool: RawKeyword[] = [];
   const excluded: RawKeyword[] = [];
 
-  for (const k of ALL_KEYWORDS) {
+  for (const k of allKeywords) {
     const kk = keyOf(k.keyword, k.market);
     if (excludedKeys.has(kk)) { excluded.push(k); continue; }
     const pid = keyToPage.get(kk);
@@ -142,14 +166,13 @@ export function getWorkbenchSeed(): WorkbenchSeed {
     else pool.push(k);
   }
 
-  _seed = {
+  return {
     pages,
     bindings,
     pool,
     excluded,
     territories: ["产品", "知识", "工具", "场景", "品牌"],
   };
-  return _seed;
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -339,6 +362,25 @@ export function dedupeKeywords(kws: RawKeyword[]): DedupedKeyword[] {
 // 漏斗层 + 意图族：蚕食检测的两个新维度，同时供 UI 显式展示「页面类型 / 搜索意图」。
 // 两者都运行时派生（URL 推断 + 绑定词投票），不入库、不加 WbPage 字段 —— DB/旧草稿零迁移。
 // ════════════════════════════════════════════════════════════════════════════
+
+// ── 收录索引匹配工具（客户端纯函数；与 _gsc-rankings basePath 同源）──────────────
+// locale 前缀：URL 第一段命中则视为本地化变体（与 _gsc-rankings / transform 口径一致）。
+const LOCALE_PREFIXES = new Set(["ar", "fr", "de", "tr", "es", "pt", "id", "ms", "ur", "ja", "zh"]);
+/** 去掉 locale 前缀：/id/collections/zikr-ring → /collections/zikr-ring */
+export function toBasePath(url: string): string {
+  const parts = url.split("/");
+  if (parts.length > 2 && LOCALE_PREFIXES.has(parts[1])) return "/" + parts.slice(2).join("/");
+  return url;
+}
+/** 某页 URL 在收录索引里命中的所有变体（basePath 匹配，多语种/多市场聚合，按 clicks 降序）。 */
+export function matchIndexed(url: string | null | undefined, idx: IndexedMatches): IndexedUrlMatch[] {
+  if (!url) return [];
+  return idx[toBasePath(url)] ?? [];
+}
+/** 有效上线状态：URL 命中收录索引(任一变体) → live；否则用页面自身 status。 */
+export function effectiveStatus(url: string | null | undefined, ownStatus: PlanStatus, idx: IndexedMatches): PlanStatus {
+  return matchIndexed(url, idx).length > 0 ? "live" : ownStatus;
+}
 
 /** Shopify 漏斗层：从 URL 前缀实时推断（product 前缀优先于 collection）。 */
 export type FunnelLayer = "collection" | "product" | "blog" | "page" | null;

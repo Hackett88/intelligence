@@ -18,7 +18,7 @@ import {
 } from "../src/app/app/strategy/_components/_workbench";
 import { ALL_KEYWORDS } from "../src/app/app/strategy/_components/_all-keywords";
 
-const seed = getWorkbenchSeed();
+const seed = getWorkbenchSeed(ALL_KEYWORDS);
 const pages = seed.pages;
 
 // 复刻 WorkbenchClient 的数据流：用初始预绑定 bindings 构造 boundByPage，注入意图 resolver

@@ -11,7 +11,7 @@
  */
 import { loadLatestSnapshot } from "@/lib/gsc/loader";
 import type { Market } from "./_data";
-import type { MarketRankings } from "./_workbench";
+import type { MarketRankings, IndexedMatches } from "./_workbench";
 
 // 与 transform.ts 的 LOCALE_TO_MARKET 键一致：URL 第一段若是这些 locale，则属本地化变体
 const LOCALE_PREFIXES = new Set(["ar", "fr", "de", "tr", "es", "pt", "id", "ms", "ur", "ja", "zh"]);
@@ -49,5 +49,47 @@ export async function getMarketRankings(): Promise<MarketRankings> {
       out[bp][m] = { position: p.position, clicks: p.clicks, impressions: p.impressions };
     }
   }
+  return out;
+}
+
+/**
+ * 收录与索引匹配表：basePath → 命中该路径的所有变体（多语种/多市场）+ 各自查询词。
+ * 与 getMarketRankings 同源（loadLatestSnapshot），但保留「每个真实 URL 变体」而非只留最优，
+ * 并带上 queries / fullUrl / pageId，供工作台做「亮绿 + 实际词 + 命中清单 + 跳转」。
+ * 收录口径：非合成 + position>0（有排名=已上线，保证有数据可引用）。
+ */
+const MAX_Q_PER_VARIANT = 15; // 每变体查询词上限，控传输量；完整词在收录与索引详情看
+export async function getIndexedMatches(): Promise<IndexedMatches> {
+  const out: IndexedMatches = {};
+  let snap;
+  try {
+    snap = await loadLatestSnapshot();
+  } catch {
+    return out;
+  }
+  if (!snap) return out;
+
+  for (const p of snap.pages) {
+    if (p.isSynthetic) continue;
+    if (!(p.position > 0)) continue;
+    const m = p.market as Market;
+    if (!APP_MARKETS.has(m)) continue;
+    const bp = basePath(p.url);
+    if (!out[bp]) out[bp] = [];
+    out[bp].push({
+      pageId: p.id,
+      basePath: bp,
+      fullUrl: p.fullUrl,
+      market: p.market,
+      position: p.position,
+      clicks: p.clicks,
+      impressions: p.impressions,
+      indexState: p.indexState,
+      queries: (p.queries ?? [])
+        .slice(0, MAX_Q_PER_VARIANT)
+        .map((q) => ({ query: q.query, clicks: q.clicks, impressions: q.impressions, position: q.position })),
+    });
+  }
+  for (const bp in out) out[bp].sort((a, b) => b.clicks - a.clicks);
   return out;
 }

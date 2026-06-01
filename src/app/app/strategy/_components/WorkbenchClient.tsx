@@ -2,8 +2,8 @@
 
 import * as React from "react";
 import { PanelLeftOpen, PanelRightOpen } from "lucide-react";
-import type { WorkbenchSeed, WbPage, RawKeyword, Territory, MarketRankings } from "./_workbench";
-import { ALL_KEYWORDS } from "./_all-keywords";
+import type { WorkbenchSeed, WbPage, RawKeyword, Territory, MarketRankings, IndexedMatches, PlanPayload } from "./_workbench";
+import { saveStrategyPlanAction } from "./_plan-actions";
 import { SourcePool } from "./SourcePool";
 import { LoomGrid } from "./LoomGrid";
 import { InspectorPanel } from "./InspectorPanel";
@@ -125,6 +125,7 @@ type Action =
   | { type: "NEW_PILLAR"; title: string; territory: Territory }
   | { type: "NEW_CLUSTER"; title: string; pillarId: string; role?: "cluster" | "sub-pillar"; scenarioId?: string }
   | { type: "SET_PAGE_URL"; pageId: string; url: string }
+  | { type: "SET_AUX_KEYWORDS"; pageId: string; words: string[] }
   | { type: "CREATE_AND_ASSIGN"; role: "pillar" | "cluster"; pillarId: string | null; title: string; territory: Territory; kwIds: string[] }
   | { type: "SELECT"; selection: SelectionKind }
   | { type: "SET_POOL_SELECTION"; ids: Set<string> }
@@ -281,6 +282,26 @@ function reducer(state: WbState, action: Action): WbState {
         redoStack: [],
       };
     }
+    case "SET_AUX_KEYWORDS": {
+      const hist = snapshot(state);
+      // 去空白、去空串、去重
+      const seen = new Set<string>();
+      const cleaned: string[] = [];
+      for (const w of action.words) {
+        const t = w.trim();
+        if (t && !seen.has(t)) { seen.add(t); cleaned.push(t); }
+      }
+      // 用户手工改过辅助词 → 置 auxEdited=true，此后 reconcile 不再用 seed 回填（尊重清空）
+      const newPages = state.pages.map((p) =>
+        p.id === action.pageId ? { ...p, auxKeywords: cleaned, auxEdited: true } : p
+      );
+      return {
+        ...state,
+        pages: newPages,
+        undoStack: [...state.undoStack, hist],
+        redoStack: [],
+      };
+    }
     case "CREATE_AND_ASSIGN": {
       const hist = snapshot(state);
       const id = nextId(action.role === "pillar" ? "usr-pil" : "usr-cls");
@@ -394,16 +415,21 @@ function loadFromStorage(seed: WorkbenchSeed): Partial<WbState> | null {
 // ── Component ──────────────────────────────────────────────────────────────────
 interface WorkbenchClientProps {
   seed: WorkbenchSeed;
+  /** 关键词进料源：实时读库的全表 RawKeyword（与「关键词库」同源） */
+  allKeywords: RawKeyword[];
   rankings: MarketRankings;
+  indexedMatches: IndexedMatches;
+  /** M6：服务端按 owner 读取的已落库规划；null = 库内无记录（回退本地草稿/蓝图） */
+  initialPlan?: PlanPayload | null;
 }
 
-export function WorkbenchClient({ seed, rankings }: WorkbenchClientProps) {
+export function WorkbenchClient({ seed, allKeywords, rankings, indexedMatches, initialPlan }: WorkbenchClientProps) {
   // ── KW_BY_ID: the single truth source for all keyword lookups ──
   const KW_BY_ID = React.useMemo(() => {
     const map = new Map<string, RawKeyword>();
-    for (const k of ALL_KEYWORDS) map.set(k.id, k);
+    for (const k of allKeywords) map.set(k.id, k);
     return map;
-  }, []);
+  }, [allKeywords]);
 
   // excluded keyword IDs (never enter pool or bindings)
   const excludedIds = React.useMemo(() => {
@@ -411,8 +437,16 @@ export function WorkbenchClient({ seed, rankings }: WorkbenchClientProps) {
   }, [seed.excluded]);
 
   const initState = React.useMemo<WbState>(() => {
-    const saved = loadFromStorage(seed);
-    // 优先级：本地草稿 > 蓝图种子（已无 DB 持久化层）
+    // 初始化优先级（M6）：DB(initialPlan) > localStorage 草稿 > 蓝图种子。
+    // initialPlan 有记录时作为 saved 基底（DB 权威）；否则回退本地草稿。
+    // 无论哪个基底，下面的 seed-merge / reconcile / prune 一律照常应用，结构自愈不变。
+    const saved: Partial<WbState> | null = initialPlan
+      ? {
+          pages: initialPlan.pages,
+          bindings: initialPlan.bindings,
+          parked: new Set(initialPlan.parked),
+        }
+      : loadFromStorage(seed);
     const basePages = saved?.pages ?? seed.pages;
     // v2.1 seed-merge: 把种子里本地草稿没有的页面自动并入（按 pageId 去重），
     // 让新增 demo 主题在有本地草稿时也能完整下钻。
@@ -431,8 +465,14 @@ export function WorkbenchClient({ seed, rankings }: WorkbenchClientProps) {
     const pruned = merged.filter((p) => seedIdSet.has(p.id) || p.id.startsWith("wb-") || p.id.startsWith("usr-"));
     const reconciled = pruned.map((p) => {
       const sp = seedById.get(p.id);
-      if (!sp) return p;
-      return { ...p, themeId: sp.themeId, themeName: sp.themeName, themeLatin: sp.themeLatin, territory: sp.territory, role: sp.role, pillarId: sp.pillarId, scenarioId: sp.scenarioId };
+      if (!sp) return p; // 用户自建页（wb-/usr-，seed 无）：完全不动，含 auxKeywords / auxEdited / scenarioId
+      // 蓝图页：结构字段以蓝图为准；auxKeywords 仅当「未被用户改过 ∧ 空」时才补 seed——
+      //   · 旧 localStorage 草稿（M1 无字段）或 DB 落成的空 []，在 auxEdited=false 时被回填成 seed 辅助词；
+      //   · auxEdited=true（用户手工改过）→ 保留 p.auxKeywords，含空数组，尊重「用户清空」，不再被种子覆盖；
+      //   · 非空且未编辑 → 也保留。下一次任意改动触发的整组覆盖 savePlan 把 DB 的空 aux 自愈成正确值。
+      const auxEmpty = !p.auxKeywords || p.auxKeywords.length === 0;
+      const auxKeywords = (!p.auxEdited && auxEmpty) ? sp.auxKeywords : p.auxKeywords;
+      return { ...p, themeId: sp.themeId, themeName: sp.themeName, themeLatin: sp.themeLatin, territory: sp.territory, role: sp.role, pillarId: sp.pillarId, scenarioId: sp.scenarioId, auxKeywords, auxEdited: p.auxEdited };
     });
     const baseBindings = saved?.bindings ?? { ...seed.bindings };
     // Also merge seed bindings for newly added pages
@@ -457,13 +497,41 @@ export function WorkbenchClient({ seed, rankings }: WorkbenchClientProps) {
       redoStack: [],
       assignMenuOpen: false,
     };
-  }, [seed]);
+  }, [seed, initialPlan]);
 
   const [state, dispatch] = React.useReducer(reducer, initState);
 
-  // auto-save on bindings/parked/pages change（本地草稿：localStorage，唯一持久层）
+  // ── 持久化：localStorage（离线兜底，并行保留）+ DB（权威，防抖落库） ──────────
+  // auto-save on bindings/parked/pages change（本地草稿：localStorage 离线兜底）
   React.useEffect(() => {
     saveToStorage(state);
+  }, [state.bindings, state.parked, state.pages]);
+
+  // 防抖落库：状态变化 → 1s 后调 server action。
+  // 防 StrictMode 空保存 / 重挂初始保存：用序列化快照比对，仅当与上次快照不同才落库；
+  // mount（含 StrictMode 双挂）时把当前快照记为基线，不触发保存。
+  const lastSavedSnapshotRef = React.useRef<string | null>(null);
+  React.useEffect(() => {
+    const payload: PlanPayload = {
+      pages: state.pages,
+      bindings: state.bindings,
+      parked: Array.from(state.parked),
+    };
+    const snapshot = JSON.stringify(payload);
+    // 首次（基线未定）：记基线、不保存 —— 这正是 mount/重挂的初始快照不触发的保护。
+    if (lastSavedSnapshotRef.current === null) {
+      lastSavedSnapshotRef.current = snapshot;
+      return;
+    }
+    // 与上次落库快照相同 → 跳过（StrictMode 重复 effect / 无实质变化）。
+    if (snapshot === lastSavedSnapshotRef.current) return;
+    const timer = setTimeout(() => {
+      lastSavedSnapshotRef.current = snapshot;
+      void saveStrategyPlanAction(payload).then((res) => {
+        if (!res?.ok) console.warn("[strategy] 落库失败，已保留本地草稿兜底");
+      });
+    }, 1000);
+    return () => clearTimeout(timer);
   }, [state.bindings, state.parked, state.pages]);
 
   // Ctrl+Z / Ctrl+Y
@@ -539,17 +607,17 @@ export function WorkbenchClient({ seed, rankings }: WorkbenchClientProps) {
     [onResizeMove, onResizeUp]
   );
 
-  // derived: pool = ALL_KEYWORDS minus bound, parked, and excluded (dynamic)
+  // derived: pool = allKeywords minus bound, parked, and excluded (dynamic)
   const poolKeywords = React.useMemo(() => {
-    return ALL_KEYWORDS.filter(
+    return allKeywords.filter(
       (k) => !(k.id in state.bindings) && !state.parked.has(k.id) && !excludedIds.has(k.id)
     );
-  }, [state.bindings, state.parked, excludedIds]);
+  }, [allKeywords, state.bindings, state.parked, excludedIds]);
 
   // parked keywords
   const parkedKeywords = React.useMemo(() => {
-    return ALL_KEYWORDS.filter((k) => state.parked.has(k.id));
-  }, [state.parked]);
+    return allKeywords.filter((k) => state.parked.has(k.id));
+  }, [allKeywords, state.parked]);
 
   // bound keywords per page — uses KW_BY_ID so pre-bound 123 words are included
   const boundByPage = React.useMemo(() => {
@@ -721,6 +789,7 @@ export function WorkbenchClient({ seed, rankings }: WorkbenchClientProps) {
           <LoomGrid
             pages={state.pages}
             boundByPage={boundByPage}
+            indexedMatches={indexedMatches}
             selectedPageId={state.selection?.type === "page" ? state.selection.id : null}
             onPageSelect={(id) => dispatch({ type: "SELECT", selection: { type: "page", id } })}
             onNewCluster={(title, pillarId, role, scenarioId) => dispatch({ type: "NEW_CLUSTER", title, pillarId, role, scenarioId })}
@@ -750,11 +819,13 @@ export function WorkbenchClient({ seed, rankings }: WorkbenchClientProps) {
                 selectedPage={selectedPage}
                 pages={state.pages}
                 bindings={state.bindings}
-                allKeywords={ALL_KEYWORDS}
+                allKeywords={allKeywords}
                 boundByPage={boundByPage}
                 rankings={rankings}
+                indexedMatches={indexedMatches}
                 onPageSelect={(id) => dispatch({ type: "SELECT", selection: { type: "page", id } })}
                 onUrlChange={(pageId, url) => dispatch({ type: "SET_PAGE_URL", pageId, url })}
+                onAuxChange={(pageId, words) => dispatch({ type: "SET_AUX_KEYWORDS", pageId, words })}
                 onUnassign={requestUnassign}
                 onCollapse={() => setRightCollapsed(true)}
               />

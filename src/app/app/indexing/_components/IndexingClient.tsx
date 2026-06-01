@@ -289,6 +289,16 @@ export function IndexingClient({
   const [filters, setFilters] = useState<IndexingFilterState>({ ...DEFAULT_INDEXING_FILTERS });
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  // Deep-link：?focus=<pageId>（从选题工作台「收录索引命中」跳转而来）→ 选中并打开对应页抽屉。
+  useEffect(() => {
+    const focus = new URLSearchParams(window.location.search).get("focus");
+    if (focus && initialData.some((p) => p.id === focus)) {
+      setSelectedId(focus);
+      setDrawerOpen(true);
+    }
+    // 仅 mount 执行一次
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [pageSize, setPageSize] = useState(20);
   const [currentPage, setCurrentPage] = useState(1);
   // 抽屉里的时间窗与 FilterBar 的时间窗解耦：FilterBar 控的是整张表格的全局
