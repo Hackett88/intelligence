@@ -70,6 +70,23 @@ function moveById<T>(arr: T[], dragId: string | null, overId: string, keyFn: (t:
   return next;
 }
 
+// ── Column-width / row-height persistence ────────────────────────────────────
+const SIZES_KEY = "wb-loom-sizes-v1";
+const CAT_COL_KEY = "__cat__"; // 行头那一列（品类列）的宽度键
+const MIN_COL_W = 60;
+const MIN_ROW_H = 44;
+type LoomSizes = { colWidths: Record<string, number>; rowHeights: Record<string, number> };
+function loadSizes(): LoomSizes | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(SIZES_KEY);
+    if (!raw) return null;
+    const d = JSON.parse(raw);
+    if (typeof d?.colWidths !== "object" || typeof d?.rowHeights !== "object") return null;
+    return d as LoomSizes;
+  } catch { return null; }
+}
+
 // ── Types ──────────────────────────────────────────────────────────────────
 
 type CellSubPillar = {
@@ -87,6 +104,8 @@ type CellData = {
 };
 /** 渲染列：实际场景列(theme) 或 空带占位列(placeholder)。空带占 1 列、不进数据交叉。 */
 type RenderCol = { kind: "theme"; bandType: string; theme: SpineEntry } | { kind: "placeholder"; bandType: string };
+/** 每个渲染列的宽度键：真实场景列用 theme.id，空带占位列用 ph:<bandType>。 */
+function colKeyOf(rc: RenderCol): string { return rc.kind === "theme" ? rc.theme.id : `ph:${rc.bandType}`; }
 type DrillLevel =
   | { type: "overview" }
   | { type: "pillar"; themeId: string; themeName: string }
@@ -224,6 +243,13 @@ export function LoomGrid({ pages, boundByPage, selectedPageId, onPageSelect, onN
     try { window.localStorage.setItem(STRUCT_KEY, JSON.stringify({ rows, bands })); } catch { /* quota / unavailable */ }
   }, [rows, bands]);
 
+  // ── Column-width / row-height overrides (拖拽改尺寸；为空 = 自适应)。Persisted. ──
+  const [colWidths, setColWidths] = React.useState<Record<string, number>>(() => loadSizes()?.colWidths ?? {});
+  const [rowHeights, setRowHeights] = React.useState<Record<string, number>>(() => loadSizes()?.rowHeights ?? {});
+  React.useEffect(() => {
+    try { window.localStorage.setItem(SIZES_KEY, JSON.stringify({ colWidths, rowHeights })); } catch { /* quota / unavailable */ }
+  }, [colWidths, rowHeights]);
+
   // ── Add-entry UI state ──
   const [addingRow, setAddingRow] = React.useState(false);
   const [newRowEn, setNewRowEn] = React.useState(""); const [newRowZh, setNewRowZh] = React.useState("");
@@ -300,6 +326,41 @@ export function LoomGrid({ pages, boundByPage, selectedPageId, onPageSelect, onN
 
   const canvasRef = React.useRef<HTMLDivElement>(null);
   const zoom = useZoomPan(canvasRef);
+
+  // ── Drag-to-resize (列宽 / 行高)。手柄落在表头格右缘/行头格下缘。 ──
+  // 网格整体被 scale(zoom) 变换过，所以屏幕位移要除以 scale 才是网格空间的真实增量。
+  // 这些是 React 事件处理器（每次渲染重挂），直接闭包读 zoom.scale 即可拿到最新值，不用 ref。
+  const resizeRef = React.useRef<null | { kind: "col" | "row"; key: string; startPos: number; startSize: number; pointerId: number }>(null);
+  const startResize = React.useCallback((kind: "col" | "row", key: string) => (e: React.PointerEvent) => {
+    if (e.button !== 0) return;
+    e.stopPropagation(); e.preventDefault();
+    // 手柄是表头格/行头格的直接子元素 —— 量它的父元素即得该列/行当前渲染尺寸（首拖时把自适应值固化下来）。
+    const rect = (e.currentTarget as HTMLElement).parentElement?.getBoundingClientRect();
+    const scale = zoom.scale || 1;
+    const startSize = rect ? (kind === "col" ? rect.width : rect.height) / scale : (kind === "col" ? MIN_COL_W : MIN_ROW_H);
+    resizeRef.current = { kind, key, startPos: kind === "col" ? e.clientX : e.clientY, startSize, pointerId: e.pointerId };
+    try { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); } catch { /* ignore */ }
+    document.body.style.userSelect = "none";
+  }, [zoom.scale]);
+  const onResizeMove = React.useCallback((e: React.PointerEvent) => {
+    const r = resizeRef.current; if (!r || e.pointerId !== r.pointerId) return;
+    e.stopPropagation();
+    const scale = zoom.scale || 1;
+    const delta = ((r.kind === "col" ? e.clientX : e.clientY) - r.startPos) / scale;
+    const next = Math.round(Math.max(r.kind === "col" ? MIN_COL_W : MIN_ROW_H, r.startSize + delta));
+    if (r.kind === "col") setColWidths((p) => (p[r.key] === next ? p : { ...p, [r.key]: next }));
+    else setRowHeights((p) => (p[r.key] === next ? p : { ...p, [r.key]: next }));
+  }, [zoom.scale]);
+  const endResize = React.useCallback((e: React.PointerEvent) => {
+    const r = resizeRef.current; if (!r || e.pointerId !== r.pointerId) return;
+    try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch { /* ignore */ }
+    resizeRef.current = null;
+    document.body.style.userSelect = "";
+  }, []);
+  const clearSize = React.useCallback((kind: "col" | "row", key: string) => {
+    if (kind === "col") setColWidths((p) => { if (p[key] == null) return p; const n = { ...p }; delete n[key]; return n; });
+    else setRowHeights((p) => { if (p[key] == null) return p; const n = { ...p }; delete n[key]; return n; });
+  }, []);
 
   // ── Derived columns: flat scenario list + render list (with placeholders for empty bands) ──
   const renderCols = React.useMemo<RenderCol[]>(
@@ -556,6 +617,35 @@ export function LoomGrid({ pages, boundByPage, selectedPageId, onPageSelect, onN
   // ═══════════════════════════════════════════════════════════════════════
   //  OVERVIEW GRID
   // ═══════════════════════════════════════════════════════════════════════
+
+  // 被改过宽/高的轨道改用固定 px；CSS grid 单元默认 min-width:auto 不肯缩，所以给被改的格子补 min-*:0 + overflow:hidden 让它真正听话。
+  const colOverflowStyle = (key: string): React.CSSProperties | undefined => (colWidths[key] != null ? { minWidth: 0, overflow: "hidden" } : undefined);
+  const cellOverflowStyle = (colKey: string, catId: string): React.CSSProperties | undefined => {
+    const c = colWidths[colKey] != null, r = rowHeights[catId] != null;
+    if (!c && !r) return undefined;
+    return { ...(c ? { minWidth: 0 } : null), ...(r ? { minHeight: 0 } : null), overflow: "hidden" };
+  };
+  const colHandle = (key: string) => (
+    <div
+      onPointerDown={startResize("col", key)} onPointerMove={onResizeMove} onPointerUp={endResize} onPointerCancel={endResize}
+      onClick={(e) => e.stopPropagation()} onDoubleClick={(e) => { e.stopPropagation(); clearSize("col", key); }}
+      title="拖动改列宽 · 双击恢复自适应"
+      className="absolute top-0 right-0 h-full w-1.5 z-20 cursor-col-resize"
+      style={{ touchAction: "none" }}
+    />
+  );
+  const rowHandle = (catId: string) => (
+    <div
+      onPointerDown={startResize("row", catId)} onPointerMove={onResizeMove} onPointerUp={endResize} onPointerCancel={endResize}
+      onClick={(e) => e.stopPropagation()} onDoubleClick={(e) => { e.stopPropagation(); clearSize("row", catId); }}
+      title="拖动改行高 · 双击恢复自适应"
+      className="absolute bottom-0 left-0 w-full h-1.5 z-20 cursor-row-resize"
+      style={{ touchAction: "none" }}
+    />
+  );
+  const gridTemplateColumns = `${colWidths[CAT_COL_KEY] != null ? `${colWidths[CAT_COL_KEY]}px` : "minmax(120px, max-content)"} ${renderCols.map((rc) => { const k = colKeyOf(rc); return colWidths[k] != null ? `${colWidths[k]}px` : "minmax(max-content, 1fr)"; }).join(" ")} 48px`;
+  const gridTemplateRows = `auto auto ${rows.map((cat) => (rowHeights[cat.id] != null ? `${rowHeights[cat.id]}px` : "minmax(auto, 1fr)")).join(" ")} 32px`;
+
   return (
     <div className="flex-1 min-h-0 flex flex-col">
       <div className="px-4 py-2 border-b border-manor-line/50 shrink-0 flex items-center gap-2">
@@ -580,7 +670,7 @@ export function LoomGrid({ pages, boundByPage, selectedPageId, onPageSelect, onN
         style={{ cursor: "grab", userSelect: "none", WebkitUserSelect: "none" } as React.CSSProperties}
       >
         <div className="p-4 origin-top-left" style={{ transform: `translate(${zoom.tx}px, ${zoom.ty}px) scale(${zoom.scale})`, transformOrigin: "0 0", willChange: zoom.isGesturing ? "transform" : "auto", minWidth: "100%", minHeight: "100%" }}>
-          <div className="inline-grid gap-0" style={{ gridTemplateColumns: `minmax(120px, max-content) repeat(${totalThemeCols}, minmax(max-content, 1fr)) 48px`, gridTemplateRows: `auto auto repeat(${rows.length}, minmax(auto, 1fr)) 32px`, minWidth: "100%", borderTop: gridBorder, borderLeft: gridBorder }}>
+          <div className="inline-grid gap-0" style={{ gridTemplateColumns, gridTemplateRows, minWidth: "100%", borderTop: gridBorder, borderLeft: gridBorder }}>
             {/* Row 1: 大列 (type band) headers -- grip to drag, + to add 小列 */}
             <div style={{ background: headerBg, borderRight: gridBorder, borderBottom: gridBorder }} />
             {bands.map((band) => {
@@ -627,20 +717,21 @@ export function LoomGrid({ pages, boundByPage, selectedPageId, onPageSelect, onN
             </div>
 
             {/* Row 2: sub-column (小列) headers */}
-            <div className="flex items-end pb-1 px-2" style={{ background: headerBg, borderRight: gridBorder, borderBottom: gridBorder }}><span className="text-[8px] text-manor-inkFaint" style={{ fontFamily: sc }}>Category</span></div>
+            <div className="relative flex items-end pb-1 px-2" style={{ background: headerBg, borderRight: gridBorder, borderBottom: gridBorder, ...colOverflowStyle(CAT_COL_KEY) }}><span className="text-[8px] text-manor-inkFaint" style={{ fontFamily: sc }}>Category</span>{colHandle(CAT_COL_KEY)}</div>
             {renderCols.map((rc) => {
               if (rc.kind === "placeholder") {
                 return (
-                  <div key={`ph-${rc.bandType}`} className="flex flex-col items-center justify-end gap-0.5 px-2 pb-1.5 pt-1" style={{ background: headerBg, borderRight: gridBorder, borderBottom: gridBorder }}>
+                  <div key={`ph-${rc.bandType}`} className="relative flex flex-col items-center justify-end gap-0.5 px-2 pb-1.5 pt-1" style={{ background: headerBg, borderRight: gridBorder, borderBottom: gridBorder, ...colOverflowStyle(colKeyOf(rc)) }}>
                     <span className="text-[9px] text-manor-inkFaint italic">空带</span>
                     <button type="button" onClick={() => setAddingThemeFor(rc.bandType)} className="text-[9px] text-manor-inkFaint hover:text-manor-brassHi flex items-center gap-0.5"><Plus size={9} /> 小列</button>
+                    {colHandle(colKeyOf(rc))}
                   </div>
                 );
               }
               const col = rc.theme; const owned = scenarioOwned.get(col.id);
               const isThemeDragging = dragId === col.id;
               return (
-                <div key={`col-${col.id}`} data-theme-id={col.id} data-theme-band={rc.bandType} className="relative group flex flex-col items-center justify-end gap-0.5 px-2 pb-1.5 pt-1 cursor-pointer hover:bg-manor-bg3/30 transition-colors" style={{ background: headerBg, borderRight: gridBorder, borderBottom: gridBorder, opacity: isThemeDragging ? 0.45 : 1 }} onClick={() => drillInto(col.id, col.en)} title={`${col.en} ${col.zh}`}>
+                <div key={`col-${col.id}`} data-theme-id={col.id} data-theme-band={rc.bandType} className="relative group flex flex-col items-center justify-end gap-0.5 px-2 pb-1.5 pt-1 cursor-pointer hover:bg-manor-bg3/30 transition-colors" style={{ background: headerBg, borderRight: gridBorder, borderBottom: gridBorder, opacity: isThemeDragging ? 0.45 : 1, ...colOverflowStyle(col.id) }} onClick={() => drillInto(col.id, col.en)} title={`${col.en} ${col.zh}`}>
                   <button
                     type="button"
                     onPointerDown={startDrag("theme", col.id, rc.bandType)} onPointerMove={onDragMove} onPointerUp={endDrag} onPointerCancel={endDrag}
@@ -651,6 +742,7 @@ export function LoomGrid({ pages, boundByPage, selectedPageId, onPageSelect, onN
                   <span className="text-[12px] text-manor-brassHi font-semibold leading-tight text-center whitespace-nowrap" style={{ fontFamily: serif }}>{col.en}</span>
                   <span className="text-[9px] text-manor-ink leading-tight whitespace-nowrap">{col.zh}</span>
                   {owned && owned.count > 0 && <span className="text-[8px] text-manor-inkDim tabular-nums">{owned.count} pg</span>}
+                  {colHandle(col.id)}
                 </div>
               );
             })}
@@ -673,7 +765,7 @@ export function LoomGrid({ pages, boundByPage, selectedPageId, onPageSelect, onN
                   <div
                     data-row-id={cat.id}
                     className={["relative group flex flex-col items-start justify-center gap-0.5 pl-5 pr-3 py-3 cursor-pointer transition-colors", catSel ? "bg-manor-bg3" : "hover:bg-manor-bg3/40"].join(" ")}
-                    style={{ background: catSel ? undefined : headerBg, borderRight: gridBorder, borderBottom: gridBorder, opacity: isDragging ? 0.45 : 1 }}
+                    style={{ background: catSel ? undefined : headerBg, borderRight: gridBorder, borderBottom: gridBorder, opacity: isDragging ? 0.45 : 1, ...cellOverflowStyle(CAT_COL_KEY, cat.id) }}
                     onClick={() => drillInto(cat.id, cat.en)} title={`${cat.en} ${cat.zh}`}
                   >
                     <button
@@ -695,16 +787,17 @@ export function LoomGrid({ pages, boundByPage, selectedPageId, onPageSelect, onN
                       {catTreeSv > 0 && <span className="text-[8px] text-manor-brassDim tabular-nums">{formatSv(catTreeSv)}</span>}
                       {!catPillar && <span className="text-[8px] text-manor-inkFaint italic">no pillar</span>}
                     </div>
+                    {rowHandle(cat.id)}
                   </div>
                   {renderCols.map((rc) => {
                     if (rc.kind === "placeholder") {
-                      return <div key={`phc-${cat.id}-${rc.bandType}`} className="min-h-[72px]" style={{ borderRight: gridBorder, borderBottom: gridBorder }} />;
+                      return <div key={`phc-${cat.id}-${rc.bandType}`} className="min-h-[72px]" style={{ borderRight: gridBorder, borderBottom: gridBorder, ...cellOverflowStyle(colKeyOf(rc), cat.id) }} />;
                     }
                     const scen = rc.theme;
                     const key = `${cat.id}::${scen.id}`; const cell = cells.get(key); const isGap = !cell || cell.subCount === 0;
                     const totalSv = cell?.totalSv ?? 0;
                     return (
-                      <div key={key} className={["relative flex flex-col items-start justify-start gap-0.5 p-2 min-h-[72px] cursor-pointer transition-all text-left", isGap ? "hover:border-manor-brass/20 hover:bg-manor-bg3/15" : "hover:border-manor-brass/30 hover:bg-manor-bg3/20"].join(" ")} style={{ borderRight: gridBorder, borderBottom: gridBorder }} onClick={() => { setDrillStack((s) => [...s, { type: "cell", categoryId: cat.id, categoryName: cat.en, scenarioId: scen.id, scenarioName: scen.en }]); }} title={isGap ? `Gap: ${cat.en} x ${scen.en} — click to add` : `${cat.en} x ${scen.en}: ${cell!.subCount} sub-pillars, ${cell!.clusterCount} clusters, ${formatSv(totalSv)} SV`}>
+                      <div key={key} className={["relative flex flex-col items-start justify-start gap-0.5 p-2 min-h-[72px] cursor-pointer transition-all text-left", isGap ? "hover:border-manor-brass/20 hover:bg-manor-bg3/15" : "hover:border-manor-brass/30 hover:bg-manor-bg3/20"].join(" ")} style={{ borderRight: gridBorder, borderBottom: gridBorder, ...cellOverflowStyle(scen.id, cat.id) }} onClick={() => { setDrillStack((s) => [...s, { type: "cell", categoryId: cat.id, categoryName: cat.en, scenarioId: scen.id, scenarioName: scen.en }]); }} title={isGap ? `Gap: ${cat.en} x ${scen.en} — click to add` : `${cat.en} x ${scen.en}: ${cell!.subCount} sub-pillars, ${cell!.clusterCount} clusters, ${formatSv(totalSv)} SV`}>
                         {isGap ? (<div className="flex-1 flex flex-col items-center justify-center w-full"><span className="absolute inset-2 border border-dashed border-manor-line2/30 rounded pointer-events-none" aria-hidden /><span className="text-[14px] text-manor-inkGhost leading-none" aria-hidden>&#x25A2;</span><span className="text-[8px] text-manor-inkFaint/50 mt-0.5">gap</span></div>
                         ) : (<>
                           {/* 爸爸→孙子缩进小树：每个爸爸=一张带框可折叠小卡 */}
@@ -770,7 +863,7 @@ export function LoomGrid({ pages, boundByPage, selectedPageId, onPageSelect, onN
               <span className="inline-flex items-center gap-1"><StatusDot status="optimize" size={6} /><span>Optimize</span></span>
               <span className="inline-flex items-center gap-1"><StatusDot status="gap" size={6} /><span>Gap</span></span>
             </div>
-            <span className="text-[9px] text-manor-inkFaint italic ml-auto">悬停行头/类型带露出抓手可拖动排序 · 滚轮/捏合缩放 · 拖空白平移</span>
+            <span className="text-[9px] text-manor-inkFaint italic ml-auto">悬停露抓手拖动排序 · 拖列右缘改列宽/行头下缘改行高（双击复位）· 滚轮缩放 · 拖空白平移</span>
           </div>
         </div>
       </div>
