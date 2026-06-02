@@ -616,11 +616,7 @@ export function IndexingClient({
                       <div className="px-3.5 py-4 text-[11.5px] text-manor-inkDim leading-relaxed"
                         style={{ fontFamily: "var(--font-serif), 'EB Garamond', serif" }}
                       >
-                        <p className="text-manor-brassDim mb-1.5">当前为部署环境</p>
-                        <p>
-                          GSC 抓取依赖本地浏览器（调试端口 9222），线上无法运行。
-                          如需刷新数据，<span className="text-manor-brassHi">请联系管理员</span>在本地执行同步。
-                        </p>
+                        <p>更新数据<span className="text-manor-brassHi">请联系管理员</span></p>
                       </div>
                     ) : (
                       <>
