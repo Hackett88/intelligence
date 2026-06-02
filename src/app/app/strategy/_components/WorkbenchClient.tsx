@@ -641,6 +641,13 @@ export function WorkbenchClient({ seed, allKeywords, rankings, indexedMatches, i
     dispatch({ type: "ASSIGN", kwIds, pageId });
   }, []);
 
+  // 选中页面：既更新选区，又自动展开右侧检视抽屉。
+  // 修复——抽屉折叠后点 LoomGrid 里的页面节点，检视信息不再弹出（此前只 dispatch SELECT，rightCollapsed 不变）。
+  const handlePageSelect = React.useCallback((id: string) => {
+    dispatch({ type: "SELECT", selection: { type: "page", id } });
+    setRightCollapsed(false);
+  }, []);
+
   // selected page (for right-panel inspector)
   const selectedPage = state.selection?.type === "page"
     ? state.pages.find((p) => p.id === state.selection!.id) ?? null
@@ -791,7 +798,7 @@ export function WorkbenchClient({ seed, allKeywords, rankings, indexedMatches, i
             boundByPage={boundByPage}
             indexedMatches={indexedMatches}
             selectedPageId={state.selection?.type === "page" ? state.selection.id : null}
-            onPageSelect={(id) => dispatch({ type: "SELECT", selection: { type: "page", id } })}
+            onPageSelect={handlePageSelect}
             onNewCluster={(title, pillarId, role, scenarioId) => dispatch({ type: "NEW_CLUSTER", title, pillarId, role, scenarioId })}
             onNewPillar={(title, territory) => dispatch({ type: "NEW_PILLAR", title, territory })}
           />
@@ -823,7 +830,7 @@ export function WorkbenchClient({ seed, allKeywords, rankings, indexedMatches, i
                 boundByPage={boundByPage}
                 rankings={rankings}
                 indexedMatches={indexedMatches}
-                onPageSelect={(id) => dispatch({ type: "SELECT", selection: { type: "page", id } })}
+                onPageSelect={handlePageSelect}
                 onUrlChange={(pageId, url) => dispatch({ type: "SET_PAGE_URL", pageId, url })}
                 onAuxChange={(pageId, words) => dispatch({ type: "SET_AUX_KEYWORDS", pageId, words })}
                 onUnassign={requestUnassign}
@@ -834,7 +841,7 @@ export function WorkbenchClient({ seed, allKeywords, rankings, indexedMatches, i
                 pages={state.pages}
                 poolKeywords={poolKeywords}
                 boundByPage={boundByPage}
-                onPageSelect={(id) => dispatch({ type: "SELECT", selection: { type: "page", id } })}
+                onPageSelect={handlePageSelect}
                 onKeywordOpen={(id) => setModalKeywordId(id)}
                 onAssign={(kwId, pageId) => handleAssign([kwId], pageId)}
                 onCollapse={() => setRightCollapsed(true)}

@@ -101,7 +101,9 @@ function moveById<T>(arr: T[], dragId: string | null, overId: string, keyFn: (t:
 }
 
 // ── Column-width / row-height persistence ────────────────────────────────────
-const SIZES_KEY = "wb-loom-sizes-v1";
+// v2: 列宽语义从「minmax 上限（仅自由空间富余时生效）」改为「固定宽（权威，网格溢出可平移）」，
+// 旧 v1 存的是上限值，按固定宽解读会让窄列误截内容，故升版丢弃旧值、从自适应重新开始。
+const SIZES_KEY = "wb-loom-sizes-v2";
 const CAT_COL_KEY = "__cat__"; // 行头那一列（品类列）的宽度键
 const MIN_COL_W = 60;
 const MIN_ROW_H = 44;
@@ -649,12 +651,16 @@ export function LoomGrid({ pages, boundByPage, indexedMatches, selectedPageId, o
   //  OVERVIEW GRID
   // ═══════════════════════════════════════════════════════════════════════
 
-  // 列宽自适应优先：列轨道下限恒为 max-content（内容多宽列就多宽，绝不横向截断），
-  // 拖拽值仅作「上限」（只能加宽留白）。故列向无需再 overflow:hidden。
-  // 仅「行高被手动固定」时才裁纵向溢出（防止拖矮后内容把行撑回去）。
-  const colOverflowStyle = (_key: string): React.CSSProperties | undefined => undefined;
-  const cellOverflowStyle = (_colKey: string, catId: string): React.CSSProperties | undefined =>
-    rowHeights[catId] != null ? { minHeight: 0, overflow: "hidden" } : undefined;
+  // 列宽/行高未手动固定 → 自适应（max-content / 1fr），不裁溢出，内容多宽就多宽。
+  // 一旦手动拖固定：列宽固定 → 裁横向（按固定宽截断，不外溢邻列）；行高固定 → 裁纵向（防内容把行撑回去）。
+  const colOverflowStyle = (key: string): React.CSSProperties | undefined =>
+    colWidths[key] != null ? { minWidth: 0, overflow: "hidden" } : undefined;
+  const cellOverflowStyle = (colKey: string, catId: string): React.CSSProperties | undefined => {
+    const clipX = colWidths[colKey] != null;
+    const clipY = rowHeights[catId] != null;
+    if (!clipX && !clipY) return undefined;
+    return { ...(clipX ? { minWidth: 0 } : {}), ...(clipY ? { minHeight: 0 } : {}), overflow: "hidden" };
+  };
   const colHandle = (key: string) => (
     <div
       onPointerDown={startResize("col", key)} onPointerMove={onResizeMove} onPointerUp={endResize} onPointerCancel={endResize}
@@ -673,8 +679,10 @@ export function LoomGrid({ pages, boundByPage, indexedMatches, selectedPageId, o
       style={{ touchAction: "none" }}
     />
   );
-  // 下限恒 max-content（不截断）；拖拽值仅作上限（minmax(max-content, Npx)：内容更宽时撑过 Npx，故只能加宽留白）。
-  const gridTemplateColumns = `${colWidths[CAT_COL_KEY] != null ? `minmax(max-content, ${colWidths[CAT_COL_KEY]}px)` : "minmax(120px, max-content)"} ${renderCols.map((rc) => { const k = colKeyOf(rc); return colWidths[k] != null ? `minmax(max-content, ${colWidths[k]}px)` : "minmax(max-content, 1fr)"; }).join(" ")} 48px`;
+  // 未拖 → 自适应（max-content 下限 / 1fr 填充）；已拖 → 固定 Npx（权威：网格据此变宽，超出视口可平移）。
+  // 固定改 minmax(max-content, Npx) 为纯 Npx 的原因：minmax 上限只在网格有自由空间时才生效，
+  // 抽屉弹出后网格被压满、自由空间归零，拖拽只改状态不改视觉 → 表现为「无法修改列宽」。纯 Npx 让拖拽即时可见。
+  const gridTemplateColumns = `${colWidths[CAT_COL_KEY] != null ? `${colWidths[CAT_COL_KEY]}px` : "minmax(120px, max-content)"} ${renderCols.map((rc) => { const k = colKeyOf(rc); return colWidths[k] != null ? `${colWidths[k]}px` : "minmax(max-content, 1fr)"; }).join(" ")} 48px`;
   const gridTemplateRows = `auto auto ${rows.map((cat) => (rowHeights[cat.id] != null ? `${rowHeights[cat.id]}px` : "minmax(auto, 1fr)")).join(" ")} 32px`;
 
   return (
