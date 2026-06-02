@@ -23,9 +23,9 @@ const pageRows = pages.map((p, i) => ({
   owner, page_id: p.id, role: p.role, pillar_id: p.pillarId ?? null,
   title: p.title, primary_keyword: p.primaryKeyword, page_type: p.pageType,
   status: p.status ?? "gap", url: p.url ?? null, market: p.market,
-  markets: JSON.stringify(p.markets ?? []),
+  markets: p.markets ?? [],
   theme_id: p.themeId, theme_name: p.themeName, theme_latin: p.themeLatin, territory: p.territory,
-  note: null, sort_order: i, aux_keywords: JSON.stringify(p.auxKeywords ?? []),
+  note: null, sort_order: i, aux_keywords: p.auxKeywords ?? [],
   scenario_id: p.role === "sub-pillar" ? (p.scenarioId ?? null) : null,
   aux_edited: false, subtitle: p.subtitle ?? null, geo_overview: p.geoOverview ?? null,
 }));
@@ -70,19 +70,14 @@ try {
     await sql.end(); process.exit(0);
   }
 
-  // 真正写库：事务内先删后插
+  // 真正写库：事务内先删后插（批量插入——2 条语句、亚秒级，避免长事务遇连接抖动留孤儿锁）
+  const PCOLS = ["owner","page_id","role","pillar_id","title","primary_keyword","page_type","status","url","market","markets","theme_id","theme_name","theme_latin","territory","note","sort_order","aux_keywords","scenario_id","aux_edited","subtitle","geo_overview"];
   await sql.begin(async (tx) => {
     await tx`delete from strategy_bindings where owner = ${owner}`;
     await tx`delete from strategy_pages where owner = ${owner}`;
-    for (const r of pageRows) {
-      await tx`insert into strategy_pages
-        (owner, page_id, role, pillar_id, title, primary_keyword, page_type, status, url, market, markets, theme_id, theme_name, theme_latin, territory, note, sort_order, aux_keywords, scenario_id, aux_edited, subtitle, geo_overview)
-        values (${r.owner}, ${r.page_id}, ${r.role}, ${r.pillar_id}, ${r.title}, ${r.primary_keyword}, ${r.page_type}, ${r.status}, ${r.url}, ${r.market}, ${r.markets}::jsonb, ${r.theme_id}, ${r.theme_name}, ${r.theme_latin}, ${r.territory}, ${r.note}, ${r.sort_order}, ${r.aux_keywords}::jsonb, ${r.scenario_id}, ${r.aux_edited}, ${r.subtitle}, ${r.geo_overview})`;
-    }
-    for (const r of bindRows) {
-      await tx`insert into strategy_bindings (owner, keyword, market, page_id, state)
-        values (${r.owner}, ${r.keyword}, ${r.market}, ${r.page_id}, ${r.state})`;
-    }
+    const pageIns = pageRows.map((r) => ({ ...r, markets: tx.json(r.markets), aux_keywords: tx.json(r.aux_keywords) }));
+    await tx`insert into strategy_pages ${tx(pageIns, ...PCOLS)}`;
+    await tx`insert into strategy_bindings ${tx(bindRows, "owner", "keyword", "market", "page_id", "state")}`;
   });
 
   // 验证

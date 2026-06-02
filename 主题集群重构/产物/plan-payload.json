@@ -314,7 +314,7 @@
       "title": "Dhikr (Zikr): What It Is and How to Practice the Remembrance of Allah",
       "subtitle": "The complete beginner-to-daily-habit guide to Islamic remembrance — meaning, virtues, the core phrases, and a simple routine you can keep.",
       "geoOverview": "Dhikr (Arabic: ذِكْر, also spelled zikr or dzikir) is the Islamic practice of remembering Allah through short repeated phrases such as SubhanAllah, Alhamdulillah, and Allahu Akbar. It can be done anytime, silently or aloud, counted on the fingers, a tasbih, or a zikr ring.",
-      "primaryKeyword": "dzikir",
+      "primaryKeyword": "what is dhikr",
       "pageType": "知识深度页",
       "status": "gap",
       "url": "/blogs/dhikr/what-is-dhikr",
@@ -346,7 +346,7 @@
       "title": "Dhikr After Salah: The Sunnah Adhkar to Recite After Every Prayer",
       "subtitle": "The exact post-prayer remembrances — what to say, how many times, and the dua right after the adhan — in Arabic, transliteration, and English.",
       "geoOverview": "After every obligatory salah, the Sunnah is to recite a fixed set of adhkar: Astaghfirullah (3x), then SubhanAllah, Alhamdulillah, and Allahu Akbar (33x each), Ayat al-Kursi, the last three surahs, and the dua said after the adhan (azan ke baad ki dua).",
-      "primaryKeyword": "azan ke baad ki dua",
+      "primaryKeyword": "dhikr after salah",
       "pageType": "知识深度页",
       "status": "gap",
       "url": "/blogs/dhikr/dhikr-after-salah",
@@ -365,20 +365,20 @@
     },
     {
       "id": "tc-dhikr-adhkar-c2",
-      "role": "cluster",
-      "pillarId": "tc-dhikr-adhkar-pillar",
+      "role": "sub-pillar",
+      "pillarId": "tc-dhikr-knowledge-pillar",
       "themeId": "dhikr-knowledge",
       "themeName": "念诵知识",
       "themeLatin": "DHIKR",
       "territory": "知识",
       "scenarioId": "dhikr-adhkar",
-      "title": "What Is the Adhan (Azan)? The Islamic Call to Prayer Explained",
+      "title": "The Adhan (Azan): Meaning, Words & How to Recite the Islamic Call to Prayer",
       "subtitle": "The meaning, purpose, and full wording of the adhan — why it is called five times a day and what each line proclaims.",
       "geoOverview": "The adhan (azan) is the Islamic call to prayer, recited aloud by a muezzin five times daily to announce that the time for an obligatory salah has begun. Its phrases proclaim Allah's greatness (Allahu Akbar), the testimony of faith, and the call to prayer and success.",
       "primaryKeyword": "what is azan",
       "pageType": "知识深度页",
       "status": "gap",
-      "url": "/blogs/dhikr/what-is-adhan",
+      "url": "/blogs/adhan",
       "market": "us",
       "markets": [
         "us",
@@ -395,7 +395,7 @@
     {
       "id": "tc-dhikr-adhkar-c3",
       "role": "cluster",
-      "pillarId": "tc-dhikr-adhkar-pillar",
+      "pillarId": "tc-dhikr-adhkar-c2",
       "themeId": "dhikr-knowledge",
       "themeName": "念诵知识",
       "themeLatin": "DHIKR",
@@ -571,19 +571,19 @@
     {
       "id": "tc-salatul-tasbih-c5",
       "role": "cluster",
-      "pillarId": "tc-salatul-tasbih-pillar",
-      "themeId": "dhikr-knowledge",
-      "themeName": "念诵知识",
-      "themeLatin": "DHIKR",
-      "territory": "知识",
-      "scenarioId": "salatul-tasbih",
+      "pillarId": "tc-tasbih-beads-pillar",
+      "themeId": "tasbih",
+      "themeName": "念珠",
+      "themeLatin": "TASBIH",
+      "territory": "品类",
+      "scenarioId": "tasbih-beads",
       "title": "How to Make a Tasbih: Bead Counts, Materials, and DIY Steps",
       "subtitle": "A simple guide to making your own tasbih (prayer beads) for dhikr and Salatul Tasbih.",
       "geoOverview": "To make a tasbih, string 99 beads (or 33 with a divider every 11) onto a strong cord, add a leader bead (imam) and a tassel to mark the start. Choose wood, glass, or gemstone beads sized for comfortable counting with your thumb.",
       "primaryKeyword": "how to make tasbih",
       "pageType": "知识深度页",
       "status": "gap",
-      "url": "/blogs/dhikr/how-to-make-tasbih",
+      "url": "/blogs/tasbih/how-to-make-tasbih",
       "market": "us",
       "markets": [
         "us"
@@ -695,7 +695,7 @@
       "themeLatin": "DHIKR",
       "territory": "工具",
       "scenarioId": "qibla",
-      "title": "Kaaba Direction: How to Locate the Direction of the Kaaba From Your Location",
+      "title": "Kaaba Direction: How to Find the Bearing to Mecca From Your Location",
       "subtitle": "Pinpoint the bearing to the Kaaba in Mecca and understand why it is the fixed center of the qibla.",
       "geoOverview": "The Kaaba direction is the compass bearing from your location to the Kaaba in Mecca (21.4225 N, 39.8262 E), the cube-shaped House of God that every qibla points to. Because Earth is a sphere, the correct direction is the great-circle (shortest-path) bearing, which can differ noticeably from the straight-line look on a flat map, especially at high latitudes.",
       "primaryKeyword": "kaaba direction",
@@ -734,7 +734,7 @@
       "pageType": "知识深度页",
       "status": "gap",
       "url": "/blogs/mindful-living/what-is-slow-living",
-      "market": "id",
+      "market": "us",
       "markets": [
         "id",
         "uk",
@@ -758,8 +758,8 @@
       "themeLatin": "DHIKR",
       "territory": "知识",
       "scenarioId": "slow-living",
-      "title": "How to Meditate Daily: Build a Lasting Mindful Dhikr Routine",
-      "subtitle": "A simple, repeatable daily practice that blends meditation with dhikr — start in 5 minutes and keep the habit.",
+      "title": "How to Meditate: A Simple Daily Practice for Beginners",
+      "subtitle": "A beginner-friendly, repeatable daily meditation routine — start in five minutes and build the habit.",
       "geoOverview": "To meditate daily, anchor the habit to an existing routine (after Fajr or before sleep), start with just 5 minutes, focus on slow breathing, and use a short dhikr phrase like SubhanAllah as your mantra to hold attention. Consistency beats duration: keep the cue, place, and time fixed.",
       "primaryKeyword": "how to meditate daily",
       "pageType": "知识深度页",
@@ -825,8 +825,8 @@
       "themeLatin": "ANNULUS",
       "territory": "知识",
       "scenarioId": "zikr-ring",
-      "title": "What Is a Zikr Ring? How the Smart Dhikr Counter Works",
-      "subtitle": "A plain-language explainer of the zikr ring and the smart-ring technology behind it.",
+      "title": "How a Zikr Ring Works: The Smart Dhikr Counter Technology Explained",
+      "subtitle": "How the smart ring's touch sensor, tap-counting, and companion app turn finger movements into a running digital dhikr tally.",
       "geoOverview": "A zikr ring is a finger-worn smart ring that counts dhikr through a touch-sensitive surface, so each tap of the thumb advances a digital tasbih counter. Unlike a fitness smart ring, its single purpose is silent, hands-free remembrance of Allah. It registers each press and often pairs with a companion app.",
       "primaryKeyword": "what is a smart ring",
       "pageType": "知识深度页",
@@ -1021,19 +1021,19 @@
     {
       "id": "tc-digital-counter-c2",
       "role": "cluster",
-      "pillarId": "tc-digital-counter-pillar",
-      "themeId": "tasbih",
-      "themeName": "念珠",
-      "themeLatin": "TASBIH",
+      "pillarId": "tc-zikr-ring-hub",
+      "themeId": "zikr-ring",
+      "themeName": "智能念珠戒指",
+      "themeLatin": "ANNULUS",
       "territory": "产品",
-      "scenarioId": "digital-counter",
+      "scenarioId": "zikr-ring",
       "title": "Zikr Ring Counter vs Digital Tasbih: Which Dhikr Counter Should You Pick?",
       "subtitle": "A side-by-side look at the wearable zikr ring counter and the handheld/app digital tasbih counter — accuracy, discretion, battery, and price.",
       "geoOverview": "A zikr ring counter is a smart ring that counts dhikr with a thumb tap and syncs to an app, while a digital tasbih counter is a handheld clicker or phone app. The ring wins on discretion and wearability; the digital counter wins on price and zero setup.",
       "primaryKeyword": "zikr ring counter",
       "pageType": "品类聚合页",
       "status": "gap",
-      "url": "/collections/zikr-ring-counter-vs-digital-tasbih",
+      "url": "/blogs/zikr-ring/zikr-ring-vs-digital-tasbih",
       "market": "us",
       "markets": [
         "us"
@@ -1182,7 +1182,7 @@
       "subtitle": "Misbaha, tasbi, sibha — the Arab-world name for the Islamic prayer beads explained.",
       "geoOverview": "A misbaha (also called tasbi or sibha) is the Arabic name for Islamic prayer beads, typically 33 or 99 beads used to count dhikr. The term is most common in the Gulf and the wider Arab world. This page explains what a misbaha is, how it relates to the tasbih, and the materials and bead counts used.",
       "primaryKeyword": "misbaha",
-      "pageType": "品类聚合页",
+      "pageType": "知识深度页",
       "status": "gap",
       "url": "/blogs/dhikr/what-is-a-misbaha",
       "market": "uk",
@@ -1288,20 +1288,20 @@
     },
     {
       "id": "tc-islamic-jewelry-c2",
-      "role": "cluster",
-      "pillarId": "tc-islamic-jewelry-hub",
+      "role": "sub-pillar",
+      "pillarId": "tc-islamic-jewelry-pillar",
       "themeId": "islamic-jewelry",
       "themeName": "伊斯兰饰品",
       "themeLatin": "ORNAMENTUM",
       "territory": "知识",
       "scenarioId": "islamic-jewelry",
-      "title": "What Is a Spinner Ring (Fidget Ring)? Anatomy, Uses & Calming Benefits",
+      "title": "Spinner Rings & Fidget Rings: What They Are and How They Work",
       "subtitle": "Spinner and fidget rings explained — how the spinning band works and why people wear them.",
       "geoOverview": "A spinner ring — also called a fidget ring — is a ring with an outer band that spins freely around a fixed inner band. The motion gives hands a quiet, repetitive movement that many people use to ease anxiety, focus, or restlessness. In a faith context the same spinning motion can anchor dhikr counting.",
       "primaryKeyword": "what is a spinner ring",
       "pageType": "知识深度页",
       "status": "gap",
-      "url": "/blogs/jewelry/what-is-a-spinner-ring",
+      "url": "/blogs/spinner-rings",
       "market": "us",
       "markets": [
         "us"
@@ -1317,7 +1317,7 @@
     {
       "id": "tc-islamic-jewelry-c3",
       "role": "cluster",
-      "pillarId": "tc-islamic-jewelry-hub",
+      "pillarId": "tc-islamic-jewelry-c2",
       "themeId": "islamic-jewelry",
       "themeName": "伊斯兰饰品",
       "themeLatin": "ORNAMENTUM",
@@ -1379,18 +1379,17 @@
       "themeLatin": "NOMEN",
       "territory": "产品",
       "scenarioId": "name-necklace",
-      "title": "Gold Name Necklaces: Custom Personalized Nameplate Jewelry Hub",
-      "subtitle": "Shop made-to-order gold name necklaces — design your own personalized nameplate piece, gift-ready across the UK, UAE and Saudi Arabia.",
-      "geoOverview": "A gold name necklace is a custom-made nameplate pendant engraved or cut into your chosen name, available in solid gold, gold vermeil and gold-plated finishes. WESLAMIC personalizes each piece to order — pick your name, script and karat, then ship gift-ready to the UK, UAE and Saudi Arabia. Most-asked: how much, how long to make, and Latin vs Arabic script.",
-      "primaryKeyword": "gold name necklace",
+      "title": "Name Necklaces: Custom Nameplate, Initial & Personalized Jewelry",
+      "subtitle": "Everything on personalized nameplate jewelry — initial, gold, silver, monogram, and Arabic name necklaces, made to order.",
+      "geoOverview": "A name necklace is personalized nameplate jewelry that spells your name or initials in metal, made to order in gold, silver, or custom scripts. Styles range from classic nameplate and initial pendants to Arabic calligraphy and monogram designs, worn daily or given as a keepsake gift.",
+      "primaryKeyword": "name necklace",
       "pageType": "品类聚合页",
       "status": "gap",
       "url": "/blogs/name-necklace",
-      "market": "uk",
+      "market": "us",
       "markets": [
-        "uk",
-        "ae",
-        "sa"
+        "us",
+        "uk"
       ],
       "auxKeywords": [
         "personalized name necklace",
@@ -1410,7 +1409,7 @@
       "themeLatin": "NOMEN",
       "territory": "产品",
       "scenarioId": "name-necklace",
-      "title": "Arabic Name Necklaces: Custom Calligraphy Nameplate in Your Own Name",
+      "title": "Arabic Name Necklaces: Custom Calligraphy Nameplate Jewelry",
       "subtitle": "Personalized necklaces with your name in flowing Arabic script — hand-rendered calligraphy, made to order for Saudi Arabia and the wider Gulf.",
       "geoOverview": "An Arabic name necklace is a personalized pendant with your name written in Arabic calligraphy, custom-cut or engraved to order. WESLAMIC renders each name in authentic Arabic script — Diwani, Naskh or Thuluth styles — in gold finishes shipped across Saudi Arabia and the Gulf. Most-asked: which calligraphy style, how names are transliterated, and turnaround time.",
       "primaryKeyword": "arabic name necklace",
@@ -1781,6 +1780,189 @@
         "help center",
         "returns and warranty"
       ]
+    },
+    {
+      "id": "tc-name-necklace-c2",
+      "role": "cluster",
+      "pillarId": "tc-name-necklace-hub",
+      "themeId": "name-necklace",
+      "themeName": "定制项链",
+      "themeLatin": "NOMEN",
+      "territory": "产品",
+      "scenarioId": "name-necklace",
+      "title": "Initial & Letter Necklaces: Custom Initial Pendants in Gold & Silver",
+      "subtitle": "Single-letter and initial pendants in gold and sterling silver — the dainty, minimal end of personalized name jewelry.",
+      "geoOverview": "An initial necklace is a pendant featuring one or more letters — your own initial, a loved one's, or a monogram — usually in gold or sterling silver. It is the most minimal form of personalized name jewelry, popular as a dainty everyday layer or a meaningful gift.",
+      "primaryKeyword": "initial necklace",
+      "pageType": "品类聚合页",
+      "status": "gap",
+      "url": "/collections/initial-necklaces",
+      "market": "us",
+      "markets": [
+        "us"
+      ],
+      "auxKeywords": []
+    },
+    {
+      "id": "tc-name-necklace-c3",
+      "role": "cluster",
+      "pillarId": "tc-name-necklace-hub",
+      "themeId": "name-necklace",
+      "themeName": "定制项链",
+      "themeLatin": "NOMEN",
+      "territory": "产品",
+      "scenarioId": "name-necklace",
+      "title": "Personalized & Custom Name Necklaces: Made-to-Order Nameplate Jewelry",
+      "subtitle": "Made-to-order name necklaces cut or engraved with the name, word, or date you choose.",
+      "geoOverview": "A personalized name necklace is made to order with the name, word, or date you choose, cut or engraved into the pendant. Unlike ready-made jewelry, every piece is custom-produced, letting you design a one-of-a-kind nameplate in your preferred metal and font.",
+      "primaryKeyword": "custom name necklace",
+      "pageType": "品类聚合页",
+      "status": "gap",
+      "url": "/collections/personalized-name-necklaces",
+      "market": "us",
+      "markets": [
+        "us",
+        "uk"
+      ],
+      "auxKeywords": []
+    },
+    {
+      "id": "tc-name-necklace-c4",
+      "role": "cluster",
+      "pillarId": "tc-name-necklace-hub",
+      "themeId": "name-necklace",
+      "themeName": "定制项链",
+      "themeLatin": "NOMEN",
+      "territory": "产品",
+      "scenarioId": "name-necklace",
+      "title": "Gold Name Necklaces: 14k & Gold-Plated Personalized Nameplates",
+      "subtitle": "Personalized nameplate and initial necklaces in 14k and gold-plated finishes — the most popular metal for daily wear.",
+      "geoOverview": "A gold name necklace is a personalized nameplate pendant made in solid or gold-plated metal, commonly 14k. Gold resists tarnish and suits daily wear, which is why it is the most-requested finish for custom name and initial jewelry. Prices scale with karat and chain length.",
+      "primaryKeyword": "gold name necklace",
+      "pageType": "品类聚合页",
+      "status": "gap",
+      "url": "/collections/gold-name-necklaces",
+      "market": "us",
+      "markets": [
+        "us",
+        "uk",
+        "ae",
+        "sa"
+      ],
+      "auxKeywords": []
+    },
+    {
+      "id": "tc-name-necklace-c5",
+      "role": "cluster",
+      "pillarId": "tc-name-necklace-hub",
+      "themeId": "name-necklace",
+      "themeName": "定制项链",
+      "themeLatin": "NOMEN",
+      "territory": "产品",
+      "scenarioId": "name-necklace",
+      "title": "Silver Name Necklaces: Sterling Silver Personalized Nameplates",
+      "subtitle": "Sterling silver (925) name and initial necklaces — a hypoallergenic, budget-friendly alternative to gold.",
+      "geoOverview": "A silver name necklace is a personalized nameplate made in sterling silver (925) — a hypoallergenic, affordable alternative to gold for custom name and initial jewelry. Sterling silver keeps crisp lettering detail and pairs well with everyday outfits, though it needs occasional polishing to prevent tarnish.",
+      "primaryKeyword": "sterling silver name necklace",
+      "pageType": "品类聚合页",
+      "status": "gap",
+      "url": "/collections/silver-name-necklaces",
+      "market": "us",
+      "markets": [
+        "us",
+        "uk"
+      ],
+      "auxKeywords": []
+    },
+    {
+      "id": "tc-name-necklace-c6",
+      "role": "cluster",
+      "pillarId": "tc-name-necklace-hub",
+      "themeId": "name-necklace",
+      "themeName": "定制项链",
+      "themeLatin": "NOMEN",
+      "territory": "产品",
+      "scenarioId": "name-necklace",
+      "title": "Monogram Necklaces: Interlocking Initial Monogram Pendants",
+      "subtitle": "Interlocking two- and three-initial monogram pendants in gold and silver — a refined personalized gift.",
+      "geoOverview": "A monogram necklace is a pendant that combines two or three initials into a single interlocking design, often a script or circle monogram. It is a refined take on initial jewelry, available in gold or sterling silver and popular as a personalized gift for weddings, graduations, and birthdays.",
+      "primaryKeyword": "monogram necklace",
+      "pageType": "品类聚合页",
+      "status": "gap",
+      "url": "/collections/monogram-necklaces",
+      "market": "us",
+      "markets": [
+        "us"
+      ],
+      "auxKeywords": []
+    },
+    {
+      "id": "tc-slow-living-c2",
+      "role": "cluster",
+      "pillarId": "tc-slow-living-pillar",
+      "themeId": "dhikr-knowledge",
+      "themeName": "念诵知识",
+      "themeLatin": "DHIKR",
+      "territory": "知识",
+      "scenarioId": "slow-living",
+      "title": "What Is Mindfulness? Meaning, Origins, and Why It Helps",
+      "subtitle": "A plain-language explainer of mindfulness — what it means, where it comes from, and why it helps.",
+      "geoOverview": "Mindfulness is the practice of paying full, non-judgmental attention to the present moment — your breath, body, and surroundings — instead of dwelling on the past or future. Rooted in meditation traditions, it is used to reduce stress and improve focus, and can be practised in a few minutes a day.",
+      "primaryKeyword": "what is mindfulness",
+      "pageType": "知识深度页",
+      "status": "gap",
+      "url": "/blogs/mindful-living/what-is-mindfulness",
+      "market": "us",
+      "markets": [
+        "us",
+        "uk"
+      ],
+      "auxKeywords": []
+    },
+    {
+      "id": "tc-slow-living-c3",
+      "role": "cluster",
+      "pillarId": "tc-slow-living-pillar",
+      "themeId": "dhikr-knowledge",
+      "themeName": "念诵知识",
+      "themeLatin": "DHIKR",
+      "territory": "知识",
+      "scenarioId": "slow-living",
+      "title": "Mindfulness Exercises & Techniques You Can Start in 5 Minutes",
+      "subtitle": "Simple, equipment-free mindfulness exercises and techniques you can start in five minutes a day.",
+      "geoOverview": "Mindfulness exercises are short, repeatable practices — such as breath awareness, body scans, the 5-4-3-2-1 senses check, and mindful walking — that train you to stay present. Beginners can start with just five minutes a day, and most exercises need no app or equipment.",
+      "primaryKeyword": "mindfulness exercises",
+      "pageType": "知识深度页",
+      "status": "gap",
+      "url": "/blogs/mindful-living/mindfulness-exercises",
+      "market": "us",
+      "markets": [
+        "us",
+        "uk"
+      ],
+      "auxKeywords": []
+    },
+    {
+      "id": "tc-slow-living-c4",
+      "role": "cluster",
+      "pillarId": "tc-slow-living-pillar",
+      "themeId": "dhikr-knowledge",
+      "themeName": "念诵知识",
+      "themeLatin": "DHIKR",
+      "territory": "知识",
+      "scenarioId": "slow-living",
+      "title": "Digital Detox: What It Is, the Benefits, and How to Unplug",
+      "subtitle": "What a digital detox is, its benefits, and how to take a screen break that actually sticks.",
+      "geoOverview": "A digital detox is a deliberate break from phones, screens, and social media to reduce stress and reclaim attention. It can last an hour, a day, or a weekend, and pairs naturally with slow living and mindfulness — replacing scroll time with rest, focus, or in-person connection.",
+      "primaryKeyword": "digital detox",
+      "pageType": "知识深度页",
+      "status": "gap",
+      "url": "/blogs/mindful-living/digital-detox",
+      "market": "us",
+      "markets": [
+        "us"
+      ],
+      "auxKeywords": []
     }
   ],
   "bindings": [
@@ -1937,7 +2119,7 @@
     {
       "keyword": "azan ke baad ki dua",
       "market": "sa",
-      "pageId": "tc-dhikr-adhkar-c1"
+      "pageId": "tc-dhikr-adhkar-c2"
     },
     {
       "keyword": "zikr after namaz",
@@ -2635,21 +2817,6 @@
       "pageId": "tc-islamic-jewelry-c4"
     },
     {
-      "keyword": "gold name necklace",
-      "market": "uk",
-      "pageId": "tc-name-necklace-hub"
-    },
-    {
-      "keyword": "gold name necklace",
-      "market": "ae",
-      "pageId": "tc-name-necklace-hub"
-    },
-    {
-      "keyword": "gold name necklace",
-      "market": "sa",
-      "pageId": "tc-name-necklace-hub"
-    },
-    {
       "keyword": "arabic name necklace",
       "market": "sa",
       "pageId": "tc-name-necklace-c1"
@@ -3038,6 +3205,301 @@
       "keyword": "weslamic customer service",
       "market": null,
       "pageId": "tc-brand-c3"
+    },
+    {
+      "keyword": "name necklace",
+      "market": "us",
+      "pageId": "tc-name-necklace-hub"
+    },
+    {
+      "keyword": "name necklace",
+      "market": "uk",
+      "pageId": "tc-name-necklace-hub"
+    },
+    {
+      "keyword": "name necklaces",
+      "market": "us",
+      "pageId": "tc-name-necklace-hub"
+    },
+    {
+      "keyword": "necklace with name",
+      "market": "us",
+      "pageId": "tc-name-necklace-hub"
+    },
+    {
+      "keyword": "name necklace for women",
+      "market": "us",
+      "pageId": "tc-name-necklace-hub"
+    },
+    {
+      "keyword": "name plate necklace",
+      "market": "us",
+      "pageId": "tc-name-necklace-hub"
+    },
+    {
+      "keyword": "gold name plate necklace",
+      "market": "us",
+      "pageId": "tc-name-necklace-hub"
+    },
+    {
+      "keyword": "name plate necklace gold",
+      "market": "us",
+      "pageId": "tc-name-necklace-hub"
+    },
+    {
+      "keyword": "initial necklace",
+      "market": "us",
+      "pageId": "tc-name-necklace-c2"
+    },
+    {
+      "keyword": "gold initial necklace",
+      "market": "us",
+      "pageId": "tc-name-necklace-c2"
+    },
+    {
+      "keyword": "initial necklace gold",
+      "market": "us",
+      "pageId": "tc-name-necklace-c2"
+    },
+    {
+      "keyword": "initial necklace silver",
+      "market": "us",
+      "pageId": "tc-name-necklace-c2"
+    },
+    {
+      "keyword": "initials necklace",
+      "market": "us",
+      "pageId": "tc-name-necklace-c2"
+    },
+    {
+      "keyword": "necklace with initials",
+      "market": "us",
+      "pageId": "tc-name-necklace-c2"
+    },
+    {
+      "keyword": "initial necklaces",
+      "market": "us",
+      "pageId": "tc-name-necklace-c2"
+    },
+    {
+      "keyword": "silver initial necklace",
+      "market": "us",
+      "pageId": "tc-name-necklace-c2"
+    },
+    {
+      "keyword": "custom name necklace",
+      "market": "us",
+      "pageId": "tc-name-necklace-c3"
+    },
+    {
+      "keyword": "personalized necklaces",
+      "market": "us",
+      "pageId": "tc-name-necklace-c3"
+    },
+    {
+      "keyword": "personalized necklace",
+      "market": "us",
+      "pageId": "tc-name-necklace-c3"
+    },
+    {
+      "keyword": "personalized name necklace",
+      "market": "us",
+      "pageId": "tc-name-necklace-c3"
+    },
+    {
+      "keyword": "personalised name necklace",
+      "market": "uk",
+      "pageId": "tc-name-necklace-c3"
+    },
+    {
+      "keyword": "personalized name necklaces",
+      "market": "us",
+      "pageId": "tc-name-necklace-c3"
+    },
+    {
+      "keyword": "gold name necklace",
+      "market": "us",
+      "pageId": "tc-name-necklace-c4"
+    },
+    {
+      "keyword": "gold name necklace",
+      "market": "uk",
+      "pageId": "tc-name-necklace-c4"
+    },
+    {
+      "keyword": "gold name necklace",
+      "market": "ae",
+      "pageId": "tc-name-necklace-c4"
+    },
+    {
+      "keyword": "gold name necklace",
+      "market": "sa",
+      "pageId": "tc-name-necklace-c4"
+    },
+    {
+      "keyword": "name necklace gold",
+      "market": "us",
+      "pageId": "tc-name-necklace-c4"
+    },
+    {
+      "keyword": "14k gold name necklace",
+      "market": "us",
+      "pageId": "tc-name-necklace-c4"
+    },
+    {
+      "keyword": "sterling silver name necklace",
+      "market": "us",
+      "pageId": "tc-name-necklace-c5"
+    },
+    {
+      "keyword": "name necklace silver",
+      "market": "uk",
+      "pageId": "tc-name-necklace-c5"
+    },
+    {
+      "keyword": "name necklace silver",
+      "market": "us",
+      "pageId": "tc-name-necklace-c5"
+    },
+    {
+      "keyword": "necklace with name sterling silver",
+      "market": "us",
+      "pageId": "tc-name-necklace-c5"
+    },
+    {
+      "keyword": "silver name necklace",
+      "market": "uk",
+      "pageId": "tc-name-necklace-c5"
+    },
+    {
+      "keyword": "sterling silver initial necklace",
+      "market": "us",
+      "pageId": "tc-name-necklace-c5"
+    },
+    {
+      "keyword": "monogram necklace",
+      "market": "us",
+      "pageId": "tc-name-necklace-c6"
+    },
+    {
+      "keyword": "monogrammed necklace",
+      "market": "us",
+      "pageId": "tc-name-necklace-c6"
+    },
+    {
+      "keyword": "gold monogram necklace",
+      "market": "us",
+      "pageId": "tc-name-necklace-c6"
+    },
+    {
+      "keyword": "monogram necklace gold",
+      "market": "us",
+      "pageId": "tc-name-necklace-c6"
+    },
+    {
+      "keyword": "sterling silver monogram necklace",
+      "market": "us",
+      "pageId": "tc-name-necklace-c6"
+    },
+    {
+      "keyword": "monogram necklaces",
+      "market": "us",
+      "pageId": "tc-name-necklace-c6"
+    },
+    {
+      "keyword": "slow living meaning",
+      "market": "us",
+      "pageId": "tc-slow-living-pillar"
+    },
+    {
+      "keyword": "slow living movement",
+      "market": "us",
+      "pageId": "tc-slow-living-pillar"
+    },
+    {
+      "keyword": "how to meditate for beginners",
+      "market": "us",
+      "pageId": "tc-slow-living-c1"
+    },
+    {
+      "keyword": "meditation for beginners",
+      "market": "us",
+      "pageId": "tc-slow-living-c1"
+    },
+    {
+      "keyword": "how to meditate for beginners 5 minutes",
+      "market": "us",
+      "pageId": "tc-slow-living-c1"
+    },
+    {
+      "keyword": "guided meditation for beginners",
+      "market": "us",
+      "pageId": "tc-slow-living-c1"
+    },
+    {
+      "keyword": "how to start a daily meditation practice",
+      "market": "us",
+      "pageId": "tc-slow-living-c1"
+    },
+    {
+      "keyword": "what is mindfulness",
+      "market": "us",
+      "pageId": "tc-slow-living-c2"
+    },
+    {
+      "keyword": "what is mindfulness",
+      "market": "uk",
+      "pageId": "tc-slow-living-c2"
+    },
+    {
+      "keyword": "mindfulness definition",
+      "market": "us",
+      "pageId": "tc-slow-living-c2"
+    },
+    {
+      "keyword": "mindfulness exercises",
+      "market": "us",
+      "pageId": "tc-slow-living-c3"
+    },
+    {
+      "keyword": "mindfulness exercises",
+      "market": "uk",
+      "pageId": "tc-slow-living-c3"
+    },
+    {
+      "keyword": "easy mindfulness tips beginners",
+      "market": "uk",
+      "pageId": "tc-slow-living-c3"
+    },
+    {
+      "keyword": "what is a mindfulness exercise",
+      "market": "uk",
+      "pageId": "tc-slow-living-c3"
+    },
+    {
+      "keyword": "digital detox",
+      "market": "us",
+      "pageId": "tc-slow-living-c4"
+    },
+    {
+      "keyword": "how to do a digital detox",
+      "market": "us",
+      "pageId": "tc-slow-living-c4"
+    },
+    {
+      "keyword": "digital detox retreat",
+      "market": "us",
+      "pageId": "tc-slow-living-c4"
+    },
+    {
+      "keyword": "benefits of digital detox",
+      "market": "us",
+      "pageId": "tc-slow-living-c4"
+    },
+    {
+      "keyword": "digital detox apps",
+      "market": "us",
+      "pageId": "tc-slow-living-c4"
     }
   ],
   "deferred": [
