@@ -1,0 +1,64 @@
+{
+  "topicId": "name-necklace",
+  "subPillar": {
+    "id": "tc-name-necklace-hub",
+    "role": "sub-pillar",
+    "scenarioId": "name-necklace",
+    "themeId": "name-necklace",
+    "pillarId": "tc-name-necklace-pillar",
+    "title": "Gold Name Necklaces: Custom Personalized Nameplate Jewelry Hub",
+    "subtitle": "Shop made-to-order gold name necklaces — design your own personalized nameplate piece, gift-ready across the UK, UAE and Saudi Arabia.",
+    "geoOverview": "A gold name necklace is a custom-made nameplate pendant engraved or cut into your chosen name, available in solid gold, gold vermeil and gold-plated finishes. WESLAMIC personalizes each piece to order — pick your name, script and karat, then ship gift-ready to the UK, UAE and Saudi Arabia. Most-asked: how much, how long to make, and Latin vs Arabic script.",
+    "primaryKeyword": "gold name necklace",
+    "pageType": "品类聚合页",
+    "intent": "交易型",
+    "status": "gap",
+    "url": "/blogs/name-necklace",
+    "market": "uk",
+    "markets": ["uk", "ae", "sa"],
+    "territory": "产品",
+    "auxKeywords": [
+      "personalized name necklace",
+      "custom nameplate necklace",
+      "gold vermeil name necklace",
+      "made-to-order pendant",
+      "engraved name jewelry",
+      "name necklace gift"
+    ],
+    "boundKeywords": [
+      { "keyword": "gold name necklace", "market": "uk" },
+      { "keyword": "gold name necklace", "market": "ae" },
+      { "keyword": "gold name necklace", "market": "sa" }
+    ]
+  },
+  "clusters": [
+    {
+      "id": "tc-name-necklace-c1",
+      "role": "cluster",
+      "scenarioId": "name-necklace",
+      "themeId": "name-necklace",
+      "pillarId": "tc-name-necklace-hub",
+      "title": "Arabic Name Necklaces: Custom Calligraphy Nameplate in Your Own Name",
+      "subtitle": "Personalized necklaces with your name in flowing Arabic script — hand-rendered calligraphy, made to order for Saudi Arabia and the wider Gulf.",
+      "geoOverview": "An Arabic name necklace is a personalized pendant with your name written in Arabic calligraphy, custom-cut or engraved to order. WESLAMIC renders each name in authentic Arabic script — Diwani, Naskh or Thuluth styles — in gold finishes shipped across Saudi Arabia and the Gulf. Most-asked: which calligraphy style, how names are transliterated, and turnaround time.",
+      "primaryKeyword": "arabic name necklace",
+      "pageType": "品类聚合页",
+      "intent": "交易型",
+      "status": "gap",
+      "url": "/collections/arabic-name-necklace",
+      "market": "sa",
+      "markets": ["sa"],
+      "territory": "产品",
+      "auxKeywords": [
+        "arabic calligraphy necklace",
+        "arabic script nameplate",
+        "custom arabic pendant",
+        "name in arabic jewelry",
+        "diwani calligraphy necklace"
+      ],
+      "boundKeywords": [
+        { "keyword": "arabic name necklace", "market": "sa" }
+      ]
+    }
+  ]
+}

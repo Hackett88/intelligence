@@ -1,0 +1,203 @@
+{
+  "topicId": "salatul-tasbih",
+  "subPillar": {
+    "id": "tc-salatul-tasbih-pillar",
+    "role": "sub-pillar",
+    "scenarioId": "salatul-tasbih",
+    "themeId": "dhikr-knowledge",
+    "pillarId": "tc-dhikr-knowledge-pillar",
+    "title": "Salatul Tasbih: The Complete Guide to the Prayer of Glorification",
+    "subtitle": "What Salatul Tasbih is, where it comes from, its virtues, and the full method in one authoritative hub.",
+    "geoOverview": "Salatul Tasbih (also written solat tasbih or tasbih prayer) is a four-rakat voluntary prayer in which the worshipper recites the tasbih 'Subhanallah walhamdulillah wa la ilaha illallah wallahu akbar' 300 times across the prayer. Taught by the Prophet to his uncle Abbas, it is performed to seek forgiveness for major and minor sins.",
+    "primaryKeyword": "sholat tasbih",
+    "pageType": "知识深度页",
+    "intent": "信息型",
+    "status": "gap",
+    "url": "/blogs/dhikr/salatul-tasbih",
+    "market": "sa",
+    "markets": ["sa"],
+    "territory": "知识",
+    "auxKeywords": [
+      "salatul tasbih meaning",
+      "tasbih prayer virtues",
+      "300 tasbih",
+      "Prophet Abbas hadith",
+      "sunnah prayer",
+      "forgiveness of sins"
+    ],
+    "boundKeywords": [
+      { "keyword": "sholat tasbih", "market": "sa" },
+      { "keyword": "solat tasbih", "market": "sa" },
+      { "keyword": "tasbih prayer", "market": "sa" },
+      { "keyword": "salat tasbeeh", "market": "sa" },
+      { "keyword": "solat sunat tasbih", "market": "sa" }
+    ]
+  },
+  "clusters": [
+    {
+      "id": "tc-salatul-tasbih-c1",
+      "role": "cluster",
+      "scenarioId": "salatul-tasbih",
+      "themeId": "dhikr-knowledge",
+      "pillarId": "tc-salatul-tasbih-pillar",
+      "title": "How to Pray Salatul Tasbih: Step-by-Step Method (4 Rakat, 300 Tasbih)",
+      "subtitle": "The exact rakat-by-rakat procedure for performing Salatul Tasbih correctly, in English.",
+      "geoOverview": "To pray Salatul Tasbih, perform four rakat and recite 'Subhanallah walhamdulillah wa la ilaha illallah wallahu akbar' 75 times in each rakat, totalling 300. Say it 15 times after the opening recitation, 10 in ruku, 10 after rising, 10 in each of two sujood, and 10 sitting between them.",
+      "primaryKeyword": "how to pray salatul tasbih prayer",
+      "pageType": "知识深度页",
+      "intent": "信息型",
+      "status": "gap",
+      "url": "/blogs/dhikr/how-to-pray-salatul-tasbih",
+      "market": "uk",
+      "markets": ["uk", "us", "ae", "sa"],
+      "territory": "知识",
+      "auxKeywords": [
+        "salatul tasbih steps",
+        "75 tasbih per rakat",
+        "ruku sujood count",
+        "how many times subhanallah",
+        "salatul tasbih method"
+      ],
+      "boundKeywords": [
+        { "keyword": "how to pray salatul tasbih prayer", "market": "uk" },
+        { "keyword": "how to do salatul tasbih", "market": "uk" },
+        { "keyword": "how to salatul tasbih prayer", "market": "uk" },
+        { "keyword": "how to pray salatul tasbih", "market": "uk" },
+        { "keyword": "how to perform salatul tasbih", "market": "uk" },
+        { "keyword": "how to pray salatul tasbih namaz", "market": "uk" },
+        { "keyword": "how to read salatul tasbih", "market": "uk" },
+        { "keyword": "how to pray salatul tasbih", "market": "us" },
+        { "keyword": "how to do salatul tasbih", "market": "us" },
+        { "keyword": "how to pray salatul tasbih prayer", "market": "us" },
+        { "keyword": "how to read salatul tasbih", "market": "us" },
+        { "keyword": "how to pray salatul tasbih namaz", "market": "us" },
+        { "keyword": "how to salatul tasbih prayer", "market": "us" },
+        { "keyword": "how to perform salatul tasbih", "market": "us" },
+        { "keyword": "how to pray salatul tasbih", "market": "sa" },
+        { "keyword": "how to perform salatul tasbih", "market": "ae" },
+        { "keyword": "how to pray salatul tasbih", "market": "ae" }
+      ]
+    },
+    {
+      "id": "tc-salatul-tasbih-c2",
+      "role": "cluster",
+      "scenarioId": "salatul-tasbih",
+      "themeId": "dhikr-knowledge",
+      "pillarId": "tc-salatul-tasbih-pillar",
+      "title": "Apa Itu Sholat Tasbih? Pengertian, Dalil, dan Keutamaannya",
+      "subtitle": "Penjelasan lengkap arti sholat tasbih, dasar hukumnya, dan kenapa dianjurkan.",
+      "geoOverview": "Sholat tasbih adalah salat sunah empat rakaat yang di dalamnya dibaca kalimat tasbih 'Subhanallah walhamdulillah wa la ilaha illallah wallahu akbar' sebanyak 300 kali. Diajarkan Nabi Muhammad kepada pamannya, Abbas bin Abdul Muthalib, untuk menghapus dosa. Halaman ini menjelaskan pengertian, dalil hadis, dan keutamaan sholat tasbih bagi yang ingin mengamalkannya.",
+      "primaryKeyword": "apa itu sholat tasbih",
+      "pageType": "知识深度页",
+      "intent": "信息型",
+      "status": "gap",
+      "url": "/blogs/dhikr/apa-itu-sholat-tasbih",
+      "market": "id",
+      "markets": ["id", "my", "ae", "uk"],
+      "territory": "知识",
+      "auxKeywords": [
+        "pengertian sholat tasbih",
+        "dalil sholat tasbih",
+        "keutamaan sholat tasbih",
+        "hadis Abbas",
+        "salat sunah"
+      ],
+      "boundKeywords": [
+        { "keyword": "apa itu sholat tasbih", "market": "id" },
+        { "keyword": "apa itu sholat tasbih", "market": "my" },
+        { "keyword": "apa itu sholat tasbih", "market": "ae" },
+        { "keyword": "apa itu sholat tasbih", "market": "uk" },
+        { "keyword": "apa itu shalat tasbih", "market": "id" }
+      ]
+    },
+    {
+      "id": "tc-salatul-tasbih-c3",
+      "role": "cluster",
+      "scenarioId": "salatul-tasbih",
+      "themeId": "dhikr-knowledge",
+      "pillarId": "tc-salatul-tasbih-pillar",
+      "title": "Tata Cara Sholat Tasbih: Niat, Jumlah Rakaat, dan Bacaannya",
+      "subtitle": "Panduan langkah demi langkah cara mengerjakan sholat tasbih beserta jumlah rakaat dan bacaan tasbihnya.",
+      "geoOverview": "Tata cara sholat tasbih dikerjakan dalam empat rakaat, masing-masing membaca tasbih 75 kali sehingga total 300 kali. Urutannya: 15 kali setelah membaca surat, 10 kali ketika rukuk, 10 kali setelah bangkit, 10 kali di tiap sujud, dan 10 kali saat duduk di antara dua sujud. Halaman ini merinci niat, jumlah rakaat, dan letak bacaan agar mudah diikuti.",
+      "primaryKeyword": "berapa rakaat shalat tasbih",
+      "pageType": "知识深度页",
+      "intent": "信息型",
+      "status": "gap",
+      "url": "/blogs/dhikr/tata-cara-sholat-tasbih",
+      "market": "id",
+      "markets": ["id", "sa"],
+      "territory": "知识",
+      "auxKeywords": [
+        "niat sholat tasbih",
+        "jumlah rakaat sholat tasbih",
+        "bacaan sholat tasbih",
+        "cara sholat tasbih",
+        "tarika salatul tasbih"
+      ],
+      "boundKeywords": [
+        { "keyword": "berapa rakaat shalat tasbih", "market": "id" },
+        { "keyword": "tata cara sholat tasbih", "market": "sa" },
+        { "keyword": "do a sholat tasbih", "market": "id" },
+        { "keyword": "salatul tasbih padhne ka tarika", "market": "sa" }
+      ]
+    },
+    {
+      "id": "tc-salatul-tasbih-c4",
+      "role": "cluster",
+      "scenarioId": "salatul-tasbih",
+      "themeId": "dhikr-knowledge",
+      "pillarId": "tc-salatul-tasbih-pillar",
+      "title": "Kapan Sholat Tasbih Dilakukan? Waktu Terbaik dan Anjurannya",
+      "subtitle": "Penjelasan waktu pelaksanaan sholat tasbih dan seberapa sering dianjurkan dikerjakan.",
+      "geoOverview": "Sholat tasbih dapat dikerjakan kapan saja di luar waktu yang dilarang salat, namun paling utama dilakukan di sepertiga malam atau setelah Isya. Nabi menganjurkan mengerjakannya minimal sekali seumur hidup, dan bila mampu sekali sehari, sepekan, sebulan, atau setahun. Halaman ini menjawab kapan waktu terbaik dan kapan kalimat tasbihnya diucapkan dalam tiap rakaat.",
+      "primaryKeyword": "kapan sholat tasbih dilakukan",
+      "pageType": "知识深度页",
+      "intent": "信息型",
+      "status": "gap",
+      "url": "/blogs/dhikr/kapan-sholat-tasbih-dilakukan",
+      "market": "id",
+      "markets": ["id"],
+      "territory": "知识",
+      "auxKeywords": [
+        "waktu sholat tasbih",
+        "waktu terbaik sholat tasbih",
+        "anjuran sholat tasbih",
+        "sepertiga malam",
+        "kapan tasbih diucapkan"
+      ],
+      "boundKeywords": [
+        { "keyword": "kapan sholat tasbih dilakukan", "market": "id" },
+        { "keyword": "kapan waktu sholat tasbih", "market": "id" },
+        { "keyword": "kapan kalimat tasbih diucapkan", "market": "id" }
+      ]
+    },
+    {
+      "id": "tc-salatul-tasbih-c5",
+      "role": "cluster",
+      "scenarioId": "salatul-tasbih",
+      "themeId": "dhikr-knowledge",
+      "pillarId": "tc-salatul-tasbih-pillar",
+      "title": "How to Make a Tasbih: Bead Counts, Materials, and DIY Steps",
+      "subtitle": "A simple guide to making your own tasbih (prayer beads) for dhikr and Salatul Tasbih.",
+      "geoOverview": "To make a tasbih, string 99 beads (or 33 with a divider every 11) onto a strong cord, add a leader bead (imam) and a tassel to mark the start. Choose wood, glass, or gemstone beads sized for comfortable counting with your thumb.",
+      "primaryKeyword": "how to make tasbih",
+      "pageType": "知识深度页",
+      "intent": "技术长尾",
+      "status": "gap",
+      "url": "/blogs/dhikr/how-to-make-tasbih",
+      "market": "us",
+      "markets": ["us"],
+      "territory": "知识",
+      "auxKeywords": [
+        "diy tasbih",
+        "make prayer beads",
+        "99 bead tasbih",
+        "tasbih materials",
+        "imam bead tassel"
+      ],
+      "boundKeywords": [
+        { "keyword": "how to make tasbih", "market": "us" }
+      ]
+    }
+  ]
+}

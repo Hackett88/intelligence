@@ -1,0 +1,55 @@
+{
+  "totalKeywords": 441,
+  "byMarket": {
+    "(空)": 6,
+    "my": 29,
+    "id": 36,
+    "sa": 73,
+    "ae": 29,
+    "us": 141,
+    "uk": 122,
+    "tr": 1,
+    "au": 1,
+    "de": 2,
+    "fr": 1
+  },
+  "byLayer": {
+    "一级核心": 34,
+    "二级独立": 308,
+    "四级兜底": 72,
+    "三级变体": 27
+  },
+  "byPagePlanningIntent": {
+    "品牌主页": 7,
+    "工具生态页": 55,
+    "知识深度页": 258,
+    "品类聚合页": 63,
+    "场景使用页": 53,
+    "产品详情页": 3,
+    "门店页": 1,
+    "市场页": 1
+  },
+  "byBehaviorIntent": {
+    "官网导航": 7,
+    "了解型": 307,
+    "混合型": 41,
+    "行动型": 66,
+    "对比型": 19,
+    "线下到访": 1
+  },
+  "withClusterId": 441,
+  "distinctClusterIds": 272,
+  "svTotal": 565990,
+  "planOwners": [
+    {
+      "owner": "admin@weslamic.com",
+      "pages": "20"
+    }
+  ],
+  "bindingOwners": [
+    {
+      "owner": "admin@weslamic.com",
+      "bindings": "58"
+    }
+  ]
+}

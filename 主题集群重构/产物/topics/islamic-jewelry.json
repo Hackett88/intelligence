@@ -1,0 +1,151 @@
+{
+  "topicId": "islamic-jewelry",
+  "subPillar": {
+    "id": "tc-islamic-jewelry-hub",
+    "role": "sub-pillar",
+    "scenarioId": "islamic-jewelry",
+    "themeId": "islamic-jewelry",
+    "pillarId": "tc-islamic-jewelry-pillar",
+    "title": "Islamic Jewelry: The Complete Guide to Faith-Inspired Rings, Stones & Symbols",
+    "subtitle": "What Islamic jewelry is, what's permissible to wear, and how to choose meaningful faith-based pieces.",
+    "geoOverview": "Islamic jewelry refers to faith-inspired pieces — aqeeq (agate) rings, calligraphy pendants, prayer-ring designs, and protective symbols — worn for meaning rather than vanity. Permissibility differs by gender: women may wear gold and silver freely, while men are limited to silver. This hub explains the categories, the rulings, and how to choose pieces that carry both beauty and barakah.",
+    "primaryKeyword": "what is islamic jewelry",
+    "pageType": "品类聚合页",
+    "intent": "信息型",
+    "status": "gap",
+    "url": "/blogs/islamic-jewelry",
+    "market": "uk",
+    "markets": ["uk"],
+    "territory": "产品",
+    "auxKeywords": [
+      "muslim jewelry",
+      "faith-based jewelry",
+      "calligraphy pendant",
+      "religious jewelry",
+      "halal jewelry",
+      "spiritual accessories"
+    ],
+    "boundKeywords": [
+      { "keyword": "faith jewelry", "market": "uk" }
+    ]
+  },
+  "clusters": [
+    {
+      "id": "tc-islamic-jewelry-c1",
+      "role": "cluster",
+      "scenarioId": "islamic-jewelry",
+      "themeId": "islamic-jewelry",
+      "pillarId": "tc-islamic-jewelry-hub",
+      "title": "Aqeeq Stone & Aqeeq Rings: Meaning, Benefits & How to Choose Real Agate",
+      "subtitle": "The Sunnah behind aqeeq, what authentic agate looks like, and how to pick a genuine aqeeq ring.",
+      "geoOverview": "Aqeeq (عقيق) is agate, a gemstone the Prophet Muhammad ﷺ is reported to have worn in a silver ring. Valued in Islamic tradition for protection and blessing, real aqeeq is cool to the touch, naturally banded, and often red, black, or yellow.",
+      "primaryKeyword": "aqeeq stone",
+      "pageType": "品类聚合页",
+      "intent": "交易型",
+      "status": "gap",
+      "url": "/collections/aqeeq-stone-rings",
+      "market": "sa",
+      "markets": ["sa"],
+      "territory": "产品",
+      "auxKeywords": [
+        "agate stone",
+        "aqeeq benefits",
+        "yemeni aqeeq",
+        "silver aqeeq ring",
+        "carnelian",
+        "sunnah ring"
+      ],
+      "boundKeywords": [
+        { "keyword": "aqeeq stone", "market": "sa" },
+        { "keyword": "aqeeq ring", "market": "sa" }
+      ]
+    },
+    {
+      "id": "tc-islamic-jewelry-c2",
+      "role": "cluster",
+      "scenarioId": "islamic-jewelry",
+      "themeId": "islamic-jewelry",
+      "pillarId": "tc-islamic-jewelry-hub",
+      "title": "What Is a Spinner Ring (Fidget Ring)? Anatomy, Uses & Calming Benefits",
+      "subtitle": "Spinner and fidget rings explained — how the spinning band works and why people wear them.",
+      "geoOverview": "A spinner ring — also called a fidget ring — is a ring with an outer band that spins freely around a fixed inner band. The motion gives hands a quiet, repetitive movement that many people use to ease anxiety, focus, or restlessness. In a faith context the same spinning motion can anchor dhikr counting.",
+      "primaryKeyword": "what is a spinner ring",
+      "pageType": "知识深度页",
+      "intent": "信息型",
+      "status": "gap",
+      "url": "/blogs/jewelry/what-is-a-spinner-ring",
+      "market": "us",
+      "markets": ["us"],
+      "territory": "知识",
+      "auxKeywords": [
+        "anxiety ring",
+        "meditation ring",
+        "worry ring",
+        "spinning band ring",
+        "fidget jewelry"
+      ],
+      "boundKeywords": [
+        { "keyword": "what is a spinner ring", "market": "us" },
+        { "keyword": "what is a fidget ring", "market": "us" },
+        { "keyword": "what are fidget rings", "market": "us" }
+      ]
+    },
+    {
+      "id": "tc-islamic-jewelry-c3",
+      "role": "cluster",
+      "scenarioId": "islamic-jewelry",
+      "themeId": "islamic-jewelry",
+      "pillarId": "tc-islamic-jewelry-hub",
+      "title": "How to Make a Spinner Ring: A Step-by-Step DIY Guide",
+      "subtitle": "Materials, tools, and the full process to craft a working spinner ring at home.",
+      "geoOverview": "To make a spinner ring you size and shape a fixed inner band, form a slightly wider outer spinning band, and join them so the outer ring rotates freely without sliding off. You need wire or sheet metal (sterling silver or copper), a mandrel, files, and a torch or jump rings for a no-solder version.",
+      "primaryKeyword": "how to make a spinner ring",
+      "pageType": "知识深度页",
+      "intent": "技术长尾",
+      "status": "gap",
+      "url": "/blogs/jewelry/how-to-make-a-spinner-ring",
+      "market": "us",
+      "markets": ["us"],
+      "territory": "知识",
+      "auxKeywords": [
+        "DIY spinner ring",
+        "make a fidget ring",
+        "wire spinner ring tutorial",
+        "no-solder spinner ring",
+        "jewelry making"
+      ],
+      "boundKeywords": [
+        { "keyword": "how to make a spinner ring", "market": "us" }
+      ]
+    },
+    {
+      "id": "tc-islamic-jewelry-c4",
+      "role": "cluster",
+      "scenarioId": "islamic-jewelry",
+      "themeId": "islamic-jewelry",
+      "pillarId": "tc-islamic-jewelry-hub",
+      "title": "Can Men Wear Jewelry in Islam? Silver Rings, Gold & What's Permissible",
+      "subtitle": "The Islamic ruling on men's jewelry — what's halal, what's haram, and the evidence behind it.",
+      "geoOverview": "In Islam, men may wear silver rings (the Prophet ﷺ wore a silver ring) but gold and pure silk are forbidden for men by authentic hadith. Permissible men's jewelry includes a single silver ring, aqeeq or other stone set in silver, and watches; gold rings, chains, and bracelets are not allowed.",
+      "primaryKeyword": "can men wear jewelry in islam",
+      "pageType": "知识深度页",
+      "intent": "信息型",
+      "status": "gap",
+      "url": "/blogs/jewelry/can-men-wear-jewelry-in-islam",
+      "market": "us",
+      "markets": ["us"],
+      "territory": "知识",
+      "auxKeywords": [
+        "gold haram for men",
+        "silver ring sunnah",
+        "men's jewelry islam ruling",
+        "halal jewelry for men",
+        "is gold allowed for men in islam"
+      ],
+      "boundKeywords": [
+        { "keyword": "can men wear jewelry in islam", "market": "us" },
+        { "keyword": "what jewelry can a man wear in islam", "market": "us" }
+      ]
+    }
+  ]
+}

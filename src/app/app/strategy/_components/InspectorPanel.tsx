@@ -72,7 +72,7 @@ function UrlEditor({ url, onSave }: { url: string | null; onSave: (u: string) =>
         onBlur={commit}
         placeholder="/collections/..."
         spellCheck={false}
-        className="w-full bg-manor-void/60 border border-manor-brass/45 rounded px-1.5 py-0.5 text-[10px] font-mono text-manor-ink focus:outline-none focus:border-manor-brass focus:ring-1 focus:ring-manor-brass/30"
+        className="w-full bg-manor-void/60 border border-manor-brass/45 rounded px-1.5 py-0.5 text-[12px] font-mono text-manor-ink focus:outline-none focus:border-manor-brass focus:ring-1 focus:ring-manor-brass/30"
       />
     );
   }
@@ -81,7 +81,7 @@ function UrlEditor({ url, onSave }: { url: string | null; onSave: (u: string) =>
       type="button"
       onClick={() => setEditing(true)}
       title="点击编辑目标 URL"
-      className="group inline-flex items-center gap-1 max-w-full text-[10px] font-mono text-manor-ink hover:text-manor-brassHi transition-colors"
+      className="group inline-flex items-center gap-1 max-w-full text-[12px] font-mono text-manor-ink hover:text-manor-brassHi transition-colors"
     >
       <span className="truncate">{url ? url : "✚ 待新建（点击设置）"}</span>
       <Pencil size={9} className="opacity-0 group-hover:opacity-70 shrink-0" />
@@ -115,10 +115,10 @@ function AuxKeywordEditor({ words, onWordsChange }: { words: string[]; onWordsCh
 
   return (
     <div className="mt-2 pt-1.5 border-t border-manor-line/50">
-      <span className="text-[9px] text-manor-inkFaint block mb-0.5">辅助词 · 实体（写作覆盖，无搜索量）</span>
+      <span className="text-[11px] text-manor-inkFaint block mb-0.5">辅助词 · 实体（写作覆盖，无搜索量）</span>
       <div className="flex flex-wrap gap-1 items-center">
         {words.map((w, i) => (
-          <span key={i} className="group/aux inline-flex items-center text-[9px] text-manor-inkDim/80 px-1 py-0.5 border border-manor-line2/40 rounded">
+          <span key={i} className="group/aux inline-flex items-center text-[11px] text-manor-inkDim/80 px-1 py-0.5 border border-manor-line2/40 rounded">
             {w}
             {onWordsChange && (
               <button
@@ -146,13 +146,13 @@ function AuxKeywordEditor({ words, onWordsChange }: { words: string[]; onWordsCh
               onBlur={commitAdd}
               placeholder="新辅助词"
               spellCheck={false}
-              className="w-20 bg-manor-void/60 border border-manor-brass/45 rounded px-1 py-0.5 text-[9px] text-manor-ink focus:outline-none focus:border-manor-brass focus:ring-1 focus:ring-manor-brass/30"
+              className="w-20 bg-manor-void/60 border border-manor-brass/45 rounded px-1 py-0.5 text-[11px] text-manor-ink focus:outline-none focus:border-manor-brass focus:ring-1 focus:ring-manor-brass/30"
             />
           ) : (
             <button
               type="button"
               onClick={() => setAdding(true)}
-              className="text-[9px] text-manor-inkFaint/70 hover:text-manor-brassHi px-1 py-0.5 border border-dashed border-manor-line2/40 rounded transition-colors"
+              className="text-[11px] text-manor-inkFaint/70 hover:text-manor-brassHi px-1 py-0.5 border border-dashed border-manor-line2/40 rounded transition-colors"
             >
               + 添加
             </button>
@@ -201,10 +201,10 @@ export function InspectorPanel({
     return (
       <div className="flex-1 flex items-center justify-center px-4">
         <div className="text-center space-y-2">
-          <span className="text-[10px] tracking-[0.2em] text-manor-brassHi/50 block" style={{ fontFamily: sc }}>
+          <span className="text-[12px] tracking-[0.2em] text-manor-brassHi/50 block" style={{ fontFamily: sc }}>
             IUDICIUM
           </span>
-          <p className="text-xs text-manor-inkFaint">
+          <p className="text-[13px] text-manor-inkFaint">
             点击中间地图中的页面节点<br />查看页面信号与已绑词
           </p>
         </div>
@@ -329,7 +329,7 @@ function PageInspector({
       {/* Header */}
       <div className="px-3 py-2 border-b border-manor-line shrink-0">
         <div className="flex items-center gap-2 mb-1">
-          <span className="text-[10px] tracking-[0.2em] text-manor-brassHi/60 flex-1 truncate min-w-0" style={{ fontFamily: sc }}>
+          <span className="text-[12px] tracking-[0.2em] text-manor-brassHi/60 flex-1 truncate min-w-0" style={{ fontFamily: sc }}>
             IUDICIUM · 页面检视
           </span>
           {onCollapse && (
@@ -344,52 +344,57 @@ function PageInspector({
             {page.title}
           </p>
         </div>
+        {page.subtitle && (
+          <p className="text-[12px] text-manor-inkDim leading-snug mt-1" title={page.subtitle}>
+            {page.subtitle}
+          </p>
+        )}
       </div>
 
       <div className="px-3 py-3 space-y-3 flex-1">
         {/* Page specs */}
-        <div className="space-y-2.5 text-[11px]">
+        <div className="space-y-2.5 text-[13px]">
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <span className="text-manor-inkFaint block text-[10px]">主词</span>
+              <span className="text-manor-inkFaint block text-[12px]">主词</span>
               <span className="text-manor-ink">{page.primaryKeyword}</span>
             </div>
             <div>
-              <span className="text-manor-inkFaint block text-[10px]">页面类型</span>
+              <span className="text-manor-inkFaint block text-[12px]">页面类型</span>
               {formatPagePlanningIntent(page.pageType)}
             </div>
             <div>
-              <span className="text-manor-inkFaint block text-[10px]">状态</span>
+              <span className="text-manor-inkFaint block text-[12px]">状态</span>
               <div className="flex items-center gap-1">
                 <StatusChip status={effStatus} size="sm" />
                 {isLive && page.status !== "live" && (
-                  <span className="text-[8px] text-manor-sageHi" title="URL 命中收录与索引，自动判为已上线">· 收录命中</span>
+                  <span className="text-[11px] text-manor-sageHi" title="URL 命中收录与索引，自动判为已上线">· 收录命中</span>
                 )}
               </div>
             </div>
             <div>
-              <span className="text-manor-inkFaint block text-[10px]">页面类型</span>
+              <span className="text-manor-inkFaint block text-[12px]">页面类型</span>
               {funnel ? (
                 <div className="flex flex-col gap-0.5">
                   <FunnelChip url={page.url} size="sm" />
-                  <span className="text-[9px] text-manor-inkFaint leading-snug">{FUNNEL_META[funnel].sublabel}</span>
+                  <span className="text-[11px] text-manor-inkFaint leading-snug">{FUNNEL_META[funnel].sublabel}</span>
                 </div>
               ) : (
-                <span className="text-[10px] text-manor-inkFaint italic">未定 · 设 URL 后识别</span>
+                <span className="text-[12px] text-manor-inkFaint italic">未定 · 设 URL 后识别</span>
               )}
             </div>
           </div>
 
           {/* 目标 URL — 可编辑 */}
           <div>
-            <span className="text-manor-inkFaint block text-[10px] mb-0.5">目标 URL</span>
+            <span className="text-manor-inkFaint block text-[12px] mb-0.5">目标 URL</span>
             <UrlEditor url={page.url} onSave={(u) => onUrlChange(page.id, u)} />
           </div>
 
           {/* 收录索引命中：URL 命中的所有变体（多语种/多市场），点击进入收录与索引对应页 */}
           {matches.length > 0 ? (
             <div>
-              <span className="text-manor-inkFaint block text-[10px] mb-0.5">
+              <span className="text-manor-inkFaint block text-[12px] mb-0.5">
                 收录索引命中 · <span className="text-manor-sageHi font-semibold">{matches.length}</span> 个 URL
               </span>
               <div className="space-y-0.5">
@@ -400,7 +405,7 @@ function PageInspector({
                     target="_blank"
                     rel="noreferrer"
                     title={`${mt.fullUrl} · 点击进入「收录与索引」对应页`}
-                    className="group flex items-center gap-1.5 text-[10px] text-manor-inkDim hover:text-manor-brassHi transition-colors"
+                    className="group flex items-center gap-1.5 text-[12px] text-manor-inkDim hover:text-manor-brassHi transition-colors"
                   >
                     <span className="w-3 text-center shrink-0">{marketFlag(mt.market as Market)}</span>
                     <span className="truncate flex-1 font-mono">{mt.basePath}</span>
@@ -413,15 +418,15 @@ function PageInspector({
             </div>
           ) : page.url ? (
             <div>
-              <span className="text-[10px] text-manor-inkFaint italic">该 URL 未在收录与索引中命中（待新建 / 未上线）</span>
+              <span className="text-[12px] text-manor-inkFaint italic">该 URL 未在收录与索引中命中（待新建 / 未上线）</span>
             </div>
           ) : null}
 
           {/* 市场 — 可点选；下方 GSC 排名随所选市场变（来自收录与索引，有则显示） */}
           <div>
             <div className="flex items-baseline justify-between gap-2 mb-1">
-              <span className="text-manor-inkFaint text-[10px]">市场 · 点选看各市场排名</span>
-              <span className="text-manor-inkFaint text-[9px] italic">数据来自收录与索引</span>
+              <span className="text-manor-inkFaint text-[12px]">市场 · 点选看各市场排名</span>
+              <span className="text-manor-inkFaint text-[11px] italic">数据来自收录与索引</span>
             </div>
             <div className="flex flex-wrap items-center gap-1 mb-1.5">
               {marketsToShow.map((m) => {
@@ -434,7 +439,7 @@ function PageInspector({
                     onClick={() => setSelectedMarket(m)}
                     title={has ? `${m.toUpperCase()} · 排名 #${pageRanks[m]!.position}` : `${m.toUpperCase()} · 暂无 GSC 数据`}
                     className={[
-                      "inline-flex items-center gap-1 px-1.5 py-0.5 rounded border text-[11px] transition-colors",
+                      "inline-flex items-center gap-1 px-1.5 py-0.5 rounded border text-[13px] transition-colors",
                       active
                         ? "border-manor-brass/60 bg-manor-brassDim/15"
                         : "border-manor-line2/50 hover:border-manor-brass/40 hover:bg-manor-bg3",
@@ -448,18 +453,18 @@ function PageInspector({
               })}
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-manor-inkFaint text-[10px]">GSC 排名 · {selectedMarket.toUpperCase()}</span>
+              <span className="text-manor-inkFaint text-[12px]">GSC 排名 · {selectedMarket.toUpperCase()}</span>
               {selRank ? (
                 <>
-                  <span className={`text-xs font-medium ${positionText(selRank.position).cls}`}>
+                  <span className={`text-[13px] font-medium ${positionText(selRank.position).cls}`}>
                     {positionText(selRank.position).text}
                   </span>
-                  <span className="text-manor-inkFaint text-[10px] tabular-nums">
+                  <span className="text-manor-inkFaint text-[12px] tabular-nums">
                     {selRank.clicks.toLocaleString()} 点击
                   </span>
                 </>
               ) : (
-                <span className="text-manor-inkFaint text-[10px] italic">该市场暂无 GSC 数据</span>
+                <span className="text-manor-inkFaint text-[12px] italic">该市场暂无 GSC 数据</span>
               )}
             </div>
           </div>
@@ -469,34 +474,34 @@ function PageInspector({
 
         {/* Signals section */}
         <div>
-          <span className="text-[10px] tracking-[0.15em] text-manor-brassHi/70 block mb-1.5" style={{ fontFamily: sc }}>
+          <span className="text-[12px] tracking-[0.15em] text-manor-brassHi/70 block mb-1.5" style={{ fontFamily: sc }}>
             专业信号
           </span>
 
           {/* 搜索意图（意图族）—— 这页主要抓哪种搜索意图 */}
           <div className="mb-2">
-            <span className="text-[10px] text-manor-inkFaint block mb-1">搜索意图</span>
+            <span className="text-[12px] text-manor-inkFaint block mb-1">搜索意图</span>
             {intentSignal.family ? (
               <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="text-[11px] text-manor-ink">{INTENT_FAMILY_META[intentSignal.family].label}</span>
+                <span className="text-[13px] text-manor-ink">{INTENT_FAMILY_META[intentSignal.family].label}</span>
                 {intentSignal.mixed && (
-                  <span className="inline-flex items-center px-1 py-0 rounded border text-[9px] bg-manor-bg3 text-manor-brassHi border-manor-brassDim/55">
+                  <span className="inline-flex items-center px-1 py-0 rounded border text-[11px] bg-manor-bg3 text-manor-brassHi border-manor-brassDim/55">
                     意图混杂 · 需人工确认
                   </span>
                 )}
               </div>
             ) : (
-              <span className="text-[10px] text-manor-inkFaint italic">尚无绑定词 — 待判定</span>
+              <span className="text-[12px] text-manor-inkFaint italic">尚无绑定词 — 待判定</span>
             )}
           </div>
 
           {/* Intent distribution */}
           {intentDist.length > 0 && (
             <div className="mb-2">
-              <span className="text-[10px] text-manor-inkFaint block mb-1">意图分布</span>
+              <span className="text-[12px] text-manor-inkFaint block mb-1">意图分布</span>
               <div className="flex flex-wrap gap-1">
                 {intentDist.map(([intent, count]) => (
-                  <span key={intent} className="text-[10px] text-manor-inkDim">
+                  <span key={intent} className="text-[12px] text-manor-inkDim">
                     {formatBehaviorIntent(intent as any)}
                     <span className="text-manor-inkFaint ml-0.5">{count}</span>
                   </span>
@@ -507,10 +512,10 @@ function PageInspector({
 
           {/* Coverage gap (demo) */}
           <div className="mb-2">
-            <span className="text-[10px] text-manor-inkFaint block mb-1">
+            <span className="text-[12px] text-manor-inkFaint block mb-1">
               覆盖缺口 <span className="italic text-manor-inkFaint">(示例)</span>
             </span>
-            <span className="text-[10px] text-manor-inkDim">
+            <span className="text-[12px] text-manor-inkDim">
               {page.status === "gap"
                 ? "全缺口 — 无承接页"
                 : page.status === "optimize"
@@ -521,14 +526,26 @@ function PageInspector({
 
           {/* Opportunity score */}
           <div className="mb-2 flex items-center gap-2">
-            <span className="text-[10px] text-manor-inkFaint">机会分</span>
-            <span className={`text-xs font-medium ${tier.cls}`}>
+            <span className="text-[12px] text-manor-inkFaint">机会分</span>
+            <span className={`text-[13px] font-medium ${tier.cls}`}>
               {tier.label}
             </span>
-            <span className="text-[10px] text-manor-inkDim tabular-nums">
+            <span className="text-[12px] text-manor-inkDim tabular-nums">
               {pageOppScore.toLocaleString()}
             </span>
           </div>
+
+          {/* GEO 概述 */}
+          {page.geoOverview && (
+            <div className="mb-2">
+              <span className="text-[11px] tracking-[0.12em] text-manor-brassHi/60 block mb-1" style={{ fontFamily: sc }}>
+                GEO 概述
+              </span>
+              <p className="text-[12px] text-manor-inkDim leading-relaxed">
+                {page.geoOverview}
+              </p>
+            </div>
+          )}
 
         </div>
 
@@ -546,7 +563,7 @@ function PageInspector({
                 type="button"
                 onClick={() => setKwTab(key)}
                 className={[
-                  "px-2 py-0.5 rounded text-[10px] tracking-[0.08em] border transition-colors",
+                  "px-2 py-0.5 rounded text-[12px] tracking-[0.08em] border transition-colors",
                   kwTab === key
                     ? "border-manor-brass/55 bg-manor-brassDim/15 text-manor-brassHi"
                     : "border-manor-line2/40 text-manor-inkFaint hover:text-manor-ink hover:border-manor-brass/30",
@@ -556,7 +573,7 @@ function PageInspector({
                 {label}
               </button>
             ))}
-            <span className="ml-auto text-[8px] text-manor-inkFaint italic">绿 = 计划与实际命中</span>
+            <span className="ml-auto text-[11px] text-manor-inkFaint italic">绿 = 计划与实际命中</span>
           </div>
 
           {kwTab === "planned" ? (
@@ -565,11 +582,11 @@ function PageInspector({
                 {kwsToShow.map((g) => {
                   const hit = actualTexts.has(norm(g.keyword));
                   return (
-                    <div key={g.key} className={`group flex items-center gap-1.5 text-[10px] ${hit ? "text-manor-sageHi" : "text-manor-inkDim"}`}>
+                    <div key={g.key} className={`group flex items-center gap-1.5 text-[12px] ${hit ? "text-manor-sageHi" : "text-manor-inkDim"}`}>
                       <span className="w-3 text-center shrink-0">{marketFlag(g.reprMarket)}</span>
                       <span className="truncate flex-1">{g.keyword}</span>
-                      {hit && <span className="text-[8px] text-manor-sageHi shrink-0" title="该计划词已在收录索引拿到实际曝光/点击">命中</span>}
-                      {g.count > 1 && <span className="text-[9px] text-manor-inkFaint shrink-0" title={`${g.count} 个市场变体合并`}>×{g.count}</span>}
+                      {hit && <span className="text-[11px] text-manor-sageHi shrink-0" title="该计划词已在收录索引拿到实际曝光/点击">命中</span>}
+                      {g.count > 1 && <span className="text-[11px] text-manor-inkFaint shrink-0" title={`${g.count} 个市场变体合并`}>×{g.count}</span>}
                       <span className="tabular-nums text-manor-inkFaint shrink-0">{formatSv(g.totalSv)}</span>
                       {onUnassign && (
                         <button
@@ -586,37 +603,37 @@ function PageInspector({
                   );
                 })}
                 {dedupedKws.length > 10 && (
-                  <button type="button" onClick={() => setShowAllKws(!showAllKws)} className="text-[10px] text-manor-inkFaint hover:text-manor-brassHi flex items-center gap-0.5 pt-1">
+                  <button type="button" onClick={() => setShowAllKws(!showAllKws)} className="text-[12px] text-manor-inkFaint hover:text-manor-brassHi flex items-center gap-0.5 pt-1">
                     <ChevronDown size={10} className={showAllKws ? "rotate-180" : ""} />
                     {showAllKws ? "收起" : `展开全部 (${dedupedKws.length})`}
                   </button>
                 )}
               </div>
             ) : (
-              <span className="text-[10px] text-manor-inkFaint">尚无计划词</span>
+              <span className="text-[12px] text-manor-inkFaint">尚无计划词</span>
             )
           ) : actualQueries.length > 0 ? (
             <div className="space-y-0.5">
               {actualShown.map((q) => {
                 const planned = plannedTexts.has(norm(q.query));
                 return (
-                  <div key={q.query} className={`flex items-center gap-1.5 text-[10px] ${planned ? "text-manor-sageHi" : "text-manor-inkDim"}`}>
+                  <div key={q.query} className={`flex items-center gap-1.5 text-[12px] ${planned ? "text-manor-sageHi" : "text-manor-inkDim"}`}>
                     <span className="truncate flex-1">{q.query}</span>
-                    {planned && <span className="text-[8px] text-manor-sageHi shrink-0" title="该实际查询词正是规划的计划词">已规划</span>}
+                    {planned && <span className="text-[11px] text-manor-sageHi shrink-0" title="该实际查询词正是规划的计划词">已规划</span>}
                     <span className="tabular-nums text-manor-inkFaint shrink-0" title="加权平均排名">#{q.position}</span>
                     <span className="tabular-nums text-manor-inkFaint shrink-0" title="点击">{q.clicks.toLocaleString()}</span>
                   </div>
                 );
               })}
               {actualQueries.length > 12 && (
-                <button type="button" onClick={() => setShowAllKws(!showAllKws)} className="text-[10px] text-manor-inkFaint hover:text-manor-brassHi flex items-center gap-0.5 pt-1">
+                <button type="button" onClick={() => setShowAllKws(!showAllKws)} className="text-[12px] text-manor-inkFaint hover:text-manor-brassHi flex items-center gap-0.5 pt-1">
                   <ChevronDown size={10} className={showAllKws ? "rotate-180" : ""} />
                   {showAllKws ? "收起" : `展开全部 (${actualQueries.length})`}
                 </button>
               )}
             </div>
           ) : (
-            <span className="text-[10px] text-manor-inkFaint">{page.url ? "该 URL 在收录与索引暂无查询词数据" : "设 URL 后显示实际命中的查询词"}</span>
+            <span className="text-[12px] text-manor-inkFaint">{page.url ? "该 URL 在收录与索引暂无查询词数据" : "设 URL 后显示实际命中的查询词"}</span>
           )}
 
           {/* 辅助词 · 实体（写作语义覆盖，无搜索量；可增删） */}

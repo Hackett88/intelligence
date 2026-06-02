@@ -22,26 +22,35 @@ type SpineEntry = { id: string; en: string; zh: string };
 const CATEGORY_SPINE_DEFAULT: SpineEntry[] = [
   // 念诵知识行：行头不显示名（en/zh 留空），仅 ◆pillar 标记 + 数据
   { id: "dhikr-knowledge", en: "", zh: "" },
+  { id: "zikr-ring", en: "Zikr Ring", zh: "智能念珠戒指" },
+  { id: "tasbih", en: "Tasbih", zh: "念珠" },
   { id: "islamic-jewelry", en: "Islamic Jewelry", zh: "伊斯兰饰品" },
   { id: "name-necklace", en: "Name Necklace", zh: "定制项链" },
-  { id: "tasbih", en: "Tasbih", zh: "念珠" },
-  { id: "zikr-ring", en: "Zikr Ring", zh: "智能念珠戒指" },
 ];
 type WeftType = { type: string; en: string; zh: string; themes: SpineEntry[] };
 const WEFT_GROUPS: WeftType[] = [
   { type: "knowledge", en: "Knowledge", zh: "知识", themes: [
-    { id: "knowledge-dhikr", en: "Dhikr", zh: "念诵" },
+    { id: "dhikr-adhkar", en: "Dhikr & Adhkar", zh: "念诵与功修" },
+    { id: "salatul-tasbih", en: "Salatul Tasbih", zh: "赞念拜" },
   ]},
-  { type: "scenario", en: "Scenario", zh: "场景", themes: [
-    { id: "slow-living", en: "Slow Living", zh: "慢生活" },
-    { id: "muslim-gifts", en: "Gifts", zh: "送礼" },
+  { type: "product", en: "Product", zh: "产品", themes: [
+    { id: "zikr-ring", en: "Zikr Ring", zh: "念珠戒指" },
+    { id: "tasbih-beads", en: "Tasbih / Prayer Beads", zh: "念珠/拜珠" },
+    { id: "islamic-jewelry", en: "Islamic Jewelry", zh: "伊斯兰饰品" },
+    { id: "name-necklace", en: "Name Necklace", zh: "定制项链" },
   ]},
   { type: "tool", en: "Tool", zh: "工具", themes: [
-    { id: "qibla-finder", en: "Qibla", zh: "朝向" },
-    { id: "itasbih-tools", en: "APP", zh: "应用" },
+    { id: "qibla", en: "Qibla & Prayer Direction", zh: "朝向/找麦加" },
+    { id: "digital-counter", en: "Digital Tasbih Counters", zh: "电子计数器" },
+  ]},
+  { type: "commerce", en: "Commerce", zh: "商业", themes: [
+    { id: "gifts", en: "Islamic Gifts", zh: "伊斯兰礼品" },
+  ]},
+  { type: "lifestyle", en: "Lifestyle", zh: "生活", themes: [
+    { id: "slow-living", en: "Slow Living & Mindful Dhikr", zh: "慢生活/正念" },
   ]},
   { type: "brand", en: "Brand", zh: "品牌", themes: [
-    { id: "brand", en: "Weslamic", zh: "品牌名称" },
+    { id: "brand", en: "Weslamic Brand", zh: "品牌" },
   ]},
 ];
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -49,7 +58,7 @@ const WEFT_GROUPS: WeftType[] = [
 function shortTitle(title: string): string { return title.split(/[（(]/)[0].replace(/[·\-—]+$/, "").trim(); }
 
 // ── Structure persistence + reorder helpers ──────────────────────────────────
-const STRUCT_KEY = "wb-loom-structure-v4";
+const STRUCT_KEY = "wb-loom-structure-v5";
 type LoomStructure = { rows: SpineEntry[]; bands: WeftType[] };
 // 内置大列/子列的标签（en/zh）以代码 WEFT_GROUPS 为准——它们没有改名 UI，只能拖动/新增，
 // 所以加载旧 localStorage 时按 id 对齐刷新内置项的标签（用户的换位/新增列保持不动）。

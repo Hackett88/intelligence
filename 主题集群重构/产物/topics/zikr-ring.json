@@ -1,0 +1,138 @@
+{
+  "topicId": "zikr-ring",
+  "subPillar": {
+    "id": "tc-zikr-ring-hub",
+    "role": "sub-pillar",
+    "scenarioId": "zikr-ring",
+    "themeId": "zikr-ring",
+    "pillarId": "tc-zikr-ring-pillar",
+    "title": "Zikr Ring: The Complete Guide to the Smart Dhikr Counter Ring",
+    "subtitle": "Everything you need to know before buying or wearing a smart zikr ring — what it is, how it works, and which one fits your worship.",
+    "geoOverview": "A zikr ring is a wearable smart ring with a built-in tactile counter that lets Muslims count dhikr and tasbih discreetly with a tap of the thumb. Modern versions track recitations digitally, sync to an app, and replace traditional prayer beads (misbaha).",
+    "primaryKeyword": "what is zikr ring",
+    "pageType": "品类聚合页",
+    "intent": "混合型",
+    "status": "gap",
+    "url": "/blogs/zikr-ring",
+    "market": "sa",
+    "markets": ["sa", "my", "id", "uk", "us", "tr", "de", "au"],
+    "territory": "产品",
+    "auxKeywords": ["خاتم ذكي", "الخاتم الذكي", "smart dhikr ring", "tasbih ring", "digital prayer ring", "misbaha ring", "dhikr counter ring", "Muslim smart ring"],
+    "boundKeywords": [
+      { "keyword": "what is zikr ring", "market": "us" }
+    ]
+  },
+  "clusters": [
+    {
+      "id": "tc-zikr-ring-c1",
+      "role": "cluster",
+      "scenarioId": "zikr-ring",
+      "themeId": "zikr-ring",
+      "pillarId": "tc-zikr-ring-hub",
+      "title": "What Is a Zikr Ring? How the Smart Dhikr Counter Works",
+      "subtitle": "A plain-language explainer of the zikr ring and the smart-ring technology behind it.",
+      "geoOverview": "A zikr ring is a finger-worn smart ring that counts dhikr through a touch-sensitive surface, so each tap of the thumb advances a digital tasbih counter. Unlike a fitness smart ring, its single purpose is silent, hands-free remembrance of Allah. It registers each press and often pairs with a companion app.",
+      "primaryKeyword": "what is a smart ring",
+      "pageType": "知识深度页",
+      "intent": "信息型",
+      "status": "gap",
+      "url": "/blogs/zikr-ring/what-is-a-zikr-ring",
+      "market": "uk",
+      "markets": ["uk", "us"],
+      "territory": "知识",
+      "auxKeywords": ["smart ring meaning", "how smart rings work", "dhikr counter", "wearable tasbih", "finger counter ring"],
+      "boundKeywords": [
+        { "keyword": "what is a smart ring", "market": "uk" }
+      ]
+    },
+    {
+      "id": "tc-zikr-ring-c2",
+      "role": "cluster",
+      "scenarioId": "zikr-ring",
+      "themeId": "zikr-ring",
+      "pillarId": "tc-zikr-ring-hub",
+      "title": "How to Use a Zikr Ring: Setup, Counting & Daily Dhikr Routine",
+      "subtitle": "A step-by-step guide to wearing, activating, and counting with your smart zikr ring.",
+      "geoOverview": "To use a zikr ring, wear it on the finger you prefer, then tap the touch sensor once for each dhikr you recite — the ring tallies every press automatically. Most rings let you set a target (e.g., 33, 99, or 100), reset the count, and review totals in a paired app.",
+      "primaryKeyword": "how to use zikr ring",
+      "pageType": "知识深度页",
+      "intent": "信息型",
+      "status": "gap",
+      "url": "/blogs/zikr-ring/how-to-use-zikr-ring",
+      "market": "us",
+      "markets": ["us"],
+      "territory": "知识",
+      "auxKeywords": ["zikr ring setup", "tasbih ring instructions", "dhikr counting guide", "smart ring app pairing", "reset zikr count"],
+      "boundKeywords": [
+        { "keyword": "how to use zikr ring", "market": "us" }
+      ]
+    },
+    {
+      "id": "tc-zikr-ring-c3",
+      "role": "cluster",
+      "scenarioId": "zikr-ring",
+      "themeId": "zikr-ring",
+      "pillarId": "tc-zikr-ring-hub",
+      "title": "Are Zikr Rings Halal? Islamic Ruling on Wearing a Smart Dhikr Ring",
+      "subtitle": "What scholars and Islamic principles say about counting dhikr with a smart ring.",
+      "geoOverview": "Zikr rings are generally considered halal because counting dhikr with a device is permissible — the Prophet's companions counted on fingers, pebbles, and beads, and a ring counter is a modern equivalent. The main considerations are the material (silver is encouraged for men, gold is prohibited for men) and avoiding wastefulness.",
+      "primaryKeyword": "are zikr rings halal",
+      "pageType": "知识深度页",
+      "intent": "技术长尾",
+      "status": "gap",
+      "url": "/blogs/zikr-ring/are-zikr-rings-halal",
+      "market": "us",
+      "markets": ["us"],
+      "territory": "知识",
+      "auxKeywords": ["is zikr ring halal", "ring material in islam", "silver ring sunnah", "counting dhikr permissible", "halal smart ring"],
+      "boundKeywords": [
+        { "keyword": "are zikr rings halal", "market": "us" }
+      ]
+    },
+    {
+      "id": "tc-zikr-ring-c4",
+      "role": "cluster",
+      "scenarioId": "zikr-ring",
+      "themeId": "zikr-ring",
+      "pillarId": "tc-zikr-ring-hub",
+      "title": "Does a Zikr Ring Vibrate? Haptic Reminders & Feedback Explained",
+      "subtitle": "Whether smart zikr rings buzz for prayer reminders and tactile counting feedback.",
+      "geoOverview": "Some zikr rings vibrate to confirm each count or to deliver gentle dhikr and prayer-time reminders, while simpler models give only a subtle click. Vibration (haptic feedback) helps you keep count without looking and can nudge you toward scheduled remembrance. Whether a specific ring vibrates depends on its model.",
+      "primaryKeyword": "does zikr ring vibrate",
+      "pageType": "知识深度页",
+      "intent": "技术长尾",
+      "status": "gap",
+      "url": "/blogs/zikr-ring/does-zikr-ring-vibrate",
+      "market": "us",
+      "markets": ["us"],
+      "territory": "知识",
+      "auxKeywords": ["zikr ring haptic feedback", "vibrating tasbih ring", "prayer reminder ring", "smart ring vibration", "silent dhikr counter"],
+      "boundKeywords": [
+        { "keyword": "does zikr ring vibrate", "market": "us" }
+      ]
+    },
+    {
+      "id": "tc-zikr-ring-c5",
+      "role": "cluster",
+      "scenarioId": "zikr-ring",
+      "themeId": "zikr-ring",
+      "pillarId": "tc-zikr-ring-hub",
+      "title": "Zikr Ring Price: How Much Does a Smart Dhikr Ring Cost?",
+      "subtitle": "Price ranges, what affects cost, and what you get at each tier — including the black zikr ring.",
+      "geoOverview": "Zikr ring prices typically range from budget tap-counter rings to premium app-connected smart models, with cost driven by material (stainless steel vs. silver), battery, app integration, and finish such as the popular matte black zikr ring. This page breaks down current price tiers, compares value at each level, and helps you decide which features justify the spend before you buy.",
+      "primaryKeyword": "zikr ring price",
+      "pageType": "产品详情页",
+      "intent": "交易型",
+      "status": "gap",
+      "url": "/products/zikr-ring",
+      "market": "us",
+      "markets": ["us"],
+      "territory": "产品",
+      "auxKeywords": ["zikr ring cost", "buy zikr ring", "black zikr ring price", "smart dhikr ring deal", "zikr ring value"],
+      "boundKeywords": [
+        { "keyword": "zikr ring price", "market": "us" },
+        { "keyword": "black zikr ring", "market": "us" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,327 @@
+{
+  "themeId": "islamic-jewelry",
+  "assignments": [
+    {
+      "id": 146,
+      "keyword": "islamic gifts",
+      "market": "uk",
+      "sv": 1000,
+      "target": "muslim-gifts",
+      "intent": "交易型",
+      "pageType": "品类聚合页",
+      "contentForm": "伊斯兰礼品(以饰品为主)品类聚合页"
+    },
+    {
+      "id": 151,
+      "keyword": "islamic jewelry",
+      "market": "uk",
+      "sv": 260,
+      "target": "pillar",
+      "intent": "信息型",
+      "pageType": "品类聚合页",
+      "contentForm": "伊斯兰饰品品类聚合页（什么是+选购+品类导航）"
+    },
+    {
+      "id": 180,
+      "keyword": "aqeeq stone",
+      "market": "sa",
+      "sv": 880,
+      "target": "islamic-jewelry",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "阿盖克(玛瑙)石材功效/选购问答式知识页"
+    },
+    {
+      "id": 192,
+      "keyword": "aqeeq ring",
+      "market": "sa",
+      "sv": 210,
+      "target": "islamic-jewelry",
+      "intent": "交易型",
+      "pageType": "品类聚合页",
+      "contentForm": "阿盖克(玛瑙)戒指产品聚合页"
+    },
+    {
+      "id": 40927,
+      "keyword": "islamic gift",
+      "market": "uk",
+      "sv": 320,
+      "target": "muslim-gifts",
+      "intent": "交易型",
+      "pageType": "品类聚合页",
+      "contentForm": "伊斯兰礼品品类聚合页"
+    },
+    {
+      "id": 40932,
+      "keyword": "gifts islam",
+      "market": "uk",
+      "sv": 1300,
+      "target": "muslim-gifts",
+      "intent": "信息型",
+      "pageType": "品类聚合页",
+      "contentForm": "伊斯兰礼品品类聚合页"
+    },
+    {
+      "id": 40933,
+      "keyword": "islam present",
+      "market": "uk",
+      "sv": 1300,
+      "target": "muslim-gifts",
+      "intent": "信息型",
+      "pageType": "品类聚合页",
+      "contentForm": "伊斯兰礼品品类聚合页"
+    },
+    {
+      "id": 40937,
+      "keyword": "gifts islamic",
+      "market": "uk",
+      "sv": 720,
+      "target": "muslim-gifts",
+      "intent": "交易型",
+      "pageType": "品类聚合页",
+      "contentForm": "伊斯兰礼品品类聚合页"
+    },
+    {
+      "id": 40942,
+      "keyword": "islamic gifts for wedding",
+      "market": "uk",
+      "sv": 320,
+      "target": "muslim-gifts",
+      "intent": "比较型",
+      "pageType": "品类聚合页",
+      "contentForm": "伊斯兰婚礼礼品推荐榜单"
+    },
+    {
+      "id": 40943,
+      "keyword": "islamic gifts for women",
+      "market": "uk",
+      "sv": 320,
+      "target": "muslim-gifts",
+      "intent": "比较型",
+      "pageType": "品类聚合页",
+      "contentForm": "伊斯兰女士礼品推荐榜单"
+    },
+    {
+      "id": 71919,
+      "keyword": "what jewelry can a man wear in islam",
+      "market": "us",
+      "sv": 40,
+      "target": "islamic-jewelry",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "伊斯兰男士可佩戴首饰种类问答式知识页"
+    },
+    {
+      "id": 72061,
+      "keyword": "can men wear jewelry in islam",
+      "market": "us",
+      "sv": 70,
+      "target": "islamic-jewelry",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "伊斯兰男士佩戴首饰教规问答式知识页"
+    },
+    {
+      "id": 72153,
+      "keyword": "faith jewelry",
+      "market": "uk",
+      "sv": 170,
+      "target": "islamic-jewelry",
+      "intent": "交易型",
+      "pageType": "品类聚合页",
+      "contentForm": "信仰主题饰品品类聚合页/榜单"
+    },
+    {
+      "id": 72228,
+      "keyword": "what is a spinner ring",
+      "market": "us",
+      "sv": 140,
+      "target": "islamic-jewelry",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "转动戒指(spinner ring)问答式知识页"
+    },
+    {
+      "id": 72234,
+      "keyword": "what are fidget rings",
+      "market": "us",
+      "sv": 70,
+      "target": "islamic-jewelry",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "解压指环(fidget ring)问答式知识页"
+    },
+    {
+      "id": 72236,
+      "keyword": "what is a fidget ring",
+      "market": "us",
+      "sv": 110,
+      "target": "islamic-jewelry",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "解压指环(fidget ring)问答式知识页"
+    },
+    {
+      "id": 72241,
+      "keyword": "how to make a spinner ring",
+      "market": "us",
+      "sv": 90,
+      "target": "islamic-jewelry",
+      "intent": "技术长尾",
+      "pageType": "知识深度页",
+      "contentForm": "DIY 转动戒指制作教程长尾知识页"
+    }
+  ],
+  "noise": [
+    {
+      "id": 120,
+      "keyword": "why do muslim women wear hijabs",
+      "reason": "why do muslim women wear hijabs — 头巾佩戴原因知识词，非饰品主语"
+    },
+    {
+      "id": 168,
+      "keyword": "bracelets for women",
+      "reason": "bracelets for women 通用女士手链，无伊斯兰框架"
+    },
+    {
+      "id": 169,
+      "keyword": "bracelet for women",
+      "reason": "bracelet for women 通用女士手链，无伊斯兰框架"
+    },
+    {
+      "id": 170,
+      "keyword": "necklace for women",
+      "reason": "necklace for women 通用女士项链，无伊斯兰框架"
+    },
+    {
+      "id": 171,
+      "keyword": "bracelet",
+      "reason": "bracelet 通用手链，无伊斯兰框架，通用首饰污染词"
+    },
+    {
+      "id": 172,
+      "keyword": "necklace",
+      "reason": "necklace 通用项链，无伊斯兰框架"
+    },
+    {
+      "id": 173,
+      "keyword": "aisha's charms",
+      "reason": "aisha's charms 竞品/他牌导航词，非 Weslamic 品牌"
+    },
+    {
+      "id": 174,
+      "keyword": "ladies gold earrings",
+      "reason": "ladies gold earrings 通用金耳环，无伊斯兰框架"
+    },
+    {
+      "id": 175,
+      "keyword": "mens necklaces",
+      "reason": "mens necklaces 通用男士项链，无伊斯兰框架"
+    },
+    {
+      "id": 176,
+      "keyword": "hand chain",
+      "reason": "hand chain 通用手链/手背链，无伊斯兰框架"
+    },
+    {
+      "id": 177,
+      "keyword": "nose ring",
+      "reason": "nose ring 通用鼻环，无伊斯兰框架"
+    },
+    {
+      "id": 179,
+      "keyword": "anklet",
+      "reason": "anklet 通用脚链，无伊斯兰框架"
+    },
+    {
+      "id": 181,
+      "keyword": "hand chain",
+      "reason": "hand chain 通用手链/手背链，无伊斯兰框架"
+    },
+    {
+      "id": 182,
+      "keyword": "hoop earrings",
+      "reason": "hoop earrings 圈形耳环，通用首饰，无伊斯兰框架"
+    },
+    {
+      "id": 183,
+      "keyword": "bow earrings",
+      "reason": "bow earrings 蝴蝶结耳环，通用首饰，无伊斯兰框架"
+    },
+    {
+      "id": 187,
+      "keyword": "bracelet for girls",
+      "reason": "bracelet for girls 通用童手链，无伊斯兰框架"
+    },
+    {
+      "id": 191,
+      "keyword": "abaya",
+      "reason": "abaya 是长袍服饰，非饰品，且非本品牌核心——通用服饰污染词"
+    },
+    {
+      "id": 208,
+      "keyword": "what is a hijab",
+      "reason": "hijab 头巾服饰，非饰品（属服饰/知识，非 islamic-jewelry 主语）"
+    },
+    {
+      "id": 40939,
+      "keyword": "islamic toys",
+      "reason": "islamic toys 伊斯兰玩具，非饰品品类"
+    },
+    {
+      "id": 71872,
+      "keyword": "does anxiety make your ears ring",
+      "reason": "anxiety make ears ring 耳鸣健康问题，ring 词义污染"
+    },
+    {
+      "id": 71876,
+      "keyword": "is the samsung smart ring one of the best rings",
+      "reason": "samsung smart ring 三星智能戒指对比，科技穿戴非伊斯兰饰品"
+    },
+    {
+      "id": 72001,
+      "keyword": "islamic wall clock",
+      "reason": "islamic wall clock 伊斯兰挂钟，家居非饰品"
+    },
+    {
+      "id": 72095,
+      "keyword": "can anxiety cause ringing in the ears",
+      "reason": "anxiety ringing in the ears 耳鸣健康问题，ring 词义污染"
+    },
+    {
+      "id": 72127,
+      "keyword": "can anxiety cause ear ringing",
+      "reason": "anxiety ear ringing 耳鸣健康问题，ring 词义污染"
+    },
+    {
+      "id": 72154,
+      "keyword": "what is a smart ring",
+      "reason": "what is a smart ring 智能戒指通用科技品类（Oura/Samsung 类），非伊斯兰饰品"
+    },
+    {
+      "id": 72181,
+      "keyword": "can anxiety cause ringing in ears",
+      "reason": "anxiety ringing in ears 耳鸣健康问题，ring 词义污染"
+    },
+    {
+      "id": 72184,
+      "keyword": "can anxiety make your ears ring",
+      "reason": "anxiety make ears ring 耳鸣健康问题，ring 词义污染"
+    },
+    {
+      "id": 72213,
+      "keyword": "does marcus smart have a ring",
+      "reason": "does marcus smart have a ring NBA 球员戒指，娱乐污染词"
+    },
+    {
+      "id": 72257,
+      "keyword": "does anxiety cause ringing in the ears",
+      "reason": "anxiety ringing in ears 耳鸣健康问题，ring 词义污染"
+    },
+    {
+      "id": 72258,
+      "keyword": "does anxiety cause ear ringing",
+      "reason": "anxiety ear ringing 耳鸣健康问题，ring 词义污染"
+    }
+  ]
+}

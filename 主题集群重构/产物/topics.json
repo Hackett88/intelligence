@@ -1,0 +1,3507 @@
+{
+  "topics": [
+    {
+      "id": "dhikr-adhkar",
+      "name": "Dhikr & Adhkar",
+      "domain": "dhikr-knowledge",
+      "band": "T1",
+      "keywords": [
+        {
+          "id": 202,
+          "keyword": "dzikir",
+          "market": "id",
+          "sv": 40500,
+          "kd": 32,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 206,
+          "keyword": "azan ke baad ki dua",
+          "market": "sa",
+          "sv": 2900,
+          "kd": 26,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 892,
+          "keyword": "zikr after namaz",
+          "market": "uk",
+          "sv": 590,
+          "kd": 11,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 72203,
+          "keyword": "what do you say in fajr adhan",
+          "market": "us",
+          "sv": 590,
+          "kd": 12,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 893,
+          "keyword": "dhikr after namaz",
+          "market": "uk",
+          "sv": 480,
+          "kd": 12,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 894,
+          "keyword": "zikr after prayer",
+          "market": "uk",
+          "sv": 480,
+          "kd": 15,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 895,
+          "keyword": "dhikr after salah",
+          "market": "uk",
+          "sv": 390,
+          "kd": 11,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 127,
+          "keyword": "what is dhikr",
+          "market": "uk",
+          "sv": 320,
+          "kd": 20,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 69614,
+          "keyword": "what is dhikr",
+          "market": "us",
+          "sv": 320,
+          "kd": 11,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 72209,
+          "keyword": "what is azan",
+          "market": "us",
+          "sv": 210,
+          "kd": 8,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 154,
+          "keyword": "zikr",
+          "market": "my",
+          "sv": 210,
+          "kd": 24,
+          "intent": null,
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 69613,
+          "keyword": "how to do dhikr",
+          "market": "uk",
+          "sv": 170,
+          "kd": 27,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 72208,
+          "keyword": "what is adhan in islam",
+          "market": "us",
+          "sv": 170,
+          "kd": 26,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 72199,
+          "keyword": "what is a adhan",
+          "market": "us",
+          "sv": 170,
+          "kd": 27,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 69615,
+          "keyword": "how to do dhikr",
+          "market": "us",
+          "sv": 140,
+          "kd": 23,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 72205,
+          "keyword": "what is adhan",
+          "market": "us",
+          "sv": 140,
+          "kd": 21,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 72193,
+          "keyword": "how to say azan in english",
+          "market": "us",
+          "sv": 140,
+          "kd": 21,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 72148,
+          "keyword": "what is a adhan",
+          "market": "uk",
+          "sv": 110,
+          "kd": 27,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 72189,
+          "keyword": "how to say adhan",
+          "market": "us",
+          "sv": 110,
+          "kd": 18,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 72186,
+          "keyword": "how to recite adhan",
+          "market": "us",
+          "sv": 110,
+          "kd": 22,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 69616,
+          "keyword": "what is dhikr in islam",
+          "market": "us",
+          "sv": 110,
+          "kd": 14,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        }
+      ]
+    },
+    {
+      "id": "salatul-tasbih",
+      "name": "Salatul Tasbih",
+      "domain": "dhikr-knowledge",
+      "band": "T2",
+      "keywords": [
+        {
+          "id": 211,
+          "keyword": "sholat tasbih",
+          "market": "sa",
+          "sv": 720,
+          "kd": 27,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 209,
+          "keyword": "solat tasbih",
+          "market": "sa",
+          "sv": 720,
+          "kd": 14,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 128,
+          "keyword": "apa itu sholat tasbih",
+          "market": "my",
+          "sv": 590,
+          "kd": 30,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 122,
+          "keyword": "apa itu sholat tasbih",
+          "market": "ae",
+          "sv": 590,
+          "kd": 30,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 124,
+          "keyword": "apa itu sholat tasbih",
+          "market": "uk",
+          "sv": 590,
+          "kd": 30,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 116,
+          "keyword": "how to pray salatul tasbih prayer",
+          "market": "uk",
+          "sv": 590,
+          "kd": 8,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 115,
+          "keyword": "how to do salatul tasbih",
+          "market": "uk",
+          "sv": 590,
+          "kd": 8,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 126,
+          "keyword": "apa itu sholat tasbih",
+          "market": "id",
+          "sv": 590,
+          "kd": 30,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 63681,
+          "keyword": "how to salatul tasbih prayer",
+          "market": "uk",
+          "sv": 590,
+          "kd": 7,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 212,
+          "keyword": "tasbih prayer",
+          "market": "sa",
+          "sv": 390,
+          "kd": 16,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 210,
+          "keyword": "salat tasbeeh",
+          "market": "sa",
+          "sv": 390,
+          "kd": 17,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 63696,
+          "keyword": "berapa rakaat shalat tasbih",
+          "market": "id",
+          "sv": 390,
+          "kd": 30,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 63702,
+          "keyword": "kapan sholat tasbih dilakukan",
+          "market": "id",
+          "sv": 390,
+          "kd": 30,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 213,
+          "keyword": "tata cara sholat tasbih",
+          "market": "sa",
+          "sv": 320,
+          "kd": 25,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 63683,
+          "keyword": "how to pray salatul tasbih",
+          "market": "uk",
+          "sv": 320,
+          "kd": 5,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 63682,
+          "keyword": "how to perform salatul tasbih",
+          "market": "uk",
+          "sv": 320,
+          "kd": 9,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 215,
+          "keyword": "solat sunat tasbih",
+          "market": "sa",
+          "sv": 260,
+          "kd": 13,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 214,
+          "keyword": "salatul tasbih padhne ka tarika",
+          "market": "sa",
+          "sv": 260,
+          "kd": 23,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 69602,
+          "keyword": "how to pray salatul tasbih",
+          "market": "us",
+          "sv": 260,
+          "kd": 21,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 118,
+          "keyword": "how to pray salatul tasbih",
+          "market": "sa",
+          "sv": 210,
+          "kd": 14,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 69591,
+          "keyword": "how to do salatul tasbih",
+          "market": "us",
+          "sv": 210,
+          "kd": 16,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 69631,
+          "keyword": "how to pray salatul tasbih prayer",
+          "market": "us",
+          "sv": 210,
+          "kd": 2,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 69625,
+          "keyword": "how to read salatul tasbih",
+          "market": "us",
+          "sv": 210,
+          "kd": 7,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 69619,
+          "keyword": "how to pray salatul tasbih namaz",
+          "market": "us",
+          "sv": 210,
+          "kd": 0,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 69632,
+          "keyword": "how to salatul tasbih prayer",
+          "market": "us",
+          "sv": 210,
+          "kd": 0,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 63705,
+          "keyword": "do a sholat tasbih",
+          "market": "id",
+          "sv": 170,
+          "kd": 22,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 113,
+          "keyword": "how to perform salatul tasbih",
+          "market": "ae",
+          "sv": 140,
+          "kd": 6,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 114,
+          "keyword": "how to pray salatul tasbih",
+          "market": "ae",
+          "sv": 140,
+          "kd": 12,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 63684,
+          "keyword": "how to pray salatul tasbih namaz",
+          "market": "uk",
+          "sv": 140,
+          "kd": 6,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 63691,
+          "keyword": "apa itu shalat tasbih",
+          "market": "id",
+          "sv": 140,
+          "kd": 28,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 69633,
+          "keyword": "how to perform salatul tasbih",
+          "market": "us",
+          "sv": 140,
+          "kd": 6,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 63686,
+          "keyword": "how to read salatul tasbih",
+          "market": "uk",
+          "sv": 110,
+          "kd": 6,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 63706,
+          "keyword": "kapan kalimat tasbih diucapkan",
+          "market": "id",
+          "sv": 110,
+          "kd": 23,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 63737,
+          "keyword": "kapan waktu sholat tasbih",
+          "market": "id",
+          "sv": 70,
+          "kd": 24,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "四级兜底"
+        },
+        {
+          "id": 69634,
+          "keyword": "how to make tasbih",
+          "market": "us",
+          "sv": 70,
+          "kd": 20,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "四级兜底"
+        }
+      ]
+    },
+    {
+      "id": "qibla",
+      "name": "Qibla & Prayer Direction",
+      "domain": "dhikr-knowledge",
+      "band": "T2",
+      "keywords": [
+        {
+          "id": 156,
+          "keyword": "kaaba compass",
+          "market": "my",
+          "sv": 1900,
+          "kd": 27,
+          "intent": null,
+          "behaviorIntent": "行动型",
+          "pageType": "工具生态页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 150,
+          "keyword": "kaaba direction",
+          "market": "ae",
+          "sv": 1900,
+          "kd": 29,
+          "intent": "Informational",
+          "behaviorIntent": "行动型",
+          "pageType": "工具生态页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 157,
+          "keyword": "qibla compass",
+          "market": "my",
+          "sv": 1900,
+          "kd": 33,
+          "intent": null,
+          "behaviorIntent": "行动型",
+          "pageType": "工具生态页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 220,
+          "keyword": "qiblah finder",
+          "market": "my",
+          "sv": 1900,
+          "kd": 0,
+          "intent": null,
+          "behaviorIntent": "行动型",
+          "pageType": "工具生态页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 159,
+          "keyword": "qibla finder online",
+          "market": "my",
+          "sv": 880,
+          "kd": 37,
+          "intent": null,
+          "behaviorIntent": "行动型",
+          "pageType": "工具生态页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 160,
+          "keyword": "qiblah fonder",
+          "market": "my",
+          "sv": 720,
+          "kd": 40,
+          "intent": null,
+          "behaviorIntent": "行动型",
+          "pageType": "工具生态页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 163,
+          "keyword": "which way is mecca",
+          "market": "id",
+          "sv": 590,
+          "kd": 31,
+          "intent": null,
+          "behaviorIntent": "了解型",
+          "pageType": "工具生态页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 72149,
+          "keyword": "which way is the qibla",
+          "market": "uk",
+          "sv": 590,
+          "kd": 22,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "工具生态页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 164,
+          "keyword": "kaba direction",
+          "market": "id",
+          "sv": 480,
+          "kd": 34,
+          "intent": null,
+          "behaviorIntent": "了解型",
+          "pageType": "工具生态页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 72229,
+          "keyword": "where is the qibla",
+          "market": "us",
+          "sv": 390,
+          "kd": 26,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "工具生态页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 153,
+          "keyword": "qiblah",
+          "market": "my",
+          "sv": 390,
+          "kd": 40,
+          "intent": null,
+          "behaviorIntent": "了解型",
+          "pageType": "工具生态页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 72230,
+          "keyword": "where is qibla",
+          "market": "us",
+          "sv": 320,
+          "kd": 19,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "工具生态页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 72134,
+          "keyword": "what direction is the qibla",
+          "market": "uk",
+          "sv": 320,
+          "kd": 27,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "工具生态页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 111,
+          "keyword": "what is the direction of kaaba",
+          "market": "uk",
+          "sv": 260,
+          "kd": 34,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 72211,
+          "keyword": "which way is qibla",
+          "market": "us",
+          "sv": 260,
+          "kd": 26,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "工具生态页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 72182,
+          "keyword": "what direction is the qibla",
+          "market": "us",
+          "sv": 260,
+          "kd": 13,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "工具生态页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 72168,
+          "keyword": "where is the qibla",
+          "market": "uk",
+          "sv": 260,
+          "kd": 16,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "工具生态页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 72180,
+          "keyword": "which direction is qibla",
+          "market": "us",
+          "sv": 260,
+          "kd": 28,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "工具生态页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 72133,
+          "keyword": "what way is the qibla",
+          "market": "uk",
+          "sv": 210,
+          "kd": 28,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "工具生态页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 72128,
+          "keyword": "which direction is the qibla",
+          "market": "uk",
+          "sv": 210,
+          "kd": 29,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "工具生态页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 72146,
+          "keyword": "what is qibla",
+          "market": "uk",
+          "sv": 210,
+          "kd": 27,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 71905,
+          "keyword": "what is the qibla",
+          "market": "us",
+          "sv": 210,
+          "kd": 22,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 71997,
+          "keyword": "how to find qibla",
+          "market": "uk",
+          "sv": 210,
+          "kd": 22,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "工具生态页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 72057,
+          "keyword": "which direction is the qibla",
+          "market": "us",
+          "sv": 210,
+          "kd": 29,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "工具生态页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 112,
+          "keyword": "how to locate kaaba direction",
+          "market": "uk",
+          "sv": 170,
+          "kd": 27,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "工具生态页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 69607,
+          "keyword": "which direction is kaaba",
+          "market": "us",
+          "sv": 170,
+          "kd": 30,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "工具生态页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 72232,
+          "keyword": "how to find qibla",
+          "market": "us",
+          "sv": 170,
+          "kd": 15,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "工具生态页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 72126,
+          "keyword": "how to check qibla direction",
+          "market": "uk",
+          "sv": 170,
+          "kd": 28,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "工具生态页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 69608,
+          "keyword": "what direction is the kaaba",
+          "market": "us",
+          "sv": 110,
+          "kd": 28,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "工具生态页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 69609,
+          "keyword": "which direction is kaaba",
+          "market": "uk",
+          "sv": 110,
+          "kd": 30,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "工具生态页",
+          "layer": "二级独立"
+        }
+      ]
+    },
+    {
+      "id": "slow-living",
+      "name": "Slow Living & Mindful Dhikr",
+      "domain": "dhikr-knowledge",
+      "band": "T3",
+      "keywords": [
+        {
+          "id": 142,
+          "keyword": "slow living",
+          "market": "id",
+          "sv": 22200,
+          "kd": 28,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 72216,
+          "keyword": "how to meditate daily",
+          "market": "us",
+          "sv": 6600,
+          "kd": 27,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 152,
+          "keyword": "slow living",
+          "market": "uk",
+          "sv": 590,
+          "kd": 28,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 69617,
+          "keyword": "what is slow living",
+          "market": "us",
+          "sv": 260,
+          "kd": 30,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 69600,
+          "keyword": "how to embrace slow living",
+          "market": "us",
+          "sv": 40,
+          "kd": 12,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "四级兜底"
+        }
+      ]
+    },
+    {
+      "id": "zikr-ring",
+      "name": "Zikr Ring",
+      "domain": "zikr-ring",
+      "band": "T1",
+      "keywords": [
+        {
+          "id": 193,
+          "keyword": "خاتم ذكي",
+          "market": "sa",
+          "sv": 720,
+          "kd": 22,
+          "intent": null,
+          "behaviorIntent": "混合型",
+          "pageType": "品类聚合页",
+          "layer": "一级核心"
+        },
+        {
+          "id": 166,
+          "keyword": "zikr ring",
+          "market": "my",
+          "sv": 480,
+          "kd": 16,
+          "intent": null,
+          "behaviorIntent": "行动型",
+          "pageType": "品类聚合页",
+          "layer": "一级核心"
+        },
+        {
+          "id": 161,
+          "keyword": "zikr ring",
+          "market": "id",
+          "sv": 480,
+          "kd": 16,
+          "intent": null,
+          "behaviorIntent": "混合型",
+          "pageType": "品类聚合页",
+          "layer": "一级核心"
+        },
+        {
+          "id": 198,
+          "keyword": "zikr ring",
+          "market": "uk",
+          "sv": 480,
+          "kd": 16,
+          "intent": "Informational",
+          "behaviorIntent": "混合型",
+          "pageType": "品类聚合页",
+          "layer": "一级核心"
+        },
+        {
+          "id": 72136,
+          "keyword": "zikr ring",
+          "market": "uk",
+          "sv": 480,
+          "kd": 16,
+          "intent": "Informational",
+          "behaviorIntent": "行动型",
+          "pageType": "品类聚合页",
+          "layer": "一级核心"
+        },
+        {
+          "id": 72154,
+          "keyword": "what is a smart ring",
+          "market": "uk",
+          "sv": 390,
+          "kd": 27,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 139,
+          "keyword": "what is zikr ring",
+          "market": "us",
+          "sv": 320,
+          "kd": 11,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "一级核心"
+        },
+        {
+          "id": 145,
+          "keyword": "zikr ring",
+          "market": "us",
+          "sv": 320,
+          "kd": 11,
+          "intent": null,
+          "behaviorIntent": "行动型",
+          "pageType": "品类聚合页",
+          "layer": "一级核心"
+        },
+        {
+          "id": 189,
+          "keyword": "الخاتم الذكي",
+          "market": "sa",
+          "sv": 320,
+          "kd": 21,
+          "intent": null,
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "一级核心"
+        },
+        {
+          "id": 205,
+          "keyword": "zikr ring",
+          "market": "tr",
+          "sv": 260,
+          "kd": 25,
+          "intent": "Informational",
+          "behaviorIntent": "行动型",
+          "pageType": "品类聚合页",
+          "layer": "一级核心"
+        },
+        {
+          "id": 204,
+          "keyword": "zikr ring",
+          "market": "de",
+          "sv": 260,
+          "kd": 14,
+          "intent": null,
+          "behaviorIntent": "混合型",
+          "pageType": "品类聚合页",
+          "layer": "一级核心"
+        },
+        {
+          "id": 129,
+          "keyword": "how to use zikr ring",
+          "market": "us",
+          "sv": 90,
+          "kd": 14,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "一级核心"
+        },
+        {
+          "id": 203,
+          "keyword": "zikr ring",
+          "market": "au",
+          "sv": 90,
+          "kd": 2,
+          "intent": "Commercial",
+          "behaviorIntent": "行动型",
+          "pageType": "品类聚合页",
+          "layer": "一级核心"
+        },
+        {
+          "id": 199,
+          "keyword": "zikr ring price",
+          "market": "us",
+          "sv": 90,
+          "kd": 15,
+          "intent": "Commercial",
+          "behaviorIntent": "行动型",
+          "pageType": "产品详情页",
+          "layer": "一级核心"
+        },
+        {
+          "id": 200,
+          "keyword": "black zikr ring",
+          "market": "us",
+          "sv": 50,
+          "kd": 9,
+          "intent": "Informational",
+          "behaviorIntent": "行动型",
+          "pageType": "产品详情页",
+          "layer": "一级核心"
+        },
+        {
+          "id": 130,
+          "keyword": "does zikr ring vibrate",
+          "market": "us",
+          "sv": 40,
+          "kd": 9,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "一级核心"
+        },
+        {
+          "id": 131,
+          "keyword": "are zikr rings halal",
+          "market": "us",
+          "sv": 30,
+          "kd": 8,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "一级核心"
+        }
+      ]
+    },
+    {
+      "id": "digital-counter",
+      "name": "Digital Tasbih Counters",
+      "domain": "tasbih",
+      "band": "T2",
+      "keywords": [
+        {
+          "id": 72129,
+          "keyword": "tasbih counter",
+          "market": "uk",
+          "sv": 2900,
+          "kd": 34,
+          "intent": null,
+          "behaviorIntent": "行动型",
+          "pageType": "工具生态页",
+          "layer": "一级核心"
+        },
+        {
+          "id": 155,
+          "keyword": "tasbeeh counter",
+          "market": "my",
+          "sv": 2400,
+          "kd": 25,
+          "intent": null,
+          "behaviorIntent": "行动型",
+          "pageType": "工具生态页",
+          "layer": "一级核心"
+        },
+        {
+          "id": 72130,
+          "keyword": "tasbeeh counter",
+          "market": "uk",
+          "sv": 2400,
+          "kd": 25,
+          "intent": "Commercial",
+          "behaviorIntent": "行动型",
+          "pageType": "工具生态页",
+          "layer": "一级核心"
+        },
+        {
+          "id": 71925,
+          "keyword": "tasbeeh counter",
+          "market": "ae",
+          "sv": 1600,
+          "kd": 26,
+          "intent": "Informational",
+          "behaviorIntent": "行动型",
+          "pageType": "工具生态页",
+          "layer": "一级核心"
+        },
+        {
+          "id": 158,
+          "keyword": "tasbih digital counter",
+          "market": "my",
+          "sv": 1300,
+          "kd": 26,
+          "intent": null,
+          "behaviorIntent": "行动型",
+          "pageType": "工具生态页",
+          "layer": "一级核心"
+        },
+        {
+          "id": 72110,
+          "keyword": "tasbeh",
+          "market": "sa",
+          "sv": 1000,
+          "kd": 27,
+          "intent": "Informational",
+          "behaviorIntent": "混合型",
+          "pageType": "工具生态页",
+          "layer": "四级兜底"
+        },
+        {
+          "id": 71928,
+          "keyword": "tasbih counter",
+          "market": "ae",
+          "sv": 880,
+          "kd": 34,
+          "intent": "Informational",
+          "behaviorIntent": "行动型",
+          "pageType": "工具生态页",
+          "layer": "一级核心"
+        },
+        {
+          "id": 71951,
+          "keyword": "tasbeh",
+          "market": "ae",
+          "sv": 880,
+          "kd": 36,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "工具生态页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 201,
+          "keyword": "zikr ring counter",
+          "market": "us",
+          "sv": 820,
+          "kd": 38,
+          "intent": "Informational",
+          "behaviorIntent": "行动型",
+          "pageType": "品类聚合页",
+          "layer": "一级核心"
+        },
+        {
+          "id": 195,
+          "keyword": "digital tasbih",
+          "market": "sa",
+          "sv": 210,
+          "kd": 26,
+          "intent": "Informational",
+          "behaviorIntent": "行动型",
+          "pageType": "工具生态页",
+          "layer": "一级核心"
+        },
+        {
+          "id": 194,
+          "keyword": "digital tasbeeh",
+          "market": "sa",
+          "sv": 210,
+          "kd": 26,
+          "intent": null,
+          "behaviorIntent": "行动型",
+          "pageType": "品类聚合页",
+          "layer": "一级核心"
+        },
+        {
+          "id": 71846,
+          "keyword": "digital tasbih",
+          "market": "uk",
+          "sv": 210,
+          "kd": 19,
+          "intent": null,
+          "behaviorIntent": "混合型",
+          "pageType": "品类聚合页",
+          "layer": "一级核心"
+        },
+        {
+          "id": 72085,
+          "keyword": "digital tasbih",
+          "market": "sa",
+          "sv": 210,
+          "kd": 33,
+          "intent": "Informational",
+          "behaviorIntent": "行动型",
+          "pageType": "工具生态页",
+          "layer": "一级核心"
+        }
+      ]
+    },
+    {
+      "id": "tasbih-beads",
+      "name": "Tasbih / Prayer Beads",
+      "domain": "tasbih",
+      "band": "T1",
+      "keywords": [
+        {
+          "id": 136,
+          "keyword": "tasbih",
+          "market": "us",
+          "sv": 3600,
+          "kd": 35,
+          "intent": "Informational",
+          "behaviorIntent": "混合型",
+          "pageType": "品类聚合页",
+          "layer": "四级兜底"
+        },
+        {
+          "id": 134,
+          "keyword": "tasbih",
+          "market": "fr",
+          "sv": 3600,
+          "kd": 17,
+          "intent": "Informational",
+          "behaviorIntent": "混合型",
+          "pageType": "品类聚合页",
+          "layer": "四级兜底"
+        },
+        {
+          "id": 132,
+          "keyword": "tasbih",
+          "market": "uk",
+          "sv": 2400,
+          "kd": 22,
+          "intent": "Commercial",
+          "behaviorIntent": "混合型",
+          "pageType": "品类聚合页",
+          "layer": "四级兜底"
+        },
+        {
+          "id": 71841,
+          "keyword": "tasbeeh",
+          "market": "uk",
+          "sv": 1900,
+          "kd": 9,
+          "intent": "Informational",
+          "behaviorIntent": "混合型",
+          "pageType": "品类聚合页",
+          "layer": "四级兜底"
+        },
+        {
+          "id": 135,
+          "keyword": "tasbih",
+          "market": "de",
+          "sv": 1300,
+          "kd": 32,
+          "intent": "Informational",
+          "behaviorIntent": "混合型",
+          "pageType": "品类聚合页",
+          "layer": "四级兜底"
+        },
+        {
+          "id": 197,
+          "keyword": "tasbih",
+          "market": "sa",
+          "sv": 1000,
+          "kd": 27,
+          "intent": "Informational",
+          "behaviorIntent": "混合型",
+          "pageType": "品类聚合页",
+          "layer": "四级兜底"
+        },
+        {
+          "id": 137,
+          "keyword": "tasbih",
+          "market": "sa",
+          "sv": 1000,
+          "kd": 27,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 133,
+          "keyword": "tasbih",
+          "market": "ae",
+          "sv": 880,
+          "kd": 36,
+          "intent": "Informational",
+          "behaviorIntent": "混合型",
+          "pageType": "品类聚合页",
+          "layer": "四级兜底"
+        },
+        {
+          "id": 196,
+          "keyword": "tasbeeh",
+          "market": "sa",
+          "sv": 720,
+          "kd": 24,
+          "intent": "Informational",
+          "behaviorIntent": "混合型",
+          "pageType": "工具生态页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 119,
+          "keyword": "apa itu tasbih",
+          "market": "my",
+          "sv": 720,
+          "kd": 22,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 125,
+          "keyword": "apa itu tasbih",
+          "market": "id",
+          "sv": 720,
+          "kd": 22,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 123,
+          "keyword": "apa itu tasbih",
+          "market": "uk",
+          "sv": 720,
+          "kd": 22,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 121,
+          "keyword": "apa itu tasbih",
+          "market": "ae",
+          "sv": 720,
+          "kd": 22,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 63688,
+          "keyword": "apa arti tasbih",
+          "market": "id",
+          "sv": 390,
+          "kd": 24,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 72135,
+          "keyword": "tasbih beads",
+          "market": "uk",
+          "sv": 390,
+          "kd": 16,
+          "intent": "Informational",
+          "behaviorIntent": "混合型",
+          "pageType": "品类聚合页",
+          "layer": "四级兜底"
+        },
+        {
+          "id": 72167,
+          "keyword": "tesbih",
+          "market": "uk",
+          "sv": 390,
+          "kd": 32,
+          "intent": "Informational",
+          "behaviorIntent": "混合型",
+          "pageType": "品类聚合页",
+          "layer": "四级兜底"
+        },
+        {
+          "id": 63687,
+          "keyword": "apa bacaan tasbih",
+          "market": "id",
+          "sv": 320,
+          "kd": 28,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 71847,
+          "keyword": "how to use prayer beads",
+          "market": "us",
+          "sv": 260,
+          "kd": 10,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 148,
+          "keyword": "prayer beads",
+          "market": "sa",
+          "sv": 260,
+          "kd": 14,
+          "intent": "Informational",
+          "behaviorIntent": "混合型",
+          "pageType": "品类聚合页",
+          "layer": "四级兜底"
+        },
+        {
+          "id": 72141,
+          "keyword": "tasbeeh beads",
+          "market": "uk",
+          "sv": 260,
+          "kd": 6,
+          "intent": "Informational",
+          "behaviorIntent": "混合型",
+          "pageType": "品类聚合页",
+          "layer": "三级变体"
+        },
+        {
+          "id": 72169,
+          "keyword": "misbaha",
+          "market": "uk",
+          "sv": 260,
+          "kd": 8,
+          "intent": "Informational",
+          "behaviorIntent": "混合型",
+          "pageType": "品类聚合页",
+          "layer": "三级变体"
+        },
+        {
+          "id": 71837,
+          "keyword": "tesbih",
+          "market": "sa",
+          "sv": 260,
+          "kd": 31,
+          "intent": "Informational",
+          "behaviorIntent": "混合型",
+          "pageType": "品类聚合页",
+          "layer": "四级兜底"
+        },
+        {
+          "id": 72111,
+          "keyword": "tespih",
+          "market": "sa",
+          "sv": 260,
+          "kd": 31,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "品类聚合页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 72233,
+          "keyword": "what are prayer beads",
+          "market": "us",
+          "sv": 210,
+          "kd": 0,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 71953,
+          "keyword": "misbaha",
+          "market": "ae",
+          "sv": 210,
+          "kd": 20,
+          "intent": "Informational",
+          "behaviorIntent": "混合型",
+          "pageType": "品类聚合页",
+          "layer": "三级变体"
+        },
+        {
+          "id": 69595,
+          "keyword": "what is tasbih",
+          "market": "us",
+          "sv": 210,
+          "kd": 0,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 63704,
+          "keyword": "bagaimana bacaan tasbih",
+          "market": "id",
+          "sv": 170,
+          "kd": 28,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 147,
+          "keyword": "misbaha",
+          "market": "sa",
+          "sv": 170,
+          "kd": 30,
+          "intent": "Informational",
+          "behaviorIntent": "混合型",
+          "pageType": "工具生态页",
+          "layer": "三级变体"
+        },
+        {
+          "id": 71836,
+          "keyword": "misbaha",
+          "market": "sa",
+          "sv": 170,
+          "kd": 30,
+          "intent": "Informational",
+          "behaviorIntent": "混合型",
+          "pageType": "品类聚合页",
+          "layer": "三级变体"
+        },
+        {
+          "id": 69618,
+          "keyword": "what is a tasbih",
+          "market": "us",
+          "sv": 170,
+          "kd": 0,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 71945,
+          "keyword": "tasbi",
+          "market": "ae",
+          "sv": 170,
+          "kd": 35,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "工具生态页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 63692,
+          "keyword": "berapa jumlah tasbih",
+          "market": "id",
+          "sv": 140,
+          "kd": 22,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 72224,
+          "keyword": "how do you use prayer beads",
+          "market": "us",
+          "sv": 140,
+          "kd": 13,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 63685,
+          "keyword": "what is tasbih",
+          "market": "uk",
+          "sv": 140,
+          "kd": 6,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 72195,
+          "keyword": "how to use muslim prayer beads",
+          "market": "us",
+          "sv": 110,
+          "kd": 1,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 63698,
+          "keyword": "apa itu bertasbih",
+          "market": "id",
+          "sv": 110,
+          "kd": 19,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 63703,
+          "keyword": "what is a tasbih",
+          "market": "uk",
+          "sv": 110,
+          "kd": 2,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 72178,
+          "keyword": "do muslims use prayer beads",
+          "market": "us",
+          "sv": 70,
+          "kd": 17,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "四级兜底"
+        },
+        {
+          "id": 63707,
+          "keyword": "bagaimana bunyi kalimat tasbih",
+          "market": "id",
+          "sv": 70,
+          "kd": 21,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "四级兜底"
+        },
+        {
+          "id": 72179,
+          "keyword": "do muslims have prayer beads",
+          "market": "us",
+          "sv": 40,
+          "kd": 9,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "三级变体"
+        },
+        {
+          "id": 63738,
+          "keyword": "bagaimana bunyi bacaan tasbih",
+          "market": "id",
+          "sv": 40,
+          "kd": 23,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "四级兜底"
+        },
+        {
+          "id": 63739,
+          "keyword": "berapa kali membaca tasbih nabi yunus",
+          "market": "id",
+          "sv": 40,
+          "kd": 19,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "四级兜底"
+        },
+        {
+          "id": 71934,
+          "keyword": "what is a misbaha",
+          "market": "us",
+          "sv": 40,
+          "kd": 9,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "四级兜底"
+        }
+      ]
+    },
+    {
+      "id": "islamic-jewelry",
+      "name": "Islamic Jewelry",
+      "domain": "islamic-jewelry",
+      "band": "T2",
+      "keywords": [
+        {
+          "id": 180,
+          "keyword": "aqeeq stone",
+          "market": "sa",
+          "sv": 880,
+          "kd": 17,
+          "intent": null,
+          "behaviorIntent": "混合型",
+          "pageType": "品类聚合页",
+          "layer": "四级兜底"
+        },
+        {
+          "id": 151,
+          "keyword": "islamic jewelry",
+          "market": "uk",
+          "sv": 260,
+          "kd": 11,
+          "intent": "Informational,Commercial",
+          "behaviorIntent": "行动型",
+          "pageType": "品类聚合页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 192,
+          "keyword": "aqeeq ring",
+          "market": "sa",
+          "sv": 210,
+          "kd": 14,
+          "intent": null,
+          "behaviorIntent": "混合型",
+          "pageType": "品类聚合页",
+          "layer": "四级兜底"
+        },
+        {
+          "id": 72153,
+          "keyword": "faith jewelry",
+          "market": "uk",
+          "sv": 170,
+          "kd": 32,
+          "intent": "Navigational",
+          "behaviorIntent": "混合型",
+          "pageType": "品类聚合页",
+          "layer": "一级核心"
+        },
+        {
+          "id": 72228,
+          "keyword": "what is a spinner ring",
+          "market": "us",
+          "sv": 140,
+          "kd": 0,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 72236,
+          "keyword": "what is a fidget ring",
+          "market": "us",
+          "sv": 110,
+          "kd": 6,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 72241,
+          "keyword": "how to make a spinner ring",
+          "market": "us",
+          "sv": 90,
+          "kd": 20,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "三级变体"
+        },
+        {
+          "id": 72061,
+          "keyword": "can men wear jewelry in islam",
+          "market": "us",
+          "sv": 70,
+          "kd": 12,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "四级兜底"
+        },
+        {
+          "id": 72234,
+          "keyword": "what are fidget rings",
+          "market": "us",
+          "sv": 70,
+          "kd": 12,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "三级变体"
+        },
+        {
+          "id": 71919,
+          "keyword": "what jewelry can a man wear in islam",
+          "market": "us",
+          "sv": 40,
+          "kd": 0,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "四级兜底"
+        }
+      ]
+    },
+    {
+      "id": "name-necklace",
+      "name": "Name Necklace",
+      "domain": "name-necklace",
+      "band": "T2",
+      "keywords": [
+        {
+          "id": 144,
+          "keyword": "gold name necklace",
+          "market": "uk",
+          "sv": 2900,
+          "kd": 11,
+          "intent": "Commercial",
+          "behaviorIntent": "行动型",
+          "pageType": "品类聚合页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 143,
+          "keyword": "gold name necklace",
+          "market": "ae",
+          "sv": 480,
+          "kd": 6,
+          "intent": "Informational",
+          "behaviorIntent": "行动型",
+          "pageType": "品类聚合页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 138,
+          "keyword": "gold name necklace",
+          "market": "sa",
+          "sv": 210,
+          "kd": 14,
+          "intent": "Informational",
+          "behaviorIntent": "行动型",
+          "pageType": "品类聚合页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 186,
+          "keyword": "arabic name necklace",
+          "market": "sa",
+          "sv": 210,
+          "kd": 17,
+          "intent": null,
+          "behaviorIntent": "行动型",
+          "pageType": "品类聚合页",
+          "layer": "二级独立"
+        }
+      ]
+    },
+    {
+      "id": "gifts",
+      "name": "Islamic Gifts",
+      "domain": "islamic-jewelry",
+      "band": "T2",
+      "keywords": [
+        {
+          "id": 40929,
+          "keyword": "eid gifts",
+          "market": "uk",
+          "sv": 4400,
+          "kd": 16,
+          "intent": "Informational",
+          "behaviorIntent": "行动型",
+          "pageType": "场景使用页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 40930,
+          "keyword": "umrah mubarak gifts",
+          "market": "uk",
+          "sv": 2400,
+          "kd": 5,
+          "intent": "Informational",
+          "behaviorIntent": "行动型",
+          "pageType": "场景使用页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 40915,
+          "keyword": "gifts of ramadan",
+          "market": "uk",
+          "sv": 2400,
+          "kd": 17,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "场景使用页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 40916,
+          "keyword": "ramadan gifts",
+          "market": "uk",
+          "sv": 1600,
+          "kd": 16,
+          "intent": "Informational",
+          "behaviorIntent": "行动型",
+          "pageType": "场景使用页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 40932,
+          "keyword": "gifts islam",
+          "market": "uk",
+          "sv": 1300,
+          "kd": 22,
+          "intent": "Informational",
+          "behaviorIntent": "混合型",
+          "pageType": "场景使用页",
+          "layer": "四级兜底"
+        },
+        {
+          "id": 40933,
+          "keyword": "islam present",
+          "market": "uk",
+          "sv": 1300,
+          "kd": 7,
+          "intent": "Informational",
+          "behaviorIntent": "行动型",
+          "pageType": "品类聚合页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 40931,
+          "keyword": "eid presents",
+          "market": "uk",
+          "sv": 1300,
+          "kd": 20,
+          "intent": "Informational",
+          "behaviorIntent": "混合型",
+          "pageType": "场景使用页",
+          "layer": "四级兜底"
+        },
+        {
+          "id": 146,
+          "keyword": "islamic gifts",
+          "market": "uk",
+          "sv": 1000,
+          "kd": 36,
+          "intent": "Informational",
+          "behaviorIntent": "行动型",
+          "pageType": "品类聚合页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 40934,
+          "keyword": "umrah gifts",
+          "market": "uk",
+          "sv": 1000,
+          "kd": 12,
+          "intent": "Informational",
+          "behaviorIntent": "行动型",
+          "pageType": "场景使用页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 40937,
+          "keyword": "gifts islamic",
+          "market": "uk",
+          "sv": 720,
+          "kd": 32,
+          "intent": "Commercial",
+          "behaviorIntent": "行动型",
+          "pageType": "品类聚合页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 40919,
+          "keyword": "ramadan gift ideas",
+          "market": "uk",
+          "sv": 720,
+          "kd": 25,
+          "intent": "Informational",
+          "behaviorIntent": "对比型",
+          "pageType": "场景使用页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 71821,
+          "keyword": "ramadan gift ideas",
+          "market": "uk",
+          "sv": 720,
+          "kd": 25,
+          "intent": "Informational",
+          "behaviorIntent": "对比型",
+          "pageType": "场景使用页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 40920,
+          "keyword": "gift ramadan",
+          "market": "uk",
+          "sv": 590,
+          "kd": 13,
+          "intent": "Informational",
+          "behaviorIntent": "行动型",
+          "pageType": "场景使用页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 40938,
+          "keyword": "salam occasions",
+          "market": "uk",
+          "sv": 480,
+          "kd": 16,
+          "intent": "Navigational",
+          "behaviorIntent": "官网导航",
+          "pageType": "品牌主页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 71820,
+          "keyword": "ramadan gift box",
+          "market": "ae",
+          "sv": 480,
+          "kd": 11,
+          "intent": "Informational",
+          "behaviorIntent": "行动型",
+          "pageType": "场景使用页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 40940,
+          "keyword": "islamic wedding gifts",
+          "market": "uk",
+          "sv": 390,
+          "kd": 17,
+          "intent": "Commercial",
+          "behaviorIntent": "行动型",
+          "pageType": "场景使用页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 40927,
+          "keyword": "islamic gift",
+          "market": "uk",
+          "sv": 320,
+          "kd": 35,
+          "intent": "Informational",
+          "behaviorIntent": "行动型",
+          "pageType": "品类聚合页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 40942,
+          "keyword": "islamic gifts for wedding",
+          "market": "uk",
+          "sv": 320,
+          "kd": 4,
+          "intent": "Informational",
+          "behaviorIntent": "对比型",
+          "pageType": "场景使用页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 40943,
+          "keyword": "islamic gifts for women",
+          "market": "uk",
+          "sv": 320,
+          "kd": 3,
+          "intent": "Informational",
+          "behaviorIntent": "对比型",
+          "pageType": "场景使用页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 72176,
+          "keyword": "ramadan gift box",
+          "market": "uk",
+          "sv": 320,
+          "kd": 8,
+          "intent": "Informational",
+          "behaviorIntent": "行动型",
+          "pageType": "场景使用页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 71958,
+          "keyword": "ramadan gift ideas",
+          "market": "ae",
+          "sv": 320,
+          "kd": 11,
+          "intent": "Informational",
+          "behaviorIntent": "对比型",
+          "pageType": "场景使用页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 72139,
+          "keyword": "eid mubarak gift",
+          "market": "uk",
+          "sv": 320,
+          "kd": 9,
+          "intent": "Informational",
+          "behaviorIntent": "行动型",
+          "pageType": "场景使用页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 40928,
+          "keyword": "gift for islamic wedding",
+          "market": "uk",
+          "sv": 260,
+          "kd": 5,
+          "intent": "Informational",
+          "behaviorIntent": "对比型",
+          "pageType": "场景使用页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 72165,
+          "keyword": "umrah gift ideas",
+          "market": "uk",
+          "sv": 260,
+          "kd": 9,
+          "intent": "Informational",
+          "behaviorIntent": "对比型",
+          "pageType": "场景使用页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 71993,
+          "keyword": "ramadan gift ideas",
+          "market": "id",
+          "sv": 260,
+          "kd": 24,
+          "intent": "Informational",
+          "behaviorIntent": "对比型",
+          "pageType": "场景使用页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 72081,
+          "keyword": "ramadan gift ideas",
+          "market": "my",
+          "sv": 260,
+          "kd": 30,
+          "intent": "Informational",
+          "behaviorIntent": "对比型",
+          "pageType": "场景使用页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 40941,
+          "keyword": "gift in islam",
+          "market": "ae",
+          "sv": 170,
+          "kd": 15,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 71819,
+          "keyword": "ramadan gift box",
+          "market": "my",
+          "sv": 140,
+          "kd": 0,
+          "intent": null,
+          "behaviorIntent": "行动型",
+          "pageType": "场景使用页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 72107,
+          "keyword": "ramadan gift box",
+          "market": "sa",
+          "sv": 140,
+          "kd": 0,
+          "intent": null,
+          "behaviorIntent": "行动型",
+          "pageType": "场景使用页",
+          "layer": "二级独立"
+        },
+        {
+          "id": 72162,
+          "keyword": "eid al fitr gift ideas",
+          "market": "uk",
+          "sv": 90,
+          "kd": 14,
+          "intent": "Informational",
+          "behaviorIntent": "对比型",
+          "pageType": "场景使用页",
+          "layer": "四级兜底"
+        },
+        {
+          "id": 71827,
+          "keyword": "hajj mubarak gift",
+          "market": "uk",
+          "sv": 70,
+          "kd": 0,
+          "intent": null,
+          "behaviorIntent": "行动型",
+          "pageType": "场景使用页",
+          "layer": "四级兜底"
+        },
+        {
+          "id": 72084,
+          "keyword": "eid mubarak gift",
+          "market": "sa",
+          "sv": 50,
+          "kd": 0,
+          "intent": null,
+          "behaviorIntent": "行动型",
+          "pageType": "场景使用页",
+          "layer": "四级兜底"
+        },
+        {
+          "id": 71936,
+          "keyword": "eid mubarak gift",
+          "market": "ae",
+          "sv": 50,
+          "kd": 14,
+          "intent": "Informational",
+          "behaviorIntent": "行动型",
+          "pageType": "场景使用页",
+          "layer": "四级兜底"
+        },
+        {
+          "id": 71962,
+          "keyword": "ramadan gift set",
+          "market": "ae",
+          "sv": 50,
+          "kd": 6,
+          "intent": "Informational",
+          "behaviorIntent": "行动型",
+          "pageType": "场景使用页",
+          "layer": "三级变体"
+        },
+        {
+          "id": 72004,
+          "keyword": "ramadan gift set",
+          "market": "uk",
+          "sv": 50,
+          "kd": 0,
+          "intent": null,
+          "behaviorIntent": "行动型",
+          "pageType": "场景使用页",
+          "layer": "三级变体"
+        },
+        {
+          "id": 72225,
+          "keyword": "do you give gifts for ramadan",
+          "market": "us",
+          "sv": 40,
+          "kd": 3,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "场景使用页",
+          "layer": "四级兜底"
+        },
+        {
+          "id": 71825,
+          "keyword": "do you give gifts during ramadan",
+          "market": "us",
+          "sv": 40,
+          "kd": 0,
+          "intent": null,
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "四级兜底"
+        },
+        {
+          "id": 72185,
+          "keyword": "can muslims accept christmas gifts",
+          "market": "us",
+          "sv": 40,
+          "kd": 15,
+          "intent": "Informational",
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "四级兜底"
+        },
+        {
+          "id": 72113,
+          "keyword": "ramadan gift ideas",
+          "market": "sa",
+          "sv": 40,
+          "kd": 0,
+          "intent": null,
+          "behaviorIntent": "混合型",
+          "pageType": "场景使用页",
+          "layer": "三级变体"
+        },
+        {
+          "id": 72223,
+          "keyword": "do you give gifts at ramadan",
+          "market": "us",
+          "sv": 30,
+          "kd": 0,
+          "intent": null,
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "三级变体"
+        },
+        {
+          "id": 72157,
+          "keyword": "eid al adha gift ideas",
+          "market": "uk",
+          "sv": 30,
+          "kd": 0,
+          "intent": null,
+          "behaviorIntent": "对比型",
+          "pageType": "场景使用页",
+          "layer": "三级变体"
+        },
+        {
+          "id": 72164,
+          "keyword": "do you give gifts at ramadan",
+          "market": "uk",
+          "sv": 30,
+          "kd": 0,
+          "intent": null,
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "四级兜底"
+        },
+        {
+          "id": 72196,
+          "keyword": "what is a good gift for ramadan",
+          "market": "us",
+          "sv": 30,
+          "kd": 0,
+          "intent": null,
+          "behaviorIntent": "对比型",
+          "pageType": "场景使用页",
+          "layer": "四级兜底"
+        },
+        {
+          "id": 72159,
+          "keyword": "do you give gifts for ramadan",
+          "market": "uk",
+          "sv": 30,
+          "kd": 0,
+          "intent": null,
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "三级变体"
+        },
+        {
+          "id": 72226,
+          "keyword": "do you give gifts for eid al adha",
+          "market": "us",
+          "sv": 20,
+          "kd": 0,
+          "intent": null,
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "三级变体"
+        },
+        {
+          "id": 71823,
+          "keyword": "what is a good gift for ramadan",
+          "market": "ae",
+          "sv": 20,
+          "kd": 0,
+          "intent": null,
+          "behaviorIntent": "混合型",
+          "pageType": "场景使用页",
+          "layer": "四级兜底"
+        },
+        {
+          "id": 71830,
+          "keyword": "can you give gifts during ramadan",
+          "market": "us",
+          "sv": 20,
+          "kd": 0,
+          "intent": null,
+          "behaviorIntent": "了解型",
+          "pageType": "场景使用页",
+          "layer": "四级兜底"
+        },
+        {
+          "id": 72053,
+          "keyword": "do muslims give gifts during ramadan",
+          "market": "us",
+          "sv": 20,
+          "kd": 0,
+          "intent": null,
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "四级兜底"
+        },
+        {
+          "id": 71970,
+          "keyword": "eid mubarak gift",
+          "market": "id",
+          "sv": 20,
+          "kd": 0,
+          "intent": null,
+          "behaviorIntent": "混合型",
+          "pageType": "场景使用页",
+          "layer": "四级兜底"
+        },
+        {
+          "id": 72078,
+          "keyword": "eid mubarak gift",
+          "market": "my",
+          "sv": 20,
+          "kd": 0,
+          "intent": null,
+          "behaviorIntent": "对比型",
+          "pageType": "场景使用页",
+          "layer": "四级兜底"
+        },
+        {
+          "id": 72082,
+          "keyword": "ramadan gift set",
+          "market": "my",
+          "sv": 20,
+          "kd": 0,
+          "intent": null,
+          "behaviorIntent": "对比型",
+          "pageType": "场景使用页",
+          "layer": "三级变体"
+        },
+        {
+          "id": 72094,
+          "keyword": "can you give someone a gift for ramadan",
+          "market": "us",
+          "sv": 20,
+          "kd": 0,
+          "intent": null,
+          "behaviorIntent": "了解型",
+          "pageType": "场景使用页",
+          "layer": "三级变体"
+        },
+        {
+          "id": 72192,
+          "keyword": "are gifts given during ramadan",
+          "market": "us",
+          "sv": 20,
+          "kd": 0,
+          "intent": null,
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "四级兜底"
+        },
+        {
+          "id": 72197,
+          "keyword": "do people give gifts on ramadan",
+          "market": "us",
+          "sv": 20,
+          "kd": 0,
+          "intent": null,
+          "behaviorIntent": "了解型",
+          "pageType": "场景使用页",
+          "layer": "四级兜底"
+        },
+        {
+          "id": 72214,
+          "keyword": "are gifts exchanged during ramadan",
+          "market": "us",
+          "sv": 20,
+          "kd": 0,
+          "intent": null,
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "四级兜底"
+        },
+        {
+          "id": 72125,
+          "keyword": "do muslims give gifts on ramadan",
+          "market": "uk",
+          "sv": 10,
+          "kd": 0,
+          "intent": null,
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "三级变体"
+        },
+        {
+          "id": 72145,
+          "keyword": "do people give gifts during ramadan",
+          "market": "uk",
+          "sv": 10,
+          "kd": 0,
+          "intent": null,
+          "behaviorIntent": "了解型",
+          "pageType": "场景使用页",
+          "layer": "四级兜底"
+        },
+        {
+          "id": 72124,
+          "keyword": "do muslims exchange gifts for ramadan",
+          "market": "uk",
+          "sv": 10,
+          "kd": 0,
+          "intent": null,
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "四级兜底"
+        },
+        {
+          "id": 72132,
+          "keyword": "can you give gifts during ramadan",
+          "market": "uk",
+          "sv": 10,
+          "kd": 0,
+          "intent": null,
+          "behaviorIntent": "了解型",
+          "pageType": "场景使用页",
+          "layer": "四级兜底"
+        },
+        {
+          "id": 71931,
+          "keyword": "what gift to give for ramadan",
+          "market": "ae",
+          "sv": 10,
+          "kd": 0,
+          "intent": null,
+          "behaviorIntent": "混合型",
+          "pageType": "场景使用页",
+          "layer": "四级兜底"
+        },
+        {
+          "id": 72174,
+          "keyword": "can you give someone a gift for ramadan",
+          "market": "uk",
+          "sv": 10,
+          "kd": 0,
+          "intent": null,
+          "behaviorIntent": "了解型",
+          "pageType": "场景使用页",
+          "layer": "三级变体"
+        },
+        {
+          "id": 72144,
+          "keyword": "are gifts given during ramadan",
+          "market": "uk",
+          "sv": 10,
+          "kd": 0,
+          "intent": null,
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "四级兜底"
+        },
+        {
+          "id": 72009,
+          "keyword": "ramadan gift for her",
+          "market": "uk",
+          "sv": 10,
+          "kd": 0,
+          "intent": null,
+          "behaviorIntent": "对比型",
+          "pageType": "场景使用页",
+          "layer": "三级变体"
+        },
+        {
+          "id": 72131,
+          "keyword": "can a non muslim give a gift for ramadan",
+          "market": "uk",
+          "sv": 10,
+          "kd": 0,
+          "intent": null,
+          "behaviorIntent": "了解型",
+          "pageType": "场景使用页",
+          "layer": "四级兜底"
+        },
+        {
+          "id": 72155,
+          "keyword": "are gifts exchanged during ramadan",
+          "market": "uk",
+          "sv": 10,
+          "kd": 0,
+          "intent": null,
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "四级兜底"
+        },
+        {
+          "id": 71965,
+          "keyword": "what is an appropriate gift for ramadan",
+          "market": "ae",
+          "sv": 0,
+          "kd": 0,
+          "intent": null,
+          "behaviorIntent": "了解型",
+          "pageType": "场景使用页",
+          "layer": "四级兜底"
+        },
+        {
+          "id": 71974,
+          "keyword": "what is ramadan eid gift",
+          "market": "id",
+          "sv": 0,
+          "kd": 0,
+          "intent": null,
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "四级兜底"
+        },
+        {
+          "id": 71828,
+          "keyword": "what do you call a gift during ramadan",
+          "market": "ae",
+          "sv": 0,
+          "kd": 0,
+          "intent": null,
+          "behaviorIntent": "了解型",
+          "pageType": "知识深度页",
+          "layer": "四级兜底"
+        },
+        {
+          "id": 71826,
+          "keyword": "what's the best gift for eid ramadan 2018",
+          "market": "sa",
+          "sv": 0,
+          "kd": 0,
+          "intent": null,
+          "behaviorIntent": "对比型",
+          "pageType": "场景使用页",
+          "layer": "四级兜底"
+        },
+        {
+          "id": 71949,
+          "keyword": "where to buy gift for kids ramadan dubai",
+          "market": "ae",
+          "sv": 0,
+          "kd": 0,
+          "intent": null,
+          "behaviorIntent": "行动型",
+          "pageType": "场景使用页",
+          "layer": "三级变体"
+        },
+        {
+          "id": 71932,
+          "keyword": "what gifts do you give for ramadan",
+          "market": "ae",
+          "sv": 0,
+          "kd": 0,
+          "intent": null,
+          "behaviorIntent": "混合型",
+          "pageType": "场景使用页",
+          "layer": "四级兜底"
+        },
+        {
+          "id": 71944,
+          "keyword": "where to buy gift box for kids ramadan dubai",
+          "market": "ae",
+          "sv": 0,
+          "kd": 0,
+          "intent": null,
+          "behaviorIntent": "行动型",
+          "pageType": "场景使用页",
+          "layer": "四级兜底"
+        }
+      ]
+    },
+    {
+      "id": "brand",
+      "name": "Weslamic Brand",
+      "domain": "zikr-ring",
+      "band": "T1",
+      "keywords": [
+        {
+          "id": 217,
+          "keyword": "weslamic.com",
+          "market": null,
+          "sv": null,
+          "kd": null,
+          "intent": null,
+          "behaviorIntent": "官网导航",
+          "pageType": "品牌主页",
+          "layer": "一级核心"
+        },
+        {
+          "id": 216,
+          "keyword": "weslamic",
+          "market": null,
+          "sv": null,
+          "kd": null,
+          "intent": null,
+          "behaviorIntent": "官网导航",
+          "pageType": "品牌主页",
+          "layer": "一级核心"
+        },
+        {
+          "id": 218,
+          "keyword": "weslamic login",
+          "market": null,
+          "sv": null,
+          "kd": null,
+          "intent": null,
+          "behaviorIntent": "官网导航",
+          "pageType": "品牌主页",
+          "layer": "一级核心"
+        },
+        {
+          "id": 219,
+          "keyword": "weslamic official",
+          "market": null,
+          "sv": null,
+          "kd": null,
+          "intent": null,
+          "behaviorIntent": "官网导航",
+          "pageType": "品牌主页",
+          "layer": "一级核心"
+        },
+        {
+          "id": 141,
+          "keyword": "weslamic order tracking",
+          "market": null,
+          "sv": null,
+          "kd": null,
+          "intent": null,
+          "behaviorIntent": "行动型",
+          "pageType": "工具生态页",
+          "layer": "一级核心"
+        },
+        {
+          "id": 140,
+          "keyword": "weslamic customer service",
+          "market": null,
+          "sv": null,
+          "kd": null,
+          "intent": null,
+          "behaviorIntent": "官网导航",
+          "pageType": "品牌主页",
+          "layer": "一级核心"
+        }
+      ]
+    }
+  ],
+  "deferred": [
+    {
+      "id": 72147,
+      "keyword": "when is ramadan 2025",
+      "sv": 60500,
+      "reason": "斋月与历法（when is ramadan/hajj、days until ramadan 等）"
+    },
+    {
+      "id": 72156,
+      "keyword": "when does ramadan start 2025",
+      "sv": 18100,
+      "reason": "斋月与历法（when is ramadan/hajj、days until ramadan 等）"
+    },
+    {
+      "id": 72253,
+      "keyword": "how to pray",
+      "sv": 14800,
+      "reason": "礼拜实践通用（how to pray / wudu / rakats / janazah/eid/istikhara prayer 等）"
+    },
+    {
+      "id": 71853,
+      "keyword": "when is ramadan 2024",
+      "sv": 14800,
+      "reason": "斋月与历法（when is ramadan/hajj、days until ramadan 等）"
+    },
+    {
+      "id": 71890,
+      "keyword": "when is ramadan 2023",
+      "sv": 8100,
+      "reason": "斋月与历法（when is ramadan/hajj、days until ramadan 等）"
+    },
+    {
+      "id": 72249,
+      "keyword": "how to pray to god",
+      "sv": 6600,
+      "reason": "礼拜实践通用（how to pray / wudu / rakats / janazah/eid/istikhara prayer 等）"
+    },
+    {
+      "id": 72163,
+      "keyword": "how to do wudu",
+      "sv": 6600,
+      "reason": "礼拜实践通用（how to pray / wudu / rakats / janazah/eid/istikhara prayer 等）"
+    },
+    {
+      "id": 72024,
+      "keyword": "how many rakats for asr prayer",
+      "sv": 5400,
+      "reason": "礼拜实践通用（how to pray / wudu / rakats / janazah/eid/istikhara prayer 等）"
+    },
+    {
+      "id": 72096,
+      "keyword": "how many days until ramadan",
+      "sv": 5400,
+      "reason": "斋月与历法（when is ramadan/hajj、days until ramadan 等）"
+    },
+    {
+      "id": 207,
+      "keyword": "prayer mat",
+      "sv": 5400,
+      "reason": "不卖的实物礼品（prayer mat/rug / azan clock / islamic toys / wall clock）"
+    },
+    {
+      "id": 72093,
+      "keyword": "berapa hari lagi ramadan",
+      "sv": 4400,
+      "reason": "斋月与历法（when is ramadan/hajj、days until ramadan 等）"
+    },
+    {
+      "id": 72012,
+      "keyword": "how to make istikhara prayer",
+      "sv": 3600,
+      "reason": "礼拜实践通用（how to pray / wudu / rakats / janazah/eid/istikhara prayer 等）"
+    },
+    {
+      "id": 72177,
+      "keyword": "how many rakats in isha salah",
+      "sv": 3600,
+      "reason": "礼拜实践通用（how to pray / wudu / rakats / janazah/eid/istikhara prayer 等）"
+    },
+    {
+      "id": 72104,
+      "keyword": "when is ramadan 2023",
+      "sv": 3600,
+      "reason": "斋月与历法（when is ramadan/hajj、days until ramadan 等）"
+    },
+    {
+      "id": 72239,
+      "keyword": "how many rakats in isha salah",
+      "sv": 2900,
+      "reason": "礼拜实践通用（how to pray / wudu / rakats / janazah/eid/istikhara prayer 等）"
+    },
+    {
+      "id": 72025,
+      "keyword": "how many rakats in maghrib salah",
+      "sv": 2900,
+      "reason": "礼拜实践通用（how to pray / wudu / rakats / janazah/eid/istikhara prayer 等）"
+    },
+    {
+      "id": 72092,
+      "keyword": "when is ramadan 2022",
+      "sv": 2900,
+      "reason": "斋月与历法（when is ramadan/hajj、days until ramadan 等）"
+    },
+    {
+      "id": 71880,
+      "keyword": "what is maghrib prayer time",
+      "sv": 2900,
+      "reason": "祈祷时间（maghrib/fajr/isha prayer time 等）"
+    },
+    {
+      "id": 71842,
+      "keyword": "when is the maghrib prayer",
+      "sv": 2900,
+      "reason": "祈祷时间（maghrib/fajr/isha prayer time 等）"
+    },
+    {
+      "id": 71883,
+      "keyword": "how many rakats in maghrib salah",
+      "sv": 2400,
+      "reason": "礼拜实践通用（how to pray / wudu / rakats / janazah/eid/istikhara prayer 等）"
+    },
+    {
+      "id": 71921,
+      "keyword": "how many days until ramadan",
+      "sv": 2400,
+      "reason": "斋月与历法（when is ramadan/hajj、days until ramadan 等）"
+    },
+    {
+      "id": 72175,
+      "keyword": "when is hajj 2025",
+      "sv": 2400,
+      "reason": "斋月与历法（when is ramadan/hajj、days until ramadan 等）"
+    },
+    {
+      "id": 72108,
+      "keyword": "when is ramadan 2022",
+      "sv": 2400,
+      "reason": "斋月与历法（when is ramadan/hajj、days until ramadan 等）"
+    },
+    {
+      "id": 72032,
+      "keyword": "how many rakat isha prayer",
+      "sv": 1900,
+      "reason": "礼拜实践通用（how to pray / wudu / rakats / janazah/eid/istikhara prayer 等）"
+    },
+    {
+      "id": 72028,
+      "keyword": "how many rakat is isha prayer",
+      "sv": 1900,
+      "reason": "礼拜实践通用（how to pray / wudu / rakats / janazah/eid/istikhara prayer 等）"
+    },
+    {
+      "id": 72049,
+      "keyword": "how to pray salah",
+      "sv": 1900,
+      "reason": "礼拜实践通用（how to pray / wudu / rakats / janazah/eid/istikhara prayer 等）"
+    },
+    {
+      "id": 71917,
+      "keyword": "how many days until ramadan 2022",
+      "sv": 1900,
+      "reason": "斋月与历法（when is ramadan/hajj、days until ramadan 等）"
+    },
+    {
+      "id": 72183,
+      "keyword": "when is hajj 2025",
+      "sv": 1900,
+      "reason": "斋月与历法（when is ramadan/hajj、days until ramadan 等）"
+    },
+    {
+      "id": 72116,
+      "keyword": "how long until ramadan",
+      "sv": 1900,
+      "reason": "斋月与历法（when is ramadan/hajj、days until ramadan 等）"
+    },
+    {
+      "id": 117,
+      "keyword": "how to pray janazah prayer",
+      "sv": 1600,
+      "reason": "礼拜实践通用（how to pray / wudu / rakats / janazah/eid/istikhara prayer 等）"
+    },
+    {
+      "id": 72218,
+      "keyword": "how do you perform wudu",
+      "sv": 1600,
+      "reason": "礼拜实践通用（knowledge-dhikr 残留实践词）"
+    },
+    {
+      "id": 71896,
+      "keyword": "how to pray eid salah",
+      "sv": 1600,
+      "reason": "礼拜实践通用（how to pray / wudu / rakats / janazah/eid/istikhara prayer 等）"
+    },
+    {
+      "id": 72016,
+      "keyword": "how to make wudu",
+      "sv": 1600,
+      "reason": "礼拜实践通用（how to pray / wudu / rakats / janazah/eid/istikhara prayer 等）"
+    },
+    {
+      "id": 71898,
+      "keyword": "how to do ablution wudu",
+      "sv": 1600,
+      "reason": "礼拜实践通用（how to pray / wudu / rakats / janazah/eid/istikhara prayer 等）"
+    },
+    {
+      "id": 72117,
+      "keyword": "how many days left till ramadan",
+      "sv": 1600,
+      "reason": "礼拜实践通用（knowledge-dhikr 残留实践词）"
+    },
+    {
+      "id": 72115,
+      "keyword": "how many days till ramadan",
+      "sv": 1600,
+      "reason": "斋月与历法（when is ramadan/hajj、days until ramadan 等）"
+    },
+    {
+      "id": 72137,
+      "keyword": "how to perform wudu",
+      "sv": 1300,
+      "reason": "礼拜实践通用（how to pray / wudu / rakats / janazah/eid/istikhara prayer 等）"
+    },
+    {
+      "id": 72244,
+      "keyword": "how many rakats in fajr salah",
+      "sv": 1300,
+      "reason": "礼拜实践通用（how to pray / wudu / rakats / janazah/eid/istikhara prayer 等）"
+    },
+    {
+      "id": 71891,
+      "keyword": "how to pray salah",
+      "sv": 1300,
+      "reason": "礼拜实践通用（how to pray / wudu / rakats / janazah/eid/istikhara prayer 等）"
+    },
+    {
+      "id": 72060,
+      "keyword": "how to offer wudu",
+      "sv": 1300,
+      "reason": "礼拜实践通用（how to pray / wudu / rakats / janazah/eid/istikhara prayer 等）"
+    },
+    {
+      "id": 71924,
+      "keyword": "when is hajj",
+      "sv": 1300,
+      "reason": "斋月与历法（when is ramadan/hajj、days until ramadan 等）"
+    },
+    {
+      "id": 72099,
+      "keyword": "when is ramadan 2022",
+      "sv": 1300,
+      "reason": "斋月与历法（when is ramadan/hajj、days until ramadan 等）"
+    },
+    {
+      "id": 72100,
+      "keyword": "how many days to ramadan 2024",
+      "sv": 1300,
+      "reason": "斋月与历法（when is ramadan/hajj、days until ramadan 等）"
+    },
+    {
+      "id": 72098,
+      "keyword": "when is ramadan 2021",
+      "sv": 1300,
+      "reason": "斋月与历法（when is ramadan/hajj、days until ramadan 等）"
+    },
+    {
+      "id": 72143,
+      "keyword": "how many days until ramadan 2026",
+      "sv": 1300,
+      "reason": "斋月与历法（when is ramadan/hajj、days until ramadan 等）"
+    },
+    {
+      "id": 190,
+      "keyword": "prayer times",
+      "sv": 1200,
+      "reason": "祈祷时间（maghrib/fajr/isha prayer time 等）"
+    },
+    {
+      "id": 72207,
+      "keyword": "what breaks wudu",
+      "sv": 1000,
+      "reason": "礼拜实践通用（how to pray / wudu / rakats / janazah/eid/istikhara prayer 等）"
+    },
+    {
+      "id": 72255,
+      "keyword": "what is wudu",
+      "sv": 1000,
+      "reason": "礼拜实践通用（how to pray / wudu / rakats / janazah/eid/istikhara prayer 等）"
+    },
+    {
+      "id": 72152,
+      "keyword": "what breaks wudu",
+      "sv": 1000,
+      "reason": "礼拜实践通用（how to pray / wudu / rakats / janazah/eid/istikhara prayer 等）"
+    },
+    {
+      "id": 72052,
+      "keyword": "what is wudu",
+      "sv": 1000,
+      "reason": "礼拜实践通用（how to pray / wudu / rakats / janazah/eid/istikhara prayer 等）"
+    },
+    {
+      "id": 72119,
+      "keyword": "how to perform fajr salah",
+      "sv": 1000,
+      "reason": "礼拜实践通用（how to pray / wudu / rakats / janazah/eid/istikhara prayer 等）"
+    },
+    {
+      "id": 71835,
+      "keyword": "when is hajj",
+      "sv": 1000,
+      "reason": "斋月与历法（when is ramadan/hajj、days until ramadan 等）"
+    },
+    {
+      "id": 72140,
+      "keyword": "when is hajj 2026",
+      "sv": 1000,
+      "reason": "斋月与历法（when is ramadan/hajj、days until ramadan 等）"
+    },
+    {
+      "id": 162,
+      "keyword": "prayer mat praying",
+      "sv": 1000,
+      "reason": "不卖的实物礼品（prayer mat/rug / azan clock / islamic toys / wall clock）"
+    },
+    {
+      "id": 71902,
+      "keyword": "how do you do wudu",
+      "sv": 880,
+      "reason": "礼拜实践通用（how to pray / wudu / rakats / janazah/eid/istikhara prayer 等）"
+    },
+    {
+      "id": 72138,
+      "keyword": "how to perform fajr salah",
+      "sv": 880,
+      "reason": "礼拜实践通用（how to pray / wudu / rakats / janazah/eid/istikhara prayer 等）"
+    },
+    {
+      "id": 72158,
+      "keyword": "how do you make wudu",
+      "sv": 880,
+      "reason": "礼拜实践通用（how to pray / wudu / rakats / janazah/eid/istikhara prayer 等）"
+    },
+    {
+      "id": 72187,
+      "keyword": "when is hajj 2026",
+      "sv": 880,
+      "reason": "斋月与历法（when is ramadan/hajj、days until ramadan 等）"
+    },
+    {
+      "id": 72200,
+      "keyword": "why did mansa musa make a hajj to mecca",
+      "sv": 880,
+      "reason": "斋月与历法（when is ramadan/hajj、days until ramadan 等）"
+    },
+    {
+      "id": 72118,
+      "keyword": "what time salah",
+      "sv": 880,
+      "reason": "祈祷时间（maghrib/fajr/isha prayer time 等）"
+    },
+    {
+      "id": 72091,
+      "keyword": "how to do wudu",
+      "sv": 720,
+      "reason": "礼拜实践通用（how to pray / wudu / rakats / janazah/eid/istikhara prayer 等）"
+    },
+    {
+      "id": 72106,
+      "keyword": "when is maghrib prayer",
+      "sv": 720,
+      "reason": "祈祷时间（maghrib/fajr/isha prayer time 等）"
+    },
+    {
+      "id": 72020,
+      "keyword": "how make wudu",
+      "sv": 590,
+      "reason": "礼拜实践通用（how to pray / wudu / rakats / janazah/eid/istikhara prayer 等）"
+    },
+    {
+      "id": 165,
+      "keyword": "prayer rug",
+      "sv": 590,
+      "reason": "不卖的实物礼品（prayer mat/rug / azan clock / islamic toys / wall clock）"
+    },
+    {
+      "id": 72122,
+      "keyword": "what time salah today",
+      "sv": 590,
+      "reason": "祈祷时间（maghrib/fajr/isha prayer time 等）"
+    },
+    {
+      "id": 72217,
+      "keyword": "does burping break wudu",
+      "sv": 480,
+      "reason": "礼拜实践通用（how to pray / wudu / rakats / janazah/eid/istikhara prayer 等）"
+    },
+    {
+      "id": 72161,
+      "keyword": "does vaping break wudu",
+      "sv": 480,
+      "reason": "礼拜实践通用（how to pray / wudu / rakats / janazah/eid/istikhara prayer 等）"
+    },
+    {
+      "id": 72160,
+      "keyword": "does bleeding break wudu",
+      "sv": 480,
+      "reason": "礼拜实践通用（how to pray / wudu / rakats / janazah/eid/istikhara prayer 等）"
+    },
+    {
+      "id": 72102,
+      "keyword": "when is hajj 2024",
+      "sv": 480,
+      "reason": "斋月与历法（when is ramadan/hajj、days until ramadan 等）"
+    },
+    {
+      "id": 71874,
+      "keyword": "what time prayer in riyadh",
+      "sv": 480,
+      "reason": "祈祷时间（maghrib/fajr/isha prayer time 等）"
+    },
+    {
+      "id": 72112,
+      "keyword": "what is the prayer time in riyadh",
+      "sv": 480,
+      "reason": "祈祷时间（maghrib/fajr/isha prayer time 等）"
+    },
+    {
+      "id": 72105,
+      "keyword": "when is azan",
+      "sv": 480,
+      "reason": "祈祷时间（maghrib/fajr/isha prayer time 等）"
+    },
+    {
+      "id": 72120,
+      "keyword": "how to pray eid salah",
+      "sv": 390,
+      "reason": "礼拜实践通用（how to pray / wudu / rakats / janazah/eid/istikhara prayer 等）"
+    },
+    {
+      "id": 72114,
+      "keyword": "how to make wudu",
+      "sv": 390,
+      "reason": "礼拜实践通用（how to pray / wudu / rakats / janazah/eid/istikhara prayer 等）"
+    },
+    {
+      "id": 188,
+      "keyword": "smart watch for kids",
+      "sv": 390,
+      "reason": "不卖的实物礼品"
+    },
+    {
+      "id": 72103,
+      "keyword": "when is hajj",
+      "sv": 320,
+      "reason": "斋月与历法（when is ramadan/hajj、days until ramadan 等）"
+    },
+    {
+      "id": 71940,
+      "keyword": "azan clock",
+      "sv": 320,
+      "reason": "不卖的实物礼品（prayer mat/rug / azan clock / islamic toys / wall clock）"
+    },
+    {
+      "id": 72123,
+      "keyword": "what time is salah today",
+      "sv": 320,
+      "reason": "祈祷时间（maghrib/fajr/isha prayer time 等）"
+    },
+    {
+      "id": 71893,
+      "keyword": "how to perform salah",
+      "sv": 260,
+      "reason": "礼拜实践通用（how to pray / wudu / rakats / janazah/eid/istikhara prayer 等）"
+    },
+    {
+      "id": 72083,
+      "keyword": "how to perform janazah salah",
+      "sv": 260,
+      "reason": "礼拜实践通用（how to pray / wudu / rakats / janazah/eid/istikhara prayer 等）"
+    },
+    {
+      "id": 72086,
+      "keyword": "azan clock",
+      "sv": 260,
+      "reason": "不卖的实物礼品（prayer mat/rug / azan clock / islamic toys / wall clock）"
+    },
+    {
+      "id": 72121,
+      "keyword": "how to pray salah",
+      "sv": 210,
+      "reason": "礼拜实践通用（how to pray / wudu / rakats / janazah/eid/istikhara prayer 等）"
+    },
+    {
+      "id": 72088,
+      "keyword": "does sleeping break wudu",
+      "sv": 210,
+      "reason": "礼拜实践通用（how to pray / wudu / rakats / janazah/eid/istikhara prayer 等）"
+    },
+    {
+      "id": 72172,
+      "keyword": "how many pilgrims perform hajj in 2023",
+      "sv": 210,
+      "reason": "斋月与历法（when is ramadan/hajj、days until ramadan 等）"
+    },
+    {
+      "id": 72097,
+      "keyword": "how many days until ramadan",
+      "sv": 210,
+      "reason": "斋月与历法（when is ramadan/hajj、days until ramadan 等）"
+    },
+    {
+      "id": 72079,
+      "keyword": "how to perform wudu",
+      "sv": 170,
+      "reason": "礼拜实践通用（how to pray / wudu / rakats / janazah/eid/istikhara prayer 等）"
+    },
+    {
+      "id": 72171,
+      "keyword": "how to apply for hajj in saudi arabia 2021",
+      "sv": 170,
+      "reason": "斋月与历法（when is ramadan/hajj、days until ramadan 等）"
+    },
+    {
+      "id": 72101,
+      "keyword": "how to perform hajj",
+      "sv": 170,
+      "reason": "斋月与历法（when is ramadan/hajj、days until ramadan 等）"
+    },
+    {
+      "id": 72109,
+      "keyword": "when will umrah start after hajj 2024 saudi arabia",
+      "sv": 140,
+      "reason": "斋月与历法（when is ramadan/hajj、days until ramadan 等）"
+    },
+    {
+      "id": 71913,
+      "keyword": "what time is maghrib azan in london",
+      "sv": 140,
+      "reason": "祈祷时间（maghrib/fajr/isha prayer time 等）"
+    },
+    {
+      "id": 72090,
+      "keyword": "what is salah",
+      "sv": 110,
+      "reason": "礼拜实践通用（how to pray / wudu / rakats / janazah/eid/istikhara prayer 等）"
+    },
+    {
+      "id": 72087,
+      "keyword": "do you need wudu for tawaf",
+      "sv": 110,
+      "reason": "礼拜实践通用（how to pray / wudu / rakats / janazah/eid/istikhara prayer 等）"
+    },
+    {
+      "id": 72089,
+      "keyword": "what breaks wudu",
+      "sv": 110,
+      "reason": "礼拜实践通用（how to pray / wudu / rakats / janazah/eid/istikhara prayer 等）"
+    },
+    {
+      "id": 72170,
+      "keyword": "does smoking breaks wudu",
+      "sv": 110,
+      "reason": "礼拜实践通用（how to pray / wudu / rakats / janazah/eid/istikhara prayer 等）"
+    },
+    {
+      "id": 72173,
+      "keyword": "how many hajj pilgrims in 2023",
+      "sv": 110,
+      "reason": "斋月与历法（when is ramadan/hajj、days until ramadan 等）"
+    },
+    {
+      "id": 72204,
+      "keyword": "does praying in your head count",
+      "sv": 40,
+      "reason": "礼拜实践通用（how to pray / wudu / rakats / janazah/eid/istikhara prayer 等）"
+    }
+  ],
+  "stats": {
+    "totalInScopeOccurrences": 352,
+    "uniqueIds": 352,
+    "routedCount": 256,
+    "deferredCount": 96,
+    "topicCount": 11,
+    "perTopic": {
+      "dhikr-adhkar": 21,
+      "salatul-tasbih": 35,
+      "qibla": 30,
+      "slow-living": 5,
+      "zikr-ring": 17,
+      "digital-counter": 13,
+      "tasbih-beads": 43,
+      "islamic-jewelry": 10,
+      "name-necklace": 4,
+      "gifts": 72,
+      "brand": 6
+    },
+    "warnings": 0
+  }
+}

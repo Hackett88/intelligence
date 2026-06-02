@@ -232,6 +232,8 @@ export const strategyPages = pgTable(
     themeLatin:     text("theme_latin").notNull(),
     territory:      text("territory").notNull(),        // 产品/知识/工具/场景/品牌
     note:           text("note"),                       // 可空
+    subtitle:       text("subtitle"),                   // 副标题（可空，0018）
+    geoOverview:    text("geo_overview"),               // GEO 概述（可空，0018）
     sortOrder:      integer("sort_order").notNull().default(0),
     auxKeywords:    jsonb("aux_keywords").notNull().default([]),  // 辅助词（实体）数组（0016）
     scenarioId:     text("scenario_id"),                 // 自建子支柱的场景列归属（可空，0017）

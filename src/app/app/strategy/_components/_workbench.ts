@@ -80,6 +80,10 @@ export type WbPage = {
   clicks: number | null;
   impressions: number | null;
   note?: string;
+  /** 副标题（落库 subtitle，0018；可空） */
+  subtitle?: string;
+  /** GEO 概述：30–60 词答案先行摘要（落库 geo_overview，0018；可空） */
+  geoOverview?: string;
   /** 辅助词（实体）：写作语义覆盖，无搜索量。M6 起为权威字段（落库 aux_keywords）；缺省回退解析 note */
   auxKeywords?: string[];
   /** 辅助词是否被用户手工改过（落库 aux_edited）。true 时 reconcile 不再用 seed 回填（尊重用户清空） */

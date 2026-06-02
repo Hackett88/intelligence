@@ -1,0 +1,582 @@
+[
+  {
+    "id": "544",
+    "owner": "admin@weslamic.com",
+    "keyword": "weslamic.com",
+    "market": "",
+    "page_id": "zr-sp-brand",
+    "state": "bound",
+    "created_at": "2026-06-01T14:54:01.256Z",
+    "updated_at": "2026-06-01T14:54:01.256Z"
+  },
+  {
+    "id": "545",
+    "owner": "admin@weslamic.com",
+    "keyword": "weslamic official",
+    "market": "",
+    "page_id": "zr-sp-brand",
+    "state": "bound",
+    "created_at": "2026-06-01T14:54:01.256Z",
+    "updated_at": "2026-06-01T14:54:01.256Z"
+  },
+  {
+    "id": "546",
+    "owner": "admin@weslamic.com",
+    "keyword": "weslamic",
+    "market": "",
+    "page_id": "zr-sp-brand",
+    "state": "bound",
+    "created_at": "2026-06-01T14:54:01.256Z",
+    "updated_at": "2026-06-01T14:54:01.256Z"
+  },
+  {
+    "id": "547",
+    "owner": "admin@weslamic.com",
+    "keyword": "tasbih",
+    "market": "uk",
+    "page_id": "dk-b1-evolution",
+    "state": "bound",
+    "created_at": "2026-06-01T14:54:01.256Z",
+    "updated_at": "2026-06-01T14:54:01.256Z"
+  },
+  {
+    "id": "548",
+    "owner": "admin@weslamic.com",
+    "keyword": "tasbeeh counter",
+    "market": "my",
+    "page_id": "dk-c5-digital",
+    "state": "bound",
+    "created_at": "2026-06-01T14:54:01.256Z",
+    "updated_at": "2026-06-01T14:54:01.256Z"
+  },
+  {
+    "id": "549",
+    "owner": "admin@weslamic.com",
+    "keyword": "tasbih digital counter",
+    "market": "my",
+    "page_id": "dk-c5-digital",
+    "state": "bound",
+    "created_at": "2026-06-01T14:54:01.256Z",
+    "updated_at": "2026-06-01T14:54:01.256Z"
+  },
+  {
+    "id": "550",
+    "owner": "admin@weslamic.com",
+    "keyword": "zikr ring counter",
+    "market": "us",
+    "page_id": "dk-c1-counter",
+    "state": "bound",
+    "created_at": "2026-06-01T14:54:01.256Z",
+    "updated_at": "2026-06-01T14:54:01.256Z"
+  },
+  {
+    "id": "551",
+    "owner": "admin@weslamic.com",
+    "keyword": "tasbeeh",
+    "market": "sa",
+    "page_id": "dk-b1-evolution",
+    "state": "bound",
+    "created_at": "2026-06-01T14:54:01.256Z",
+    "updated_at": "2026-06-01T14:54:01.256Z"
+  },
+  {
+    "id": "552",
+    "owner": "admin@weslamic.com",
+    "keyword": "how to pray salatul tasbih prayer",
+    "market": "uk",
+    "page_id": "dk-d-salatul",
+    "state": "bound",
+    "created_at": "2026-06-01T14:54:01.256Z",
+    "updated_at": "2026-06-01T14:54:01.256Z"
+  },
+  {
+    "id": "553",
+    "owner": "admin@weslamic.com",
+    "keyword": "zikr after namaz",
+    "market": "uk",
+    "page_id": "dk-a-adhkar",
+    "state": "bound",
+    "created_at": "2026-06-01T14:54:01.256Z",
+    "updated_at": "2026-06-01T14:54:01.256Z"
+  },
+  {
+    "id": "554",
+    "owner": "admin@weslamic.com",
+    "keyword": "how to do salatul tasbih",
+    "market": "uk",
+    "page_id": "dk-d-salatul",
+    "state": "bound",
+    "created_at": "2026-06-01T14:54:01.256Z",
+    "updated_at": "2026-06-01T14:54:01.256Z"
+  },
+  {
+    "id": "555",
+    "owner": "admin@weslamic.com",
+    "keyword": "how to salatul tasbih prayer",
+    "market": "uk",
+    "page_id": "dk-d-salatul",
+    "state": "bound",
+    "created_at": "2026-06-01T14:54:01.256Z",
+    "updated_at": "2026-06-01T14:54:01.256Z"
+  },
+  {
+    "id": "556",
+    "owner": "admin@weslamic.com",
+    "keyword": "dhikr after namaz",
+    "market": "uk",
+    "page_id": "dk-a-adhkar",
+    "state": "bound",
+    "created_at": "2026-06-01T14:54:01.256Z",
+    "updated_at": "2026-06-01T14:54:01.256Z"
+  },
+  {
+    "id": "557",
+    "owner": "admin@weslamic.com",
+    "keyword": "zikr after prayer",
+    "market": "uk",
+    "page_id": "dk-a-adhkar",
+    "state": "bound",
+    "created_at": "2026-06-01T14:54:01.256Z",
+    "updated_at": "2026-06-01T14:54:01.256Z"
+  },
+  {
+    "id": "558",
+    "owner": "admin@weslamic.com",
+    "keyword": "zikr ring",
+    "market": "uk",
+    "page_id": "dk-c0-hub",
+    "state": "bound",
+    "created_at": "2026-06-01T14:54:01.256Z",
+    "updated_at": "2026-06-01T14:54:01.256Z"
+  },
+  {
+    "id": "559",
+    "owner": "admin@weslamic.com",
+    "keyword": "zikr ring",
+    "market": "id",
+    "page_id": "dk-c0-hub",
+    "state": "bound",
+    "created_at": "2026-06-01T14:54:01.256Z",
+    "updated_at": "2026-06-01T14:54:01.256Z"
+  },
+  {
+    "id": "560",
+    "owner": "admin@weslamic.com",
+    "keyword": "zikr ring",
+    "market": "my",
+    "page_id": "dk-c0-hub",
+    "state": "bound",
+    "created_at": "2026-06-01T14:54:01.256Z",
+    "updated_at": "2026-06-01T14:54:01.256Z"
+  },
+  {
+    "id": "561",
+    "owner": "admin@weslamic.com",
+    "keyword": "tasbih prayer",
+    "market": "sa",
+    "page_id": "dk-b0-what",
+    "state": "bound",
+    "created_at": "2026-06-01T14:54:01.256Z",
+    "updated_at": "2026-06-01T14:54:01.256Z"
+  },
+  {
+    "id": "562",
+    "owner": "admin@weslamic.com",
+    "keyword": "salat tasbeeh",
+    "market": "sa",
+    "page_id": "dk-d-salatul",
+    "state": "bound",
+    "created_at": "2026-06-01T14:54:01.256Z",
+    "updated_at": "2026-06-01T14:54:01.256Z"
+  },
+  {
+    "id": "563",
+    "owner": "admin@weslamic.com",
+    "keyword": "dhikr after salah",
+    "market": "uk",
+    "page_id": "dk-a-adhkar",
+    "state": "bound",
+    "created_at": "2026-06-01T14:54:01.256Z",
+    "updated_at": "2026-06-01T14:54:01.256Z"
+  },
+  {
+    "id": "564",
+    "owner": "admin@weslamic.com",
+    "keyword": "how to perform salatul tasbih",
+    "market": "uk",
+    "page_id": "dk-d-salatul",
+    "state": "bound",
+    "created_at": "2026-06-01T14:54:01.256Z",
+    "updated_at": "2026-06-01T14:54:01.256Z"
+  },
+  {
+    "id": "565",
+    "owner": "admin@weslamic.com",
+    "keyword": "zikr ring",
+    "market": "us",
+    "page_id": "dk-c0-hub",
+    "state": "bound",
+    "created_at": "2026-06-01T14:54:01.256Z",
+    "updated_at": "2026-06-01T14:54:01.256Z"
+  },
+  {
+    "id": "566",
+    "owner": "admin@weslamic.com",
+    "keyword": "what is dhikr",
+    "market": "us",
+    "page_id": "dk-pillar",
+    "state": "bound",
+    "created_at": "2026-06-01T14:54:01.256Z",
+    "updated_at": "2026-06-01T14:54:01.256Z"
+  },
+  {
+    "id": "567",
+    "owner": "admin@weslamic.com",
+    "keyword": "what is zikr ring",
+    "market": "us",
+    "page_id": "dk-c2-howto",
+    "state": "bound",
+    "created_at": "2026-06-01T14:54:01.256Z",
+    "updated_at": "2026-06-01T14:54:01.256Z"
+  },
+  {
+    "id": "568",
+    "owner": "admin@weslamic.com",
+    "keyword": "how to pray salatul tasbih",
+    "market": "uk",
+    "page_id": "dk-d-salatul",
+    "state": "bound",
+    "created_at": "2026-06-01T14:54:01.256Z",
+    "updated_at": "2026-06-01T14:54:01.256Z"
+  },
+  {
+    "id": "569",
+    "owner": "admin@weslamic.com",
+    "keyword": "how to pray salatul tasbih",
+    "market": "us",
+    "page_id": "dk-d-salatul",
+    "state": "bound",
+    "created_at": "2026-06-01T14:54:01.256Z",
+    "updated_at": "2026-06-01T14:54:01.256Z"
+  },
+  {
+    "id": "570",
+    "owner": "admin@weslamic.com",
+    "keyword": "zikr ring",
+    "market": "de",
+    "page_id": "dk-c4-buy",
+    "state": "bound",
+    "created_at": "2026-06-01T14:54:01.256Z",
+    "updated_at": "2026-06-01T14:54:01.256Z"
+  },
+  {
+    "id": "571",
+    "owner": "admin@weslamic.com",
+    "keyword": "prayer beads",
+    "market": "sa",
+    "page_id": "dk-b1-evolution",
+    "state": "bound",
+    "created_at": "2026-06-01T14:54:01.256Z",
+    "updated_at": "2026-06-01T14:54:01.256Z"
+  },
+  {
+    "id": "572",
+    "owner": "admin@weslamic.com",
+    "keyword": "zikr ring",
+    "market": "tr",
+    "page_id": "dk-c0-hub",
+    "state": "bound",
+    "created_at": "2026-06-01T14:54:01.256Z",
+    "updated_at": "2026-06-01T14:54:01.256Z"
+  },
+  {
+    "id": "573",
+    "owner": "admin@weslamic.com",
+    "keyword": "how to pray salatul tasbih",
+    "market": "sa",
+    "page_id": "dk-d-salatul",
+    "state": "bound",
+    "created_at": "2026-06-01T14:54:01.256Z",
+    "updated_at": "2026-06-01T14:54:01.256Z"
+  },
+  {
+    "id": "574",
+    "owner": "admin@weslamic.com",
+    "keyword": "zikr",
+    "market": "my",
+    "page_id": "dk-pillar",
+    "state": "bound",
+    "created_at": "2026-06-01T14:54:01.256Z",
+    "updated_at": "2026-06-01T14:54:01.256Z"
+  },
+  {
+    "id": "575",
+    "owner": "admin@weslamic.com",
+    "keyword": "how to pray salatul tasbih namaz",
+    "market": "us",
+    "page_id": "dk-d-salatul",
+    "state": "bound",
+    "created_at": "2026-06-01T14:54:01.256Z",
+    "updated_at": "2026-06-01T14:54:01.256Z"
+  },
+  {
+    "id": "576",
+    "owner": "admin@weslamic.com",
+    "keyword": "how to salatul tasbih prayer",
+    "market": "us",
+    "page_id": "dk-d-salatul",
+    "state": "bound",
+    "created_at": "2026-06-01T14:54:01.256Z",
+    "updated_at": "2026-06-01T14:54:01.256Z"
+  },
+  {
+    "id": "577",
+    "owner": "admin@weslamic.com",
+    "keyword": "how to read salatul tasbih",
+    "market": "us",
+    "page_id": "dk-d-salatul",
+    "state": "bound",
+    "created_at": "2026-06-01T14:54:01.256Z",
+    "updated_at": "2026-06-01T14:54:01.256Z"
+  },
+  {
+    "id": "578",
+    "owner": "admin@weslamic.com",
+    "keyword": "digital tasbeeh",
+    "market": "sa",
+    "page_id": "dk-c5-digital",
+    "state": "bound",
+    "created_at": "2026-06-01T14:54:01.256Z",
+    "updated_at": "2026-06-01T14:54:01.256Z"
+  },
+  {
+    "id": "579",
+    "owner": "admin@weslamic.com",
+    "keyword": "digital tasbih",
+    "market": "sa",
+    "page_id": "dk-c5-digital",
+    "state": "bound",
+    "created_at": "2026-06-01T14:54:01.256Z",
+    "updated_at": "2026-06-01T14:54:01.256Z"
+  },
+  {
+    "id": "580",
+    "owner": "admin@weslamic.com",
+    "keyword": "what is tasbih",
+    "market": "us",
+    "page_id": "dk-b0-what",
+    "state": "bound",
+    "created_at": "2026-06-01T14:54:01.256Z",
+    "updated_at": "2026-06-01T14:54:01.256Z"
+  },
+  {
+    "id": "581",
+    "owner": "admin@weslamic.com",
+    "keyword": "how to pray salatul tasbih prayer",
+    "market": "us",
+    "page_id": "dk-d-salatul",
+    "state": "bound",
+    "created_at": "2026-06-01T14:54:01.256Z",
+    "updated_at": "2026-06-01T14:54:01.256Z"
+  },
+  {
+    "id": "582",
+    "owner": "admin@weslamic.com",
+    "keyword": "how to do salatul tasbih",
+    "market": "us",
+    "page_id": "dk-d-salatul",
+    "state": "bound",
+    "created_at": "2026-06-01T14:54:01.256Z",
+    "updated_at": "2026-06-01T14:54:01.256Z"
+  },
+  {
+    "id": "583",
+    "owner": "admin@weslamic.com",
+    "keyword": "how to do dhikr",
+    "market": "uk",
+    "page_id": "dk-pillar",
+    "state": "bound",
+    "created_at": "2026-06-01T14:54:01.256Z",
+    "updated_at": "2026-06-01T14:54:01.256Z"
+  },
+  {
+    "id": "584",
+    "owner": "admin@weslamic.com",
+    "keyword": "what is a tasbih",
+    "market": "us",
+    "page_id": "dk-b0-what",
+    "state": "bound",
+    "created_at": "2026-06-01T14:54:01.256Z",
+    "updated_at": "2026-06-01T14:54:01.256Z"
+  },
+  {
+    "id": "585",
+    "owner": "admin@weslamic.com",
+    "keyword": "misbaha",
+    "market": "sa",
+    "page_id": "dk-b1-evolution",
+    "state": "bound",
+    "created_at": "2026-06-01T14:54:01.256Z",
+    "updated_at": "2026-06-01T14:54:01.256Z"
+  },
+  {
+    "id": "586",
+    "owner": "admin@weslamic.com",
+    "keyword": "how to pray salatul tasbih namaz",
+    "market": "uk",
+    "page_id": "dk-d-salatul",
+    "state": "bound",
+    "created_at": "2026-06-01T14:54:01.256Z",
+    "updated_at": "2026-06-01T14:54:01.256Z"
+  },
+  {
+    "id": "587",
+    "owner": "admin@weslamic.com",
+    "keyword": "how to do dhikr",
+    "market": "us",
+    "page_id": "dk-pillar",
+    "state": "bound",
+    "created_at": "2026-06-01T14:54:01.256Z",
+    "updated_at": "2026-06-01T14:54:01.256Z"
+  },
+  {
+    "id": "588",
+    "owner": "admin@weslamic.com",
+    "keyword": "how to perform salatul tasbih",
+    "market": "us",
+    "page_id": "dk-d-salatul",
+    "state": "bound",
+    "created_at": "2026-06-01T14:54:01.256Z",
+    "updated_at": "2026-06-01T14:54:01.256Z"
+  },
+  {
+    "id": "589",
+    "owner": "admin@weslamic.com",
+    "keyword": "how to pray salatul tasbih",
+    "market": "ae",
+    "page_id": "dk-d-salatul",
+    "state": "bound",
+    "created_at": "2026-06-01T14:54:01.256Z",
+    "updated_at": "2026-06-01T14:54:01.256Z"
+  },
+  {
+    "id": "590",
+    "owner": "admin@weslamic.com",
+    "keyword": "how to perform salatul tasbih",
+    "market": "ae",
+    "page_id": "dk-d-salatul",
+    "state": "bound",
+    "created_at": "2026-06-01T14:54:01.256Z",
+    "updated_at": "2026-06-01T14:54:01.256Z"
+  },
+  {
+    "id": "591",
+    "owner": "admin@weslamic.com",
+    "keyword": "what is tasbih",
+    "market": "uk",
+    "page_id": "dk-b0-what",
+    "state": "bound",
+    "created_at": "2026-06-01T14:54:01.256Z",
+    "updated_at": "2026-06-01T14:54:01.256Z"
+  },
+  {
+    "id": "592",
+    "owner": "admin@weslamic.com",
+    "keyword": "what is a tasbih",
+    "market": "uk",
+    "page_id": "dk-b0-what",
+    "state": "bound",
+    "created_at": "2026-06-01T14:54:01.256Z",
+    "updated_at": "2026-06-01T14:54:01.256Z"
+  },
+  {
+    "id": "593",
+    "owner": "admin@weslamic.com",
+    "keyword": "what is dhikr in islam",
+    "market": "us",
+    "page_id": "dk-pillar",
+    "state": "bound",
+    "created_at": "2026-06-01T14:54:01.256Z",
+    "updated_at": "2026-06-01T14:54:01.256Z"
+  },
+  {
+    "id": "594",
+    "owner": "admin@weslamic.com",
+    "keyword": "how to read salatul tasbih",
+    "market": "uk",
+    "page_id": "dk-d-salatul",
+    "state": "bound",
+    "created_at": "2026-06-01T14:54:01.256Z",
+    "updated_at": "2026-06-01T14:54:01.256Z"
+  },
+  {
+    "id": "595",
+    "owner": "admin@weslamic.com",
+    "keyword": "zikr ring price",
+    "market": "us",
+    "page_id": "dk-c4-buy",
+    "state": "bound",
+    "created_at": "2026-06-01T14:54:01.256Z",
+    "updated_at": "2026-06-01T14:54:01.256Z"
+  },
+  {
+    "id": "596",
+    "owner": "admin@weslamic.com",
+    "keyword": "how to use zikr ring",
+    "market": "us",
+    "page_id": "dk-c2-howto",
+    "state": "bound",
+    "created_at": "2026-06-01T14:54:01.256Z",
+    "updated_at": "2026-06-01T14:54:01.256Z"
+  },
+  {
+    "id": "597",
+    "owner": "admin@weslamic.com",
+    "keyword": "zikr ring",
+    "market": "au",
+    "page_id": "dk-c4-buy",
+    "state": "bound",
+    "created_at": "2026-06-01T14:54:01.256Z",
+    "updated_at": "2026-06-01T14:54:01.256Z"
+  },
+  {
+    "id": "598",
+    "owner": "admin@weslamic.com",
+    "keyword": "how to make tasbih",
+    "market": "us",
+    "page_id": "dk-b3-diy",
+    "state": "bound",
+    "created_at": "2026-06-01T14:54:01.256Z",
+    "updated_at": "2026-06-01T14:54:01.256Z"
+  },
+  {
+    "id": "599",
+    "owner": "admin@weslamic.com",
+    "keyword": "black zikr ring",
+    "market": "us",
+    "page_id": "dk-c4-buy",
+    "state": "bound",
+    "created_at": "2026-06-01T14:54:01.256Z",
+    "updated_at": "2026-06-01T14:54:01.256Z"
+  },
+  {
+    "id": "600",
+    "owner": "admin@weslamic.com",
+    "keyword": "does zikr ring vibrate",
+    "market": "us",
+    "page_id": "dk-c3-faq",
+    "state": "bound",
+    "created_at": "2026-06-01T14:54:01.256Z",
+    "updated_at": "2026-06-01T14:54:01.256Z"
+  },
+  {
+    "id": "601",
+    "owner": "admin@weslamic.com",
+    "keyword": "are zikr rings halal",
+    "market": "us",
+    "page_id": "dk-c3-faq",
+    "state": "bound",
+    "created_at": "2026-06-01T14:54:01.256Z",
+    "updated_at": "2026-06-01T14:54:01.256Z"
+  }
+]

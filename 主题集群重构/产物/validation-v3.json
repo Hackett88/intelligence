@@ -1,0 +1,93 @@
+{
+  "meta": {
+    "description": "WESLAMIC 主题集群规划五项复校验 v3（蚕食/覆盖/GEO/单意图/命名）",
+    "created": "2026-06-02 12:00",
+    "updated": "2026-06-02 12:00",
+    "sources": [
+      "主题集群重构/产物/plan-payload.json",
+      "主题集群重构/产物/topics.json"
+    ],
+    "pagesTotal": 55,
+    "bindingsTotal": 251,
+    "inScopeOccurrences": 256
+  },
+  "checks": {
+    "cannibalization": {
+      "dupPrimaryKeyword": [],
+      "collectionsVsBlogsHeadCollision": [],
+      "pillarVsHubHeadFunnel": [
+        "Pillar(collections) 与 hub(blogs) 头部词 token 重叠 [zikr,ring]: tc-zikr-ring-pillar\"zikr ring\"(/collections/zikr-ring) vs tc-zikr-ring-hub\"what is zikr ring\"(/blogs/zikr-ring)",
+        "Pillar(collections) 与 hub(blogs) 头部词 token 重叠 [islamic,jewelry]: tc-islamic-jewelry-pillar\"islamic jewelry\"(/collections/islamic-jewelry) vs tc-islamic-jewelry-hub\"what is islamic jewelry\"(/blogs/islamic-jewelry)",
+        "Pillar(collections) 与 hub(blogs) 头部词 token 重叠 [name,necklace]: tc-name-necklace-pillar\"name necklace\"(/collections/name-necklace) vs tc-name-necklace-hub\"gold name necklace\"(/blogs/name-necklace)"
+      ],
+      "sameKeywordMultiplePages": [],
+      "verdict": "WARN"
+    },
+    "coverage": {
+      "missingCount": 0,
+      "missing": [],
+      "danglingBindings": [],
+      "verdict": "PASS"
+    },
+    "geo": {
+      "missing": [],
+      "under30": [],
+      "over60": [],
+      "over60Count": 0,
+      "verdict": "PASS"
+    },
+    "singleIntent": {
+      "mixedIntentPages": [
+        "tc-qibla-pillar (工具生态页, /tools/qibla-finder): 了解型+行动型混杂 -> kaaba compass[行动型], qibla compass[行动型], qiblah finder[行动型], qibla finder online[行动型], qiblah fonder[行动型], qiblah[了解型]",
+        "tc-qibla-c3 (工具生态页, /blogs/dhikr/kaaba-direction): 了解型+行动型混杂 -> kaaba direction[行动型], kaba direction[了解型], what is the direction of kaaba[了解型], which direction is kaaba[了解型], how to locate kaaba direction[了解型], what direction is the kaaba[了解型], which direction is kaaba[了解型]",
+        "tc-gifts-c2 (场景使用页, /collections/ramadan-gifts): 了解型+行动型混杂 -> gifts of ramadan[了解型], ramadan gifts[行动型], ramadan gift ideas[对比型], gift ramadan[行动型], ramadan gift box[行动型], ramadan gift box[行动型], ramadan gift ideas[对比型], ramadan gift ideas[对比型], ramadan gift ideas[对比型], ramadan gift box[行动型], ramadan gift box[行动型], ramadan gift set[行动型], ramadan gift set[行动型], ramadan gift ideas[混合型], ramadan gift set[对比型], ramadan gift for her[对比型], what is a good gift for ramadan[对比型], what is a good gift for ramadan[混合型], what is an appropriate gift for ramadan[了解型], what gift to give for ramadan[混合型], what gifts do you give for ramadan[混合型], what's the best gift for eid ramadan 2018[对比型], where to buy gift for kids ramadan dubai[行动型], where to buy gift box for kids ramadan dubai[行动型]"
+      ],
+      "verdict": "WARN"
+    },
+    "naming": {
+      "dupIds": [],
+      "dupUrls": [],
+      "dupPrimaryKeyword": [],
+      "verdict": "PASS"
+    }
+  },
+  "issues": [
+    {
+      "sev": "mid",
+      "cat": "蚕食",
+      "msg": "Pillar(collections) 与 hub(blogs) 头部词 token 重叠 [zikr,ring]: tc-zikr-ring-pillar\"zikr ring\"(/collections/zikr-ring) vs tc-zikr-ring-hub\"what is zikr ring\"(/blogs/zikr-ring)"
+    },
+    {
+      "sev": "mid",
+      "cat": "蚕食",
+      "msg": "Pillar(collections) 与 hub(blogs) 头部词 token 重叠 [islamic,jewelry]: tc-islamic-jewelry-pillar\"islamic jewelry\"(/collections/islamic-jewelry) vs tc-islamic-jewelry-hub\"what is islamic jewelry\"(/blogs/islamic-jewelry)"
+    },
+    {
+      "sev": "mid",
+      "cat": "蚕食",
+      "msg": "Pillar(collections) 与 hub(blogs) 头部词 token 重叠 [name,necklace]: tc-name-necklace-pillar\"name necklace\"(/collections/name-necklace) vs tc-name-necklace-hub\"gold name necklace\"(/blogs/name-necklace)"
+    },
+    {
+      "sev": "mid",
+      "cat": "单意图",
+      "msg": "tc-qibla-pillar (工具生态页, /tools/qibla-finder): 了解型+行动型混杂 -> kaaba compass[行动型], qibla compass[行动型], qiblah finder[行动型], qibla finder online[行动型], qiblah fonder[行动型], qiblah[了解型]"
+    },
+    {
+      "sev": "mid",
+      "cat": "单意图",
+      "msg": "tc-qibla-c3 (工具生态页, /blogs/dhikr/kaaba-direction): 了解型+行动型混杂 -> kaaba direction[行动型], kaba direction[了解型], what is the direction of kaaba[了解型], which direction is kaaba[了解型], how to locate kaaba direction[了解型], what direction is the kaaba[了解型], which direction is kaaba[了解型]"
+    },
+    {
+      "sev": "mid",
+      "cat": "单意图",
+      "msg": "tc-gifts-c2 (场景使用页, /collections/ramadan-gifts): 了解型+行动型混杂 -> gifts of ramadan[了解型], ramadan gifts[行动型], ramadan gift ideas[对比型], gift ramadan[行动型], ramadan gift box[行动型], ramadan gift box[行动型], ramadan gift ideas[对比型], ramadan gift ideas[对比型], ramadan gift ideas[对比型], ramadan gift box[行动型], ramadan gift box[行动型], ramadan gift set[行动型], ramadan gift set[行动型], ramadan gift ideas[混合型], ramadan gift set[对比型], ramadan gift for her[对比型], what is a good gift for ramadan[对比型], what is a good gift for ramadan[混合型], what is an appropriate gift for ramadan[了解型], what gift to give for ramadan[混合型], what gifts do you give for ramadan[混合型], what's the best gift for eid ramadan 2018[对比型], where to buy gift for kids ramadan dubai[行动型], where to buy gift box for kids ramadan dubai[行动型]"
+    }
+  ],
+  "summary": {
+    "issueCount": 6,
+    "highCount": 0,
+    "midCount": 6,
+    "geoOver60Count": 0,
+    "verdict": "PASS_WITH_WARNINGS"
+  }
+}

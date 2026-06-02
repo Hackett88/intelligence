@@ -1,0 +1,202 @@
+{
+  "themeId": "zikr-ring",
+  "assignments": [
+    {
+      "id": 205,
+      "keyword": "zikr ring",
+      "market": "tr",
+      "sv": 260,
+      "target": "pillar",
+      "intent": "交易型",
+      "pageType": "品类聚合页",
+      "contentForm": "智能念珠戒指品类支柱页/产品总览页"
+    },
+    {
+      "id": 166,
+      "keyword": "zikr ring",
+      "market": "my",
+      "sv": 480,
+      "target": "pillar",
+      "intent": "交易型",
+      "pageType": "品类聚合页",
+      "contentForm": "智能念珠戒指品类支柱页/产品总览页"
+    },
+    {
+      "id": 203,
+      "keyword": "zikr ring",
+      "market": "au",
+      "sv": 90,
+      "target": "pillar",
+      "intent": "交易型",
+      "pageType": "品类聚合页",
+      "contentForm": "智能念珠戒指品类支柱页/产品总览页"
+    },
+    {
+      "id": 204,
+      "keyword": "zikr ring",
+      "market": "de",
+      "sv": 260,
+      "target": "pillar",
+      "intent": "交易型",
+      "pageType": "品类聚合页",
+      "contentForm": "智能念珠戒指品类支柱页/产品总览页"
+    },
+    {
+      "id": 161,
+      "keyword": "zikr ring",
+      "market": "id",
+      "sv": 480,
+      "target": "pillar",
+      "intent": "交易型",
+      "pageType": "品类聚合页",
+      "contentForm": "智能念珠戒指品类支柱页/产品总览页"
+    },
+    {
+      "id": 145,
+      "keyword": "zikr ring",
+      "market": "us",
+      "sv": 320,
+      "target": "pillar",
+      "intent": "交易型",
+      "pageType": "品类聚合页",
+      "contentForm": "智能念珠戒指品类支柱页/产品总览页"
+    },
+    {
+      "id": 198,
+      "keyword": "zikr ring",
+      "market": "uk",
+      "sv": 480,
+      "target": "pillar",
+      "intent": "交易型",
+      "pageType": "品类聚合页",
+      "contentForm": "智能念珠戒指品类支柱页/产品总览页"
+    },
+    {
+      "id": 72136,
+      "keyword": "zikr ring",
+      "market": "uk",
+      "sv": 480,
+      "target": "pillar",
+      "intent": "交易型",
+      "pageType": "品类聚合页",
+      "contentForm": "智能念珠戒指品类支柱页/产品总览页"
+    },
+    {
+      "id": 193,
+      "keyword": "خاتم ذكي",
+      "market": "sa",
+      "sv": 720,
+      "target": "pillar",
+      "intent": "交易型",
+      "pageType": "品类聚合页",
+      "contentForm": "阿拉伯语智能戒指品类支柱页/产品总览页"
+    },
+    {
+      "id": 189,
+      "keyword": "الخاتم الذكي",
+      "market": "sa",
+      "sv": 320,
+      "target": "pillar",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "阿拉伯语智能戒指品类定义/问答式知识页"
+    },
+    {
+      "id": 201,
+      "keyword": "zikr ring counter",
+      "market": "us",
+      "sv": 820,
+      "target": "itasbih-tools",
+      "intent": "工具",
+      "pageType": "工具生态页",
+      "contentForm": "戒指计数功能工具页/数字计数说明页"
+    },
+    {
+      "id": 199,
+      "keyword": "zikr ring price",
+      "market": "us",
+      "sv": 90,
+      "target": "pillar",
+      "intent": "交易型",
+      "pageType": "产品详情页",
+      "contentForm": "戒指价格/购买产品详情页"
+    },
+    {
+      "id": 200,
+      "keyword": "black zikr ring",
+      "market": "us",
+      "sv": 50,
+      "target": "pillar",
+      "intent": "交易型",
+      "pageType": "产品详情页",
+      "contentForm": "黑色款戒指产品详情页"
+    },
+    {
+      "id": 139,
+      "keyword": "what is zikr ring",
+      "market": "us",
+      "sv": 320,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页（戒指是什么）"
+    },
+    {
+      "id": 129,
+      "keyword": "how to use zikr ring",
+      "market": "us",
+      "sv": 90,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页/使用教程页"
+    },
+    {
+      "id": 131,
+      "keyword": "are zikr rings halal",
+      "market": "us",
+      "sv": 30,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页（是否合规halal）"
+    },
+    {
+      "id": 130,
+      "keyword": "does zikr ring vibrate",
+      "market": "us",
+      "sv": 40,
+      "target": "knowledge-dhikr",
+      "intent": "技术长尾",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页/功能技术解答页（震动反馈）"
+    },
+    {
+      "id": 72154,
+      "keyword": "what is a smart ring",
+      "market": "uk",
+      "sv": 390,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页（智能戒指品类科普，承接戒指上游教育）"
+    }
+  ],
+  "noise": [
+    {
+      "id": 72213,
+      "keyword": "does marcus smart have a ring",
+      "reason": "NBA 总冠军戒指八卦，与智能戒指/念诵无关"
+    },
+    {
+      "id": 72184,
+      "keyword": "can anxiety make your ears ring",
+      "reason": "耳鸣（ring=响）医学问题，与戒指品类无关"
+    },
+    {
+      "id": 71872,
+      "keyword": "does anxiety make your ears ring",
+      "reason": "耳鸣（ring=响）医学问题，与戒指品类无关"
+    }
+  ]
+}

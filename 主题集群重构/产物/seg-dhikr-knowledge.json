@@ -1,0 +1,1792 @@
+{
+  "themeId": "dhikr-knowledge",
+  "assignments": [
+    {
+      "id": 128,
+      "keyword": "apa itu sholat tasbih",
+      "market": "my",
+      "sv": 590,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：什么是sholat tasbih"
+    },
+    {
+      "id": 210,
+      "keyword": "salat tasbeeh",
+      "market": "sa",
+      "sv": 390,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：salatul tasbih拜功"
+    },
+    {
+      "id": 122,
+      "keyword": "apa itu sholat tasbih",
+      "market": "ae",
+      "sv": 590,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：什么是sholat tasbih"
+    },
+    {
+      "id": 213,
+      "keyword": "tata cara sholat tasbih",
+      "market": "sa",
+      "sv": 320,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "步骤式实践指南：sholat tasbih做法(印尼)"
+    },
+    {
+      "id": 118,
+      "keyword": "how to pray salatul tasbih",
+      "market": "sa",
+      "sv": 210,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "步骤式实践指南：如何做salatul tasbih拜功"
+    },
+    {
+      "id": 202,
+      "keyword": "dzikir",
+      "market": "id",
+      "sv": 40500,
+      "target": "pillar",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：dzikir(印尼语)念诵概念"
+    },
+    {
+      "id": 215,
+      "keyword": "solat sunat tasbih",
+      "market": "sa",
+      "sv": 260,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：solat sunat tasbih拜功"
+    },
+    {
+      "id": 112,
+      "keyword": "how to locate kaaba direction",
+      "market": "uk",
+      "sv": 170,
+      "target": "qibla-finder",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "步骤式实践指南：如何定位天房方向"
+    },
+    {
+      "id": 124,
+      "keyword": "apa itu sholat tasbih",
+      "market": "uk",
+      "sv": 590,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：什么是sholat tasbih"
+    },
+    {
+      "id": 117,
+      "keyword": "how to pray janazah prayer",
+      "market": "sa",
+      "sv": 1600,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "步骤式实践指南：如何做殡礼"
+    },
+    {
+      "id": 152,
+      "keyword": "slow living",
+      "market": "uk",
+      "sv": 590,
+      "target": "slow-living",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：慢生活理念"
+    },
+    {
+      "id": 142,
+      "keyword": "slow living",
+      "market": "id",
+      "sv": 22200,
+      "target": "slow-living",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：慢生活理念"
+    },
+    {
+      "id": 206,
+      "keyword": "azan ke baad ki dua",
+      "market": "sa",
+      "sv": 2900,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：宣礼后的杜阿/念诵"
+    },
+    {
+      "id": 211,
+      "keyword": "sholat tasbih",
+      "market": "sa",
+      "sv": 720,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：sholat tasbih拜功(印尼/马来)"
+    },
+    {
+      "id": 111,
+      "keyword": "what is the direction of kaaba",
+      "market": "uk",
+      "sv": 260,
+      "target": "qibla-finder",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：天房方向"
+    },
+    {
+      "id": 116,
+      "keyword": "how to pray salatul tasbih prayer",
+      "market": "uk",
+      "sv": 590,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "步骤式实践指南：如何做salatul tasbih拜功"
+    },
+    {
+      "id": 127,
+      "keyword": "what is dhikr",
+      "market": "uk",
+      "sv": 320,
+      "target": "pillar",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：dhikr念诵定义与意义"
+    },
+    {
+      "id": 163,
+      "keyword": "which way is mecca",
+      "market": "id",
+      "sv": 590,
+      "target": "qibla-finder",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：麦加在哪个方向"
+    },
+    {
+      "id": 154,
+      "keyword": "zikr",
+      "market": "my",
+      "sv": 210,
+      "target": "pillar",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：zikr念诵概念"
+    },
+    {
+      "id": 113,
+      "keyword": "how to perform salatul tasbih",
+      "market": "ae",
+      "sv": 140,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "步骤式实践指南：如何做salatul tasbih拜功"
+    },
+    {
+      "id": 214,
+      "keyword": "salatul tasbih padhne ka tarika",
+      "market": "sa",
+      "sv": 260,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "步骤式实践指南：salatul tasbih做法(乌尔都)"
+    },
+    {
+      "id": 212,
+      "keyword": "tasbih prayer",
+      "market": "sa",
+      "sv": 390,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：tasbih拜功"
+    },
+    {
+      "id": 114,
+      "keyword": "how to pray salatul tasbih",
+      "market": "ae",
+      "sv": 140,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "步骤式实践指南：如何做salatul tasbih拜功"
+    },
+    {
+      "id": 209,
+      "keyword": "solat tasbih",
+      "market": "sa",
+      "sv": 720,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：solat tasbih拜功(马来)"
+    },
+    {
+      "id": 115,
+      "keyword": "how to do salatul tasbih",
+      "market": "uk",
+      "sv": 590,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "步骤式实践指南：如何做salatul tasbih拜功"
+    },
+    {
+      "id": 126,
+      "keyword": "apa itu sholat tasbih",
+      "market": "id",
+      "sv": 590,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：什么是sholat tasbih"
+    },
+    {
+      "id": 895,
+      "keyword": "dhikr after salah",
+      "market": "uk",
+      "sv": 390,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：salah后的念诵(附词条计数)"
+    },
+    {
+      "id": 892,
+      "keyword": "zikr after namaz",
+      "market": "uk",
+      "sv": 590,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：礼拜后的念诵(附词条计数)"
+    },
+    {
+      "id": 893,
+      "keyword": "dhikr after namaz",
+      "market": "uk",
+      "sv": 480,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：礼拜后的念诵(附词条计数)"
+    },
+    {
+      "id": 894,
+      "keyword": "zikr after prayer",
+      "market": "uk",
+      "sv": 480,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：礼拜后的念诵(附词条计数)"
+    },
+    {
+      "id": 63684,
+      "keyword": "how to pray salatul tasbih namaz",
+      "market": "uk",
+      "sv": 140,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "步骤式实践指南：如何做salatul tasbih拜功"
+    },
+    {
+      "id": 63687,
+      "keyword": "apa bacaan tasbih",
+      "market": "id",
+      "sv": 320,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：tasbih念诵的诵读内容"
+    },
+    {
+      "id": 63686,
+      "keyword": "how to read salatul tasbih",
+      "market": "uk",
+      "sv": 110,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "步骤式实践指南：如何做salatul tasbih拜功"
+    },
+    {
+      "id": 63696,
+      "keyword": "berapa rakaat shalat tasbih",
+      "market": "id",
+      "sv": 390,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：shalat tasbih有几拉卡"
+    },
+    {
+      "id": 63698,
+      "keyword": "apa itu bertasbih",
+      "market": "id",
+      "sv": 110,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：什么是bertasbih(赞颂)"
+    },
+    {
+      "id": 63704,
+      "keyword": "bagaimana bacaan tasbih",
+      "market": "id",
+      "sv": 170,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：tasbih念诵怎么读"
+    },
+    {
+      "id": 63681,
+      "keyword": "how to salatul tasbih prayer",
+      "market": "uk",
+      "sv": 590,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "步骤式实践指南：如何做salatul tasbih拜功"
+    },
+    {
+      "id": 63688,
+      "keyword": "apa arti tasbih",
+      "market": "id",
+      "sv": 390,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：tasbih念诵的含义"
+    },
+    {
+      "id": 63683,
+      "keyword": "how to pray salatul tasbih",
+      "market": "uk",
+      "sv": 320,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "步骤式实践指南：如何做salatul tasbih拜功"
+    },
+    {
+      "id": 63738,
+      "keyword": "bagaimana bunyi bacaan tasbih",
+      "market": "id",
+      "sv": 40,
+      "target": "knowledge-dhikr",
+      "intent": "技术长尾",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：tasbih念诵的读音"
+    },
+    {
+      "id": 63707,
+      "keyword": "bagaimana bunyi kalimat tasbih",
+      "market": "id",
+      "sv": 70,
+      "target": "knowledge-dhikr",
+      "intent": "技术长尾",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：tasbih词句的读音"
+    },
+    {
+      "id": 63692,
+      "keyword": "berapa jumlah tasbih",
+      "market": "id",
+      "sv": 140,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：tasbih念诵的次数"
+    },
+    {
+      "id": 63739,
+      "keyword": "berapa kali membaca tasbih nabi yunus",
+      "market": "id",
+      "sv": 40,
+      "target": "knowledge-dhikr",
+      "intent": "技术长尾",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：尤努斯先知tasbih念多少遍"
+    },
+    {
+      "id": 63705,
+      "keyword": "do a sholat tasbih",
+      "market": "id",
+      "sv": 170,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "步骤式实践指南：做sholat tasbih"
+    },
+    {
+      "id": 63737,
+      "keyword": "kapan waktu sholat tasbih",
+      "market": "id",
+      "sv": 70,
+      "target": "knowledge-dhikr",
+      "intent": "技术长尾",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：sholat tasbih的时间"
+    },
+    {
+      "id": 63702,
+      "keyword": "kapan sholat tasbih dilakukan",
+      "market": "id",
+      "sv": 390,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：sholat tasbih何时做"
+    },
+    {
+      "id": 63691,
+      "keyword": "apa itu shalat tasbih",
+      "market": "id",
+      "sv": 140,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：什么是shalat tasbih"
+    },
+    {
+      "id": 63706,
+      "keyword": "kapan kalimat tasbih diucapkan",
+      "market": "id",
+      "sv": 110,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：tasbih词句何时念"
+    },
+    {
+      "id": 63682,
+      "keyword": "how to perform salatul tasbih",
+      "market": "uk",
+      "sv": 320,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "步骤式实践指南：如何做salatul tasbih拜功"
+    },
+    {
+      "id": 69591,
+      "keyword": "how to do salatul tasbih",
+      "market": "us",
+      "sv": 210,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "步骤式实践指南：如何做salatul tasbih拜功"
+    },
+    {
+      "id": 69633,
+      "keyword": "how to perform salatul tasbih",
+      "market": "us",
+      "sv": 140,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "步骤式实践指南：如何做salatul tasbih拜功"
+    },
+    {
+      "id": 69607,
+      "keyword": "which direction is kaaba",
+      "market": "us",
+      "sv": 170,
+      "target": "qibla-finder",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：天房在哪个方向"
+    },
+    {
+      "id": 69600,
+      "keyword": "how to embrace slow living",
+      "market": "us",
+      "sv": 40,
+      "target": "slow-living",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "步骤式实践指南：如何践行慢生活"
+    },
+    {
+      "id": 69615,
+      "keyword": "how to do dhikr",
+      "market": "us",
+      "sv": 140,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "步骤式实践指南：如何做dhikr念诵"
+    },
+    {
+      "id": 69631,
+      "keyword": "how to pray salatul tasbih prayer",
+      "market": "us",
+      "sv": 210,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "步骤式实践指南：如何做salatul tasbih拜功"
+    },
+    {
+      "id": 69608,
+      "keyword": "what direction is the kaaba",
+      "market": "us",
+      "sv": 110,
+      "target": "qibla-finder",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：天房在哪个方向"
+    },
+    {
+      "id": 69609,
+      "keyword": "which direction is kaaba",
+      "market": "uk",
+      "sv": 110,
+      "target": "qibla-finder",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：天房在哪个方向"
+    },
+    {
+      "id": 69625,
+      "keyword": "how to read salatul tasbih",
+      "market": "us",
+      "sv": 210,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "步骤式实践指南：如何做salatul tasbih拜功"
+    },
+    {
+      "id": 69614,
+      "keyword": "what is dhikr",
+      "market": "us",
+      "sv": 320,
+      "target": "pillar",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：dhikr念诵定义与意义"
+    },
+    {
+      "id": 69619,
+      "keyword": "how to pray salatul tasbih namaz",
+      "market": "us",
+      "sv": 210,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "步骤式实践指南：如何做salatul tasbih拜功"
+    },
+    {
+      "id": 69616,
+      "keyword": "what is dhikr in islam",
+      "market": "us",
+      "sv": 110,
+      "target": "pillar",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：伊斯兰中的dhikr定义"
+    },
+    {
+      "id": 69602,
+      "keyword": "how to pray salatul tasbih",
+      "market": "us",
+      "sv": 260,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "步骤式实践指南：如何做salatul tasbih拜功"
+    },
+    {
+      "id": 69613,
+      "keyword": "how to do dhikr",
+      "market": "uk",
+      "sv": 170,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "步骤式实践指南：如何做dhikr念诵"
+    },
+    {
+      "id": 69617,
+      "keyword": "what is slow living",
+      "market": "us",
+      "sv": 260,
+      "target": "slow-living",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：什么是慢生活"
+    },
+    {
+      "id": 69632,
+      "keyword": "how to salatul tasbih prayer",
+      "market": "us",
+      "sv": 210,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "步骤式实践指南：如何做salatul tasbih拜功"
+    },
+    {
+      "id": 72121,
+      "keyword": "how to pray salah",
+      "market": "sa",
+      "sv": 210,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "步骤式实践指南：如何礼拜(salah)"
+    },
+    {
+      "id": 72133,
+      "keyword": "what way is the qibla",
+      "market": "uk",
+      "sv": 210,
+      "target": "qibla-finder",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：朝向(qibla)方向知识"
+    },
+    {
+      "id": 72137,
+      "keyword": "how to perform wudu",
+      "market": "uk",
+      "sv": 1300,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "步骤式实践指南：如何做小净(wudu)"
+    },
+    {
+      "id": 72149,
+      "keyword": "which way is the qibla",
+      "market": "uk",
+      "sv": 590,
+      "target": "qibla-finder",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：朝向(qibla)方向知识"
+    },
+    {
+      "id": 72207,
+      "keyword": "what breaks wudu",
+      "market": "us",
+      "sv": 1000,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：什么会破坏小净"
+    },
+    {
+      "id": 72211,
+      "keyword": "which way is qibla",
+      "market": "us",
+      "sv": 260,
+      "target": "qibla-finder",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：朝向(qibla)方向知识"
+    },
+    {
+      "id": 72208,
+      "keyword": "what is adhan in islam",
+      "market": "us",
+      "sv": 170,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：伊斯兰中的adhan宣礼"
+    },
+    {
+      "id": 72239,
+      "keyword": "how many rakats in isha salah",
+      "market": "us",
+      "sv": 2900,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：宵礼有几拉卡"
+    },
+    {
+      "id": 72255,
+      "keyword": "what is wudu",
+      "market": "us",
+      "sv": 1000,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：什么是wudu小净"
+    },
+    {
+      "id": 72090,
+      "keyword": "what is salah",
+      "market": "sa",
+      "sv": 110,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：什么是salah礼拜"
+    },
+    {
+      "id": 72128,
+      "keyword": "which direction is the qibla",
+      "market": "uk",
+      "sv": 210,
+      "target": "qibla-finder",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：朝向(qibla)方向知识"
+    },
+    {
+      "id": 72120,
+      "keyword": "how to pray eid salah",
+      "market": "sa",
+      "sv": 390,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "步骤式实践指南：如何做开斋节拜"
+    },
+    {
+      "id": 72146,
+      "keyword": "what is qibla",
+      "market": "uk",
+      "sv": 210,
+      "target": "qibla-finder",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：什么是qibla朝向"
+    },
+    {
+      "id": 72199,
+      "keyword": "what is a adhan",
+      "market": "us",
+      "sv": 170,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：什么是adhan宣礼"
+    },
+    {
+      "id": 72205,
+      "keyword": "what is adhan",
+      "market": "us",
+      "sv": 140,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：什么是adhan宣礼"
+    },
+    {
+      "id": 72209,
+      "keyword": "what is azan",
+      "market": "us",
+      "sv": 210,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：什么是azan宣礼"
+    },
+    {
+      "id": 72216,
+      "keyword": "how to meditate daily",
+      "market": "us",
+      "sv": 6600,
+      "target": "slow-living",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "步骤式实践指南：如何每日冥想/正念"
+    },
+    {
+      "id": 72217,
+      "keyword": "does burping break wudu",
+      "market": "us",
+      "sv": 480,
+      "target": "knowledge-dhikr",
+      "intent": "技术长尾",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：打嗝会破坏小净吗"
+    },
+    {
+      "id": 72218,
+      "keyword": "how do you perform wudu",
+      "market": "us",
+      "sv": 1600,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "步骤式实践指南：如何做小净(wudu)"
+    },
+    {
+      "id": 72229,
+      "keyword": "where is the qibla",
+      "market": "us",
+      "sv": 390,
+      "target": "qibla-finder",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：朝向(qibla)方向知识"
+    },
+    {
+      "id": 72233,
+      "keyword": "what are prayer beads",
+      "market": "us",
+      "sv": 210,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：什么是念珠"
+    },
+    {
+      "id": 72182,
+      "keyword": "what direction is the qibla",
+      "market": "us",
+      "sv": 260,
+      "target": "qibla-finder",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：朝向(qibla)方向知识"
+    },
+    {
+      "id": 72244,
+      "keyword": "how many rakats in fajr salah",
+      "market": "us",
+      "sv": 1300,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：晨礼有几拉卡"
+    },
+    {
+      "id": 72253,
+      "keyword": "how to pray",
+      "market": "us",
+      "sv": 14800,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：如何礼拜(总览)"
+    },
+    {
+      "id": 72249,
+      "keyword": "how to pray to god",
+      "market": "us",
+      "sv": 6600,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：如何向真主祈祷"
+    },
+    {
+      "id": 72224,
+      "keyword": "how do you use prayer beads",
+      "market": "us",
+      "sv": 140,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "步骤式实践指南：如何用念珠计数念诵"
+    },
+    {
+      "id": 72230,
+      "keyword": "where is qibla",
+      "market": "us",
+      "sv": 320,
+      "target": "qibla-finder",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：朝向(qibla)方向知识"
+    },
+    {
+      "id": 72232,
+      "keyword": "how to find qibla",
+      "market": "us",
+      "sv": 170,
+      "target": "qibla-finder",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "步骤式实践指南：如何找朝向"
+    },
+    {
+      "id": 72161,
+      "keyword": "does vaping break wudu",
+      "market": "uk",
+      "sv": 480,
+      "target": "knowledge-dhikr",
+      "intent": "技术长尾",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：电子烟会破坏小净吗"
+    },
+    {
+      "id": 72148,
+      "keyword": "what is a adhan",
+      "market": "uk",
+      "sv": 110,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：什么是adhan宣礼"
+    },
+    {
+      "id": 72152,
+      "keyword": "what breaks wudu",
+      "market": "uk",
+      "sv": 1000,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：什么会破坏小净"
+    },
+    {
+      "id": 71847,
+      "keyword": "how to use prayer beads",
+      "market": "us",
+      "sv": 260,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "步骤式实践指南：如何用念珠计数念诵"
+    },
+    {
+      "id": 71891,
+      "keyword": "how to pray salah",
+      "market": "us",
+      "sv": 1300,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "步骤式实践指南：如何礼拜(salah)"
+    },
+    {
+      "id": 71896,
+      "keyword": "how to pray eid salah",
+      "market": "uk",
+      "sv": 1600,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "步骤式实践指南：如何做开斋节拜"
+    },
+    {
+      "id": 71893,
+      "keyword": "how to perform salah",
+      "market": "sa",
+      "sv": 260,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "步骤式实践指南：如何礼拜(salah)"
+    },
+    {
+      "id": 72012,
+      "keyword": "how to make istikhara prayer",
+      "market": "uk",
+      "sv": 3600,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "步骤式实践指南：如何做istikhara祈祷"
+    },
+    {
+      "id": 72032,
+      "keyword": "how many rakat isha prayer",
+      "market": "uk",
+      "sv": 1900,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：宵礼有几拉卡"
+    },
+    {
+      "id": 71902,
+      "keyword": "how do you do wudu",
+      "market": "uk",
+      "sv": 880,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "步骤式实践指南：如何做小净(wudu)"
+    },
+    {
+      "id": 71905,
+      "keyword": "what is the qibla",
+      "market": "us",
+      "sv": 210,
+      "target": "qibla-finder",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：什么是qibla朝向"
+    },
+    {
+      "id": 72160,
+      "keyword": "does bleeding break wudu",
+      "market": "uk",
+      "sv": 480,
+      "target": "knowledge-dhikr",
+      "intent": "技术长尾",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：流血会破坏小净吗"
+    },
+    {
+      "id": 72168,
+      "keyword": "where is the qibla",
+      "market": "uk",
+      "sv": 260,
+      "target": "qibla-finder",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：朝向(qibla)方向知识"
+    },
+    {
+      "id": 72177,
+      "keyword": "how many rakats in isha salah",
+      "market": "uk",
+      "sv": 3600,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：宵礼有几拉卡"
+    },
+    {
+      "id": 72179,
+      "keyword": "do muslims have prayer beads",
+      "market": "us",
+      "sv": 40,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：穆斯林有念珠吗"
+    },
+    {
+      "id": 72189,
+      "keyword": "how to say adhan",
+      "market": "us",
+      "sv": 110,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "步骤式实践指南：如何念宣礼"
+    },
+    {
+      "id": 71883,
+      "keyword": "how many rakats in maghrib salah",
+      "market": "us",
+      "sv": 2400,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：昏礼有几拉卡"
+    },
+    {
+      "id": 72178,
+      "keyword": "do muslims use prayer beads",
+      "market": "us",
+      "sv": 70,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：穆斯林用念珠吗"
+    },
+    {
+      "id": 72180,
+      "keyword": "which direction is qibla",
+      "market": "us",
+      "sv": 260,
+      "target": "qibla-finder",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：朝向(qibla)方向知识"
+    },
+    {
+      "id": 72186,
+      "keyword": "how to recite adhan",
+      "market": "us",
+      "sv": 110,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "步骤式实践指南：如何诵宣礼"
+    },
+    {
+      "id": 72025,
+      "keyword": "how many rakats in maghrib salah",
+      "market": "uk",
+      "sv": 2900,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：昏礼有几拉卡"
+    },
+    {
+      "id": 72016,
+      "keyword": "how to make wudu",
+      "market": "uk",
+      "sv": 1600,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "步骤式实践指南：如何做小净(wudu)"
+    },
+    {
+      "id": 72020,
+      "keyword": "how make wudu",
+      "market": "uk",
+      "sv": 590,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "步骤式实践指南：如何做小净(wudu)"
+    },
+    {
+      "id": 72024,
+      "keyword": "how many rakats for asr prayer",
+      "market": "uk",
+      "sv": 5400,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：晡礼有几拉卡"
+    },
+    {
+      "id": 72028,
+      "keyword": "how many rakat is isha prayer",
+      "market": "uk",
+      "sv": 1900,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：宵礼有几拉卡"
+    },
+    {
+      "id": 72052,
+      "keyword": "what is wudu",
+      "market": "uk",
+      "sv": 1000,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：什么是wudu小净"
+    },
+    {
+      "id": 72060,
+      "keyword": "how to offer wudu",
+      "market": "us",
+      "sv": 1300,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "步骤式实践指南：如何做小净(wudu)"
+    },
+    {
+      "id": 72049,
+      "keyword": "how to pray salah",
+      "market": "uk",
+      "sv": 1900,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "步骤式实践指南：如何礼拜(salah)"
+    },
+    {
+      "id": 71898,
+      "keyword": "how to do ablution wudu",
+      "market": "us",
+      "sv": 1600,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "步骤式实践指南：如何做小净(wudu)"
+    },
+    {
+      "id": 72088,
+      "keyword": "does sleeping break wudu",
+      "market": "sa",
+      "sv": 210,
+      "target": "knowledge-dhikr",
+      "intent": "技术长尾",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：睡觉会破坏小净吗"
+    },
+    {
+      "id": 72119,
+      "keyword": "how to perform fajr salah",
+      "market": "us",
+      "sv": 1000,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "步骤式实践指南：如何做晨礼"
+    },
+    {
+      "id": 72079,
+      "keyword": "how to perform wudu",
+      "market": "sa",
+      "sv": 170,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "步骤式实践指南：如何做小净(wudu)"
+    },
+    {
+      "id": 72193,
+      "keyword": "how to say azan in english",
+      "market": "us",
+      "sv": 140,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：宣礼的英文表达"
+    },
+    {
+      "id": 72083,
+      "keyword": "how to perform janazah salah",
+      "market": "sa",
+      "sv": 260,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "步骤式实践指南：如何做殡礼"
+    },
+    {
+      "id": 71997,
+      "keyword": "how to find qibla",
+      "market": "uk",
+      "sv": 210,
+      "target": "qibla-finder",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "步骤式实践指南：如何找朝向"
+    },
+    {
+      "id": 72195,
+      "keyword": "how to use muslim prayer beads",
+      "market": "us",
+      "sv": 110,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "步骤式实践指南：如何用穆斯林念珠计数念诵"
+    },
+    {
+      "id": 72091,
+      "keyword": "how to do wudu",
+      "market": "sa",
+      "sv": 720,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "步骤式实践指南：如何做小净(wudu)"
+    },
+    {
+      "id": 72203,
+      "keyword": "what do you say in fajr adhan",
+      "market": "us",
+      "sv": 590,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：晨礼宣礼怎么念"
+    },
+    {
+      "id": 72114,
+      "keyword": "how to make wudu",
+      "market": "sa",
+      "sv": 390,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "步骤式实践指南：如何做小净(wudu)"
+    },
+    {
+      "id": 72126,
+      "keyword": "how to check qibla direction",
+      "market": "uk",
+      "sv": 170,
+      "target": "qibla-finder",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "步骤式实践指南：如何确认朝向"
+    },
+    {
+      "id": 72134,
+      "keyword": "what direction is the qibla",
+      "market": "uk",
+      "sv": 320,
+      "target": "qibla-finder",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：朝向(qibla)方向知识"
+    },
+    {
+      "id": 72057,
+      "keyword": "which direction is the qibla",
+      "market": "us",
+      "sv": 210,
+      "target": "qibla-finder",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：朝向(qibla)方向知识"
+    },
+    {
+      "id": 72138,
+      "keyword": "how to perform fajr salah",
+      "market": "uk",
+      "sv": 880,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "步骤式实践指南：如何做晨礼"
+    },
+    {
+      "id": 72204,
+      "keyword": "does praying in your head count",
+      "market": "us",
+      "sv": 40,
+      "target": "knowledge-dhikr",
+      "intent": "技术长尾",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：心中默念礼拜算不算"
+    },
+    {
+      "id": 72158,
+      "keyword": "how do you make wudu",
+      "market": "uk",
+      "sv": 880,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "步骤式实践指南：如何做小净(wudu)"
+    },
+    {
+      "id": 72087,
+      "keyword": "do you need wudu for tawaf",
+      "market": "sa",
+      "sv": 110,
+      "target": "knowledge-dhikr",
+      "intent": "技术长尾",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：环游天房需要小净吗"
+    },
+    {
+      "id": 72163,
+      "keyword": "how to do wudu",
+      "market": "uk",
+      "sv": 6600,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "步骤式实践指南：如何做小净(wudu)"
+    },
+    {
+      "id": 72089,
+      "keyword": "what breaks wudu",
+      "market": "sa",
+      "sv": 110,
+      "target": "knowledge-dhikr",
+      "intent": "信息型",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：什么会破坏小净"
+    },
+    {
+      "id": 72170,
+      "keyword": "does smoking breaks wudu",
+      "market": "sa",
+      "sv": 110,
+      "target": "knowledge-dhikr",
+      "intent": "技术长尾",
+      "pageType": "知识深度页",
+      "contentForm": "问答式知识页：吸烟会破坏小净吗"
+    }
+  ],
+  "noise": [
+    {
+      "id": 185,
+      "keyword": "افضل شركة نقل عفش بتبوك",
+      "reason": "搬家具/搬运服务，与品牌无关"
+    },
+    {
+      "id": 167,
+      "keyword": "nominal",
+      "reason": "通用金融词nominal，数据污染"
+    },
+    {
+      "id": 149,
+      "keyword": "night routine",
+      "reason": "护肤夜间流程，非慢生活念诵"
+    },
+    {
+      "id": 178,
+      "keyword": "نقل عفش بالرياض باكستاني",
+      "reason": "搬家具/搬运服务，与品牌无关"
+    },
+    {
+      "id": 184,
+      "keyword": "نقل عفش باكستاني",
+      "reason": "搬家具/搬运服务，与品牌无关"
+    },
+    {
+      "id": 69599,
+      "keyword": "which serum is best for night routine",
+      "reason": "护肤夜间流程，非慢生活念诵"
+    },
+    {
+      "id": 69624,
+      "keyword": "does lively wallpaper slow down pc",
+      "reason": "壁纸软件，数据污染"
+    },
+    {
+      "id": 69610,
+      "keyword": "what should your night skincare routine be",
+      "reason": "护肤夜间流程，非慢生活念诵"
+    },
+    {
+      "id": 72215,
+      "keyword": "do praying mantis bite",
+      "reason": "螳螂(昆虫)，与念诵无关"
+    },
+    {
+      "id": 72219,
+      "keyword": "how do you use mala prayer beads",
+      "reason": "与本品类(伊斯兰念诵/饰品)无关，数据污染"
+    },
+    {
+      "id": 71863,
+      "keyword": "what are mala beads",
+      "reason": "佛/印度教Mala念珠，非伊斯兰念诵"
+    },
+    {
+      "id": 72231,
+      "keyword": "what is a tally counter",
+      "reason": "与本品类(伊斯兰念诵/饰品)无关，数据污染"
+    },
+    {
+      "id": 72235,
+      "keyword": "what are greek worry beads used for",
+      "reason": "希腊worry beads，非伊斯兰念诵"
+    },
+    {
+      "id": 72242,
+      "keyword": "how many beads in a rosary",
+      "reason": "天主教念珠/祈祷，非伊斯兰念诵"
+    },
+    {
+      "id": 72247,
+      "keyword": "how many beads on a mala",
+      "reason": "佛/印度教Mala念珠，非伊斯兰念诵"
+    },
+    {
+      "id": 72251,
+      "keyword": "how to pray with rosary beads",
+      "reason": "天主教念珠/祈祷，非伊斯兰念诵"
+    },
+    {
+      "id": 72210,
+      "keyword": "what happened to azan and nicole",
+      "reason": "真人秀节目人物，非宣礼"
+    },
+    {
+      "id": 72212,
+      "keyword": "what are rosary beads",
+      "reason": "天主教念珠/祈祷，非伊斯兰念诵"
+    },
+    {
+      "id": 72213,
+      "keyword": "does marcus smart have a ring",
+      "reason": "NBA球员/三星智能戒指，非本品类"
+    },
+    {
+      "id": 72221,
+      "keyword": "how do you use mala beads",
+      "reason": "佛/印度教Mala念珠，非伊斯兰念诵"
+    },
+    {
+      "id": 72234,
+      "keyword": "what are fidget rings",
+      "reason": "解压戒指(非宗教)，非本品类"
+    },
+    {
+      "id": 72237,
+      "keyword": "how to make rosary beads",
+      "reason": "天主教念珠/祈祷，非伊斯兰念诵"
+    },
+    {
+      "id": 72240,
+      "keyword": "how to make a mala bead necklace",
+      "reason": "佛/印度教Mala念珠，非伊斯兰念诵"
+    },
+    {
+      "id": 72241,
+      "keyword": "how to make a spinner ring",
+      "reason": "解压戒指(非宗教)，非本品类"
+    },
+    {
+      "id": 72243,
+      "keyword": "how many beads are in rosary",
+      "reason": "天主教念珠/祈祷，非伊斯兰念诵"
+    },
+    {
+      "id": 72245,
+      "keyword": "how many beads in the rosary",
+      "reason": "天主教念珠/祈祷，非伊斯兰念诵"
+    },
+    {
+      "id": 72184,
+      "keyword": "can anxiety make your ears ring",
+      "reason": "耳鸣/焦虑医疗话题，与戒指无关"
+    },
+    {
+      "id": 71864,
+      "keyword": "how many beads in a mala bracelet",
+      "reason": "佛/印度教Mala念珠，非伊斯兰念诵"
+    },
+    {
+      "id": 72252,
+      "keyword": "how many beads are in a mala bracelet",
+      "reason": "佛/印度教Mala念珠，非伊斯兰念诵"
+    },
+    {
+      "id": 72246,
+      "keyword": "how many beads in a mala",
+      "reason": "佛/印度教Mala念珠，非伊斯兰念诵"
+    },
+    {
+      "id": 72222,
+      "keyword": "how do you use worry beads",
+      "reason": "希腊worry beads，非伊斯兰念诵"
+    },
+    {
+      "id": 72248,
+      "keyword": "how many beads of rosary",
+      "reason": "天主教念珠/祈祷，非伊斯兰念诵"
+    },
+    {
+      "id": 72250,
+      "keyword": "how to pray the divine mercy with beads",
+      "reason": "天主教念珠/祈祷，非伊斯兰念诵"
+    },
+    {
+      "id": 72258,
+      "keyword": "does anxiety cause ear ringing",
+      "reason": "耳鸣/焦虑医疗话题，与戒指无关"
+    },
+    {
+      "id": 72220,
+      "keyword": "is salah leaving liverpool",
+      "reason": "足球运动员Mo Salah，非礼拜"
+    },
+    {
+      "id": 72228,
+      "keyword": "what is a spinner ring",
+      "reason": "解压戒指(非宗教)，非本品类"
+    },
+    {
+      "id": 71872,
+      "keyword": "does anxiety make your ears ring",
+      "reason": "耳鸣/焦虑医疗话题，与戒指无关"
+    },
+    {
+      "id": 72254,
+      "keyword": "how to pray using rosary beads",
+      "reason": "天主教念珠/祈祷，非伊斯兰念诵"
+    },
+    {
+      "id": 72257,
+      "keyword": "does anxiety cause ringing in the ears",
+      "reason": "耳鸣/焦虑医疗话题，与戒指无关"
+    },
+    {
+      "id": 72236,
+      "keyword": "what is a fidget ring",
+      "reason": "解压戒指(非宗教)，非本品类"
+    },
+    {
+      "id": 72238,
+      "keyword": "how many beads on a rosary",
+      "reason": "天主教念珠/祈祷，非伊斯兰念诵"
+    },
+    {
+      "id": 72256,
+      "keyword": "how to get tally counter terraria",
+      "reason": "游戏Terraria道具，非计数器"
+    },
+    {
+      "id": 72150,
+      "keyword": "what are rosary beads",
+      "reason": "天主教念珠/祈祷，非伊斯兰念诵"
+    },
+    {
+      "id": 71908,
+      "keyword": "are nicole and azan still together",
+      "reason": "真人秀节目人物，非宣礼"
+    },
+    {
+      "id": 71856,
+      "keyword": "how many beads are on a rosary",
+      "reason": "天主教念珠/祈祷，非伊斯兰念诵"
+    },
+    {
+      "id": 72036,
+      "keyword": "how many beads are in the rosary",
+      "reason": "天主教念珠/祈祷，非伊斯兰念诵"
+    },
+    {
+      "id": 71851,
+      "keyword": "how many beads in the rosary",
+      "reason": "天主教念珠/祈祷，非伊斯兰念诵"
+    },
+    {
+      "id": 72048,
+      "keyword": "how many beads on a rosary bead",
+      "reason": "天主教念珠/祈祷，非伊斯兰念诵"
+    },
+    {
+      "id": 72191,
+      "keyword": "what are worry beads",
+      "reason": "希腊worry beads，非伊斯兰念诵"
+    },
+    {
+      "id": 72202,
+      "keyword": "what do praying mantis need to survive",
+      "reason": "螳螂(昆虫)，与念诵无关"
+    },
+    {
+      "id": 72227,
+      "keyword": "is it disrespectful to wear mala beads",
+      "reason": "佛/印度教Mala念珠，非伊斯兰念诵"
+    },
+    {
+      "id": 71876,
+      "keyword": "is the samsung smart ring one of the best rings",
+      "reason": "NBA球员/三星智能戒指，非本品类"
+    },
+    {
+      "id": 71979,
+      "keyword": "apa itu mind mapping",
+      "reason": "apa itu通用概念词(思维导图/开放心态/正念)，数据污染"
+    },
+    {
+      "id": 71987,
+      "keyword": "apa itu open minded",
+      "reason": "apa itu通用概念词(思维导图/开放心态/正念)，数据污染"
+    },
+    {
+      "id": 72181,
+      "keyword": "can anxiety cause ringing in ears",
+      "reason": "耳鸣/焦虑医疗话题，与戒指无关"
+    },
+    {
+      "id": 71989,
+      "keyword": "what is a mala beads",
+      "reason": "佛/印度教Mala念珠，非伊斯兰念诵"
+    },
+    {
+      "id": 72029,
+      "keyword": "how many beads on a rosary",
+      "reason": "天主教念珠/祈祷，非伊斯兰念诵"
+    },
+    {
+      "id": 72040,
+      "keyword": "how many beads on the rosary",
+      "reason": "天主教念珠/祈祷，非伊斯兰念诵"
+    },
+    {
+      "id": 72044,
+      "keyword": "how many beads of rosary",
+      "reason": "天主教念珠/祈祷，非伊斯兰念诵"
+    },
+    {
+      "id": 72056,
+      "keyword": "are azan and nicole still together",
+      "reason": "真人秀节目人物，非宣礼"
+    },
+    {
+      "id": 72188,
+      "keyword": "did azan and nicole get married",
+      "reason": "真人秀节目人物，非宣礼"
+    },
+    {
+      "id": 71984,
+      "keyword": "apa itu mindfulness",
+      "reason": "apa itu通用概念词(思维导图/开放心态/正念)，数据污染"
+    },
+    {
+      "id": 72190,
+      "keyword": "how to use prayer beads christian",
+      "reason": "基督教念珠用法，非伊斯兰念诵"
+    },
+    {
+      "id": 71855,
+      "keyword": "how to use worry beads",
+      "reason": "希腊worry beads，非伊斯兰念诵"
+    },
+    {
+      "id": 72095,
+      "keyword": "can anxiety cause ringing in the ears",
+      "reason": "耳鸣/焦虑医疗话题，与戒指无关"
+    },
+    {
+      "id": 72194,
+      "keyword": "how to use mala beads",
+      "reason": "佛/印度教Mala念珠，非伊斯兰念诵"
+    },
+    {
+      "id": 72198,
+      "keyword": "is mo salah leaving liverpool",
+      "reason": "足球运动员Mo Salah，非礼拜"
+    },
+    {
+      "id": 72206,
+      "keyword": "what happened to nicole and azan",
+      "reason": "真人秀节目人物，非宣礼"
+    },
+    {
+      "id": 72201,
+      "keyword": "what do praying mantis eat",
+      "reason": "螳螂(昆虫)，与念诵无关"
+    },
+    {
+      "id": 72127,
+      "keyword": "can anxiety cause ear ringing",
+      "reason": "耳鸣/焦虑医疗话题，与戒指无关"
+    },
+    {
+      "id": 72142,
+      "keyword": "how to use a rosary bead",
+      "reason": "天主教念珠/祈祷，非伊斯兰念诵"
+    },
+    {
+      "id": 72151,
+      "keyword": "what are the rosary beads",
+      "reason": "天主教念珠/祈祷，非伊斯兰念诵"
+    },
+    {
+      "id": 72166,
+      "keyword": "is it disrespectful to wear mala beads",
+      "reason": "佛/印度教Mala念珠，非伊斯兰念诵"
+    }
+  ]
+}

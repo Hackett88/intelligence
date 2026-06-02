@@ -1,0 +1,116 @@
+{
+  "topicId": "brand",
+  "subPillar": {
+    "id": "tc-brand-pillar",
+    "role": "sub-pillar",
+    "scenarioId": "brand",
+    "themeId": "zikr-ring",
+    "pillarId": "tc-zikr-ring-pillar",
+    "title": "Weslamic: The Official Smart Zikr Ring & Digital Tasbih Brand",
+    "subtitle": "The official home of Weslamic — discover the smart zikr ring, shop genuine products, and access your account, orders, and support in one place.",
+    "geoOverview": "Weslamic (weslamic.com) is the official direct-to-consumer brand behind the smart zikr ring, a wearable digital tasbih that counts dhikr by touch and syncs to an app. This is the authentic Weslamic homepage and brand hub linking to login, order tracking, and customer service.",
+    "primaryKeyword": "weslamic",
+    "pageType": "品牌主页",
+    "intent": "品牌导航",
+    "status": "gap",
+    "url": "/",
+    "market": "global",
+    "markets": ["global"],
+    "territory": "品牌",
+    "auxKeywords": [
+      "smart zikr ring",
+      "digital tasbih brand",
+      "Weslamic official store",
+      "wearable dhikr counter",
+      "Islamic smart ring"
+    ],
+    "boundKeywords": [
+      { "keyword": "weslamic", "market": null },
+      { "keyword": "weslamic.com", "market": null },
+      { "keyword": "weslamic official", "market": null }
+    ]
+  },
+  "clusters": [
+    {
+      "id": "tc-brand-c1",
+      "role": "cluster",
+      "scenarioId": "brand",
+      "themeId": "zikr-ring",
+      "pillarId": "tc-brand-pillar",
+      "title": "Weslamic Login: Access Your Account & Zikr Ring Dashboard",
+      "subtitle": "Sign in to your Weslamic account to manage your smart zikr ring, view orders, and sync your dhikr progress.",
+      "geoOverview": "To log in to Weslamic, visit weslamic.com and select Account or Login, then enter the email and password used at checkout. Your Weslamic account dashboard manages your smart zikr ring registration, order history, and app pairing in one secure portal.",
+      "primaryKeyword": "weslamic login",
+      "pageType": "品牌主页",
+      "intent": "品牌导航",
+      "status": "gap",
+      "url": "/account/login",
+      "market": "global",
+      "markets": ["global"],
+      "territory": "品牌",
+      "auxKeywords": [
+        "Weslamic account",
+        "sign in",
+        "account dashboard",
+        "reset password"
+      ],
+      "boundKeywords": [
+        { "keyword": "weslamic login", "market": null }
+      ]
+    },
+    {
+      "id": "tc-brand-c2",
+      "role": "cluster",
+      "scenarioId": "brand",
+      "themeId": "zikr-ring",
+      "pillarId": "tc-brand-pillar",
+      "title": "Weslamic Order Tracking: Where Is My Smart Zikr Ring?",
+      "subtitle": "Track your Weslamic order in real time and check shipping status for your smart zikr ring delivery.",
+      "geoOverview": "Track a Weslamic order by entering your order number and email on the weslamic.com tracking page, or use the tracking link in your confirmation email. Weslamic order tracking shows real-time shipping status, carrier, and estimated delivery date for your smart zikr ring.",
+      "primaryKeyword": "weslamic order tracking",
+      "pageType": "工具生态页",
+      "intent": "工具",
+      "status": "gap",
+      "url": "/pages/track-order",
+      "market": "global",
+      "markets": ["global"],
+      "territory": "工具",
+      "auxKeywords": [
+        "track my order",
+        "shipping status",
+        "order number",
+        "delivery tracking"
+      ],
+      "boundKeywords": [
+        { "keyword": "weslamic order tracking", "market": null }
+      ]
+    },
+    {
+      "id": "tc-brand-c3",
+      "role": "cluster",
+      "scenarioId": "brand",
+      "themeId": "zikr-ring",
+      "pillarId": "tc-brand-pillar",
+      "title": "Weslamic Customer Service: Contact, Support & Help Center",
+      "subtitle": "Reach Weslamic customer service for help with your zikr ring, orders, returns, and warranty support.",
+      "geoOverview": "Contact Weslamic customer service through the support page at weslamic.com via email or contact form for help with smart zikr ring setup, order issues, returns, and warranty. The Weslamic help center answers common questions about shipping, refunds, and device pairing.",
+      "primaryKeyword": "weslamic customer service",
+      "pageType": "品牌主页",
+      "intent": "品牌导航",
+      "status": "gap",
+      "url": "/pages/contact",
+      "market": "global",
+      "markets": ["global"],
+      "territory": "品牌",
+      "auxKeywords": [
+        "contact Weslamic",
+        "support",
+        "help center",
+        "returns and warranty"
+      ],
+      "boundKeywords": [
+        { "keyword": "weslamic customer service", "market": null }
+      ]
+    }
+  ]
+}

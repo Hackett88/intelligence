@@ -1,0 +1,57 @@
+{
+  "verdict": "fail",
+  "issues": [
+    {
+      "severity": "high",
+      "type": "cannibalization-head-term",
+      "pages": [
+        "tc-zikr-ring-hub",
+        "tc-zikr-ring-pillar"
+      ],
+      "fix": "头部词 \"zikr ring\" 双落位：主词归 tc-zikr-ring-pillar (/collections/zikr-ring)，却又把同词 [my,id,uk,us,tr,de,au] 绑给 tc-zikr-ring-hub (/blogs/zikr-ring)；与主词页市场重叠 [my,id,uk,us,tr,de,au] — 同站两页抢同一头部词。建议：要么收口为一个权威落地页 + 301，要么给 /blogs 站点改主词为信息型变体（如 \"what is …\" / \"best …\"）并降级为内链锚点"
+    },
+    {
+      "severity": "medium",
+      "type": "cannibalization-intra-branch",
+      "pages": [
+        "tc-zikr-ring-c1",
+        "tc-zikr-ring-hub"
+      ],
+      "fix": "关键词 \"what is zikr ring\" [us] 既绑到 tc-zikr-ring-c1，又是 tc-zikr-ring-hub 的主词（同分支内 hub↔cluster 软重叠）— 让 cluster 改主词为更长尾的子意图，hub 保留头部词"
+    },
+    {
+      "severity": "high",
+      "type": "cannibalization-head-term",
+      "pages": [
+        "tc-tasbih-beads-pillar",
+        "tc-tasbih-pillar"
+      ],
+      "fix": "头部词 \"tasbih\" 双落位：主词归 tc-tasbih-pillar (/collections/tasbih)，却又把同词 [us,fr,uk,de,sa,ae] 绑给 tc-tasbih-beads-pillar (/blogs/tasbih)；与主词页市场重叠 [us,fr,uk,de,sa,ae] — 同站两页抢同一头部词。建议：要么收口为一个权威落地页 + 301，要么给 /blogs 站点改主词为信息型变体（如 \"what is …\" / \"best …\"）并降级为内链锚点"
+    },
+    {
+      "severity": "high",
+      "type": "cannibalization-head-term",
+      "pages": [
+        "tc-islamic-jewelry-hub",
+        "tc-islamic-jewelry-pillar"
+      ],
+      "fix": "头部词 \"islamic jewelry\" 双落位：主词归 tc-islamic-jewelry-pillar (/collections/islamic-jewelry)，却又把同词 [uk] 绑给 tc-islamic-jewelry-hub (/blogs/islamic-jewelry)；与主词页市场重叠 [uk] — 同站两页抢同一头部词。建议：要么收口为一个权威落地页 + 301，要么给 /blogs 站点改主词为信息型变体（如 \"what is …\" / \"best …\"）并降级为内链锚点"
+    }
+  ],
+  "stats": {
+    "totalPages": 55,
+    "pillars": 5,
+    "subPillars": 11,
+    "clusters": 39,
+    "bindings": 251,
+    "deferred": 96,
+    "inScopeKeywordOccurrences": 256,
+    "coverageMissing": 0,
+    "geoOver60Count": 0,
+    "geoUnder30Count": 0,
+    "geoOutOfRange": 0,
+    "uniqueIds": 55,
+    "uniqueUrls": 55,
+    "uniqueTitles": 55
+  }
+}

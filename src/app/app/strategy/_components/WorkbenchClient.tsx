@@ -437,16 +437,25 @@ export function WorkbenchClient({ seed, allKeywords, rankings, indexedMatches, i
   }, [seed.excluded]);
 
   const initState = React.useMemo<WbState>(() => {
-    // 初始化优先级（M6）：DB(initialPlan) > localStorage 草稿 > 蓝图种子。
-    // initialPlan 有记录时作为 saved 基底（DB 权威）；否则回退本地草稿。
-    // 无论哪个基底，下面的 seed-merge / reconcile / prune 一律照常应用，结构自愈不变。
-    const saved: Partial<WbState> | null = initialPlan
-      ? {
-          pages: initialPlan.pages,
-          bindings: initialPlan.bindings,
-          parked: new Set(initialPlan.parked),
-        }
-      : loadFromStorage(seed);
+    // 初始化优先级：DB(initialPlan) 权威 > localStorage 草稿 > 蓝图种子。
+    // 【DB 权威】有落库规划时直接采用，不与代码蓝图 seed 做 merge/prune/reconcile——
+    // 这样「主题集群重构」落库的新结构（tc-* 页，不在 seed 里）能原样呈现：
+    // 既不会被 seed-prune 当成「蓝图已删页」误删，也不会被 seed-merge 把旧蓝图页重新塞回。
+    // 用户已保存的规划即权威；要回退到代码蓝图，清空该 owner 的落库规划即可。
+    if (initialPlan) {
+      return {
+        pages: initialPlan.pages,
+        bindings: initialPlan.bindings,
+        parked: new Set(initialPlan.parked),
+        selection: null,
+        poolSelection: new Set<string>(),
+        undoStack: [],
+        redoStack: [],
+        assignMenuOpen: false,
+      };
+    }
+    // 无 DB 规划 → 回退本地草稿 / 蓝图种子，并照常 seed-merge/prune/reconcile（demo 兜底，结构自愈）。
+    const saved: Partial<WbState> | null = loadFromStorage(seed);
     const basePages = saved?.pages ?? seed.pages;
     // v2.1 seed-merge: 把种子里本地草稿没有的页面自动并入（按 pageId 去重），
     // 让新增 demo 主题在有本地草稿时也能完整下钻。

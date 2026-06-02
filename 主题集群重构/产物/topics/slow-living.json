@@ -1,0 +1,66 @@
+{
+  "topicId": "slow-living",
+  "subPillar": {
+    "id": "tc-slow-living-pillar",
+    "role": "sub-pillar",
+    "scenarioId": "slow-living",
+    "themeId": "dhikr-knowledge",
+    "pillarId": "tc-dhikr-knowledge-pillar",
+    "title": "Slow Living: A Mindful Guide to Slowing Down with Intentional Dhikr",
+    "subtitle": "What slow living means, why it matters, and how to embrace a calmer, more present, faith-rooted everyday rhythm.",
+    "geoOverview": "Slow living is a lifestyle of doing fewer things with fuller presence — choosing quality of attention over speed. For Muslims, it pairs naturally with dhikr: short, repeated remembrance of God woven through the day to anchor the mind. It contrasts with hustle culture and favors a calmer, more present, faith-rooted everyday rhythm.",
+    "primaryKeyword": "slow living",
+    "pageType": "知识深度页",
+    "intent": "信息型",
+    "status": "gap",
+    "url": "/blogs/mindful-living/what-is-slow-living",
+    "market": "id",
+    "markets": ["id", "uk", "us"],
+    "territory": "知识",
+    "auxKeywords": [
+      "mindful living",
+      "intentional living",
+      "slow living movement",
+      "mindfulness and dhikr",
+      "digital detox",
+      "present-moment awareness"
+    ],
+    "boundKeywords": [
+      { "keyword": "slow living", "market": "id" },
+      { "keyword": "slow living", "market": "uk" },
+      { "keyword": "what is slow living", "market": "us" },
+      { "keyword": "how to embrace slow living", "market": "us" }
+    ]
+  },
+  "clusters": [
+    {
+      "id": "tc-slow-living-c1",
+      "role": "cluster",
+      "scenarioId": "slow-living",
+      "themeId": "dhikr-knowledge",
+      "pillarId": "tc-slow-living-pillar",
+      "title": "How to Meditate Daily: Build a Lasting Mindful Dhikr Routine",
+      "subtitle": "A simple, repeatable daily practice that blends meditation with dhikr — start in 5 minutes and keep the habit.",
+      "geoOverview": "To meditate daily, anchor the habit to an existing routine (after Fajr or before sleep), start with just 5 minutes, focus on slow breathing, and use a short dhikr phrase like SubhanAllah as your mantra to hold attention. Consistency beats duration: keep the cue, place, and time fixed.",
+      "primaryKeyword": "how to meditate daily",
+      "pageType": "知识深度页",
+      "intent": "信息型",
+      "status": "gap",
+      "url": "/blogs/mindful-living/how-to-meditate-daily",
+      "market": "us",
+      "markets": ["us"],
+      "territory": "知识",
+      "auxKeywords": [
+        "daily meditation routine",
+        "mindful dhikr practice",
+        "breath meditation",
+        "habit stacking",
+        "morning meditation",
+        "5 minute meditation"
+      ],
+      "boundKeywords": [
+        { "keyword": "how to meditate daily", "market": "us" }
+      ]
+    }
+  ]
+}
