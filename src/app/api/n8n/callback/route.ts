@@ -54,6 +54,19 @@ export async function POST(req: NextRequest) {
   }
   const ev = parsed.data;
 
+  // 防重放（defense-in-depth）：拒绝时间戳偏离当前时间过大的事件——挡住"录下一条
+  // 合法回调、隔很久再重发"的攻击。窗口默认 1 小时，足够宽松以吸收 n8n(Railway)↔APP
+  // 之间的时钟偏移与正常网络延迟，正常实时回调（秒级到达）绝不会被误拒；可经
+  // N8N_CALLBACK_MAX_SKEW_SEC 调整，设为 0 关闭。注意：同一 event_id 的逐字重放本就
+  // 被下方 onConflictDoNothing 幂等吸收，此处是叠加的一层。
+  const maxSkewSec = Number(process.env.N8N_CALLBACK_MAX_SKEW_SEC ?? "3600");
+  if (maxSkewSec > 0) {
+    const eventMs = new Date(ev.ts).getTime();
+    if (Number.isFinite(eventMs) && Math.abs(Date.now() - eventMs) > maxSkewSec * 1000) {
+      return NextResponse.json({ error: "stale_timestamp" }, { status: 422 });
+    }
+  }
+
   const inserted = await db
     .insert(n8nCallbackEvents)
     .values({
