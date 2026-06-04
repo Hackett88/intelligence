@@ -289,11 +289,25 @@ export function IndexingClient({
   const [filters, setFilters] = useState<IndexingFilterState>({ ...DEFAULT_INDEXING_FILTERS });
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  // Deep-link：?focus=<pageId>（从选题工作台「收录索引命中」跳转而来）→ 选中并打开对应页抽屉。
+  // Deep-link（从选题工作台「收录索引命中」跳转而来）：
+  //   · ?focusUrl=<完整线上 URL>（首选）—— 按 URL 精确定位，数据重排/重新同步也不丢；
+  //   · ?focus=<pageId>（旧链接兼容）—— 按位置编号定位。
+  // 命中后：切「列表视图」+ single 作用域（列表里只留这一条）+ 选中并打开它的数据抽屉；
+  // 同时把筛选清回默认，避免目标页恰好被某条默认筛选挡掉而列表空白。
   useEffect(() => {
-    const focus = new URLSearchParams(window.location.search).get("focus");
-    if (focus && initialData.some((p) => p.id === focus)) {
-      setSelectedId(focus);
+    const params = new URLSearchParams(window.location.search);
+    const focusUrl = params.get("focusUrl");
+    const focusId = params.get("focus");
+    const target = focusUrl
+      ? initialData.find((p) => p.fullUrl === focusUrl)
+      : focusId
+        ? initialData.find((p) => p.id === focusId)
+        : undefined;
+    if (target) {
+      setFilters({ ...DEFAULT_INDEXING_FILTERS });
+      setViewMode("list");
+      setScope({ kind: "single", pageId: target.id });
+      setSelectedId(target.id);
       setDrawerOpen(true);
     }
     // 仅 mount 执行一次

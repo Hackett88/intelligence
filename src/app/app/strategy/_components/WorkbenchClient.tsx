@@ -7,7 +7,6 @@ import { saveStrategyPlanAction } from "./_plan-actions";
 import { SourcePool } from "./SourcePool";
 import { LoomGrid } from "./LoomGrid";
 import { InspectorPanel } from "./InspectorPanel";
-import { Worklist } from "./Worklist";
 import { WorkbenchDock } from "./WorkbenchDock";
 import { AssignMenu } from "./AssignMenu";
 import { KeywordModal } from "./KeywordModal";
@@ -813,24 +812,24 @@ export function WorkbenchClient({ seed, allKeywords, rankings, indexedMatches, i
           />
         </div>
 
-        {/* Right: Inspector (collapsible + resizable) */}
-        {rightCollapsed ? (
-          <div
-            className="shrink-0 w-8 border-l border-manor-line flex flex-col items-center py-3 bg-manor-bg cursor-pointer hover:bg-manor-bg3/40 transition-colors"
-            onClick={() => setRightCollapsed(false)}
-            title="Expand inspector"
-          >
-            <PanelRightOpen size={14} className="text-manor-brassDim mb-2" />
-            <span
-              className="text-[9px] text-manor-brassDim/70 tracking-[0.14em]"
-              style={{ fontFamily: sc, writingMode: "vertical-rl", textOrientation: "mixed" }}
+        {/* Right: Inspector（仅在选中页面时出现 —— 未选页面时中栏画布占满剩余宽度） */}
+        {selectedPage && (
+          rightCollapsed ? (
+            <div
+              className="shrink-0 w-8 border-l border-manor-line flex flex-col items-center py-3 bg-manor-bg cursor-pointer hover:bg-manor-bg3/40 transition-colors"
+              onClick={() => setRightCollapsed(false)}
+              title="Expand inspector"
             >
-              {selectedPage ? "INSPECTOR" : "WORKLIST"}
-            </span>
-          </div>
-        ) : (
-          <div style={{ width: rightW }} className="shrink-0 border-l border-manor-line flex flex-col min-h-0 bg-manor-bg">
-            {selectedPage ? (
+              <PanelRightOpen size={14} className="text-manor-brassDim mb-2" />
+              <span
+                className="text-[9px] text-manor-brassDim/70 tracking-[0.14em]"
+                style={{ fontFamily: sc, writingMode: "vertical-rl", textOrientation: "mixed" }}
+              >
+                INSPECTOR
+              </span>
+            </div>
+          ) : (
+            <div style={{ width: rightW }} className="shrink-0 border-l border-manor-line flex flex-col min-h-0 bg-manor-bg">
               <InspectorPanel
                 selectedPage={selectedPage}
                 pages={state.pages}
@@ -845,23 +844,13 @@ export function WorkbenchClient({ seed, allKeywords, rankings, indexedMatches, i
                 onUnassign={requestUnassign}
                 onCollapse={() => setRightCollapsed(true)}
               />
-            ) : (
-              <Worklist
-                pages={state.pages}
-                poolKeywords={poolKeywords}
-                boundByPage={boundByPage}
-                onPageSelect={handlePageSelect}
-                onKeywordOpen={(id) => setModalKeywordId(id)}
-                onAssign={(kwId, pageId) => handleAssign([kwId], pageId)}
-                onCollapse={() => setRightCollapsed(true)}
-              />
-            )}
-          </div>
+            </div>
+          )
         )}
 
         {/* 透明拖拽热区（仅在未折叠时显示） */}
         {!leftCollapsed && <ColResizer style={{ left: leftW }} onDown={startResize("left")} />}
-        {!rightCollapsed && <ColResizer style={{ left: `calc(100% - ${rightW}px)` }} onDown={startResize("right")} />}
+        {selectedPage && !rightCollapsed && <ColResizer style={{ left: `calc(100% - ${rightW}px)` }} onDown={startResize("right")} />}
 
         {/* Assign Menu overlay */}
         {state.assignMenuOpen && (

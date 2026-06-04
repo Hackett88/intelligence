@@ -275,7 +275,7 @@ function PageInspector({
   const oppScore = opportunityScore(page.position ? 0 : (page.clicks ?? 0), null, page.status);
   // Use a more meaningful calculation with the page's bound keywords
   const boundKws = boundByPage.get(page.id) ?? [];
-  // 页面类型（URL 推断）+ 搜索意图（绑定词意图族投票）—— 显式化「这页在哪层漏斗、抓哪种意图」
+  // 漏斗层级（URL 推断）+ 搜索意图（绑定词意图族投票）—— 显式化「这页在哪层漏斗、抓哪种意图」
   const funnel = urlFunnelLayer(page.url);
   const intentSignal = resolvePageIntent(boundKws);
   const totalSv = boundKws.reduce((s, k) => s + (k.sv ?? 0), 0);
@@ -338,9 +338,9 @@ function PageInspector({
             </button>
           )}
         </div>
-        <div className="flex items-center gap-2">
-          <RoleMark role={page.role} size={8} />
-          <p className="text-sm text-manor-ink font-medium truncate flex-1" title={page.title}>
+        <div className="flex items-start gap-2">
+          <span className="shrink-0 mt-[5px]"><RoleMark role={page.role} size={8} /></span>
+          <p className="text-sm text-manor-ink font-medium leading-snug break-words flex-1 min-w-0" title={page.title}>
             {page.title}
           </p>
         </div>
@@ -373,7 +373,7 @@ function PageInspector({
               </div>
             </div>
             <div>
-              <span className="text-manor-inkFaint block text-[12px]">页面类型</span>
+              <span className="text-manor-inkFaint block text-[12px]">漏斗层级</span>
               {funnel ? (
                 <div className="flex flex-col gap-0.5">
                   <FunnelChip url={page.url} size="sm" />
@@ -401,10 +401,10 @@ function PageInspector({
                 {matches.map((mt) => (
                   <a
                     key={mt.pageId}
-                    href={`/app/indexing?focus=${encodeURIComponent(mt.pageId)}`}
+                    href={`/app/indexing?focusUrl=${encodeURIComponent(mt.fullUrl)}`}
                     target="_blank"
                     rel="noreferrer"
-                    title={`${mt.fullUrl} · 点击进入「收录与索引」对应页`}
+                    title={`在「收录与索引」查看该 URL 的收录数据（新标签打开）　·　对应线上地址：${mt.fullUrl}`}
                     className="group flex items-center gap-1.5 text-[12px] text-manor-inkDim hover:text-manor-brassHi transition-colors"
                   >
                     <span className="w-3 text-center shrink-0">{marketFlag(mt.market as Market)}</span>

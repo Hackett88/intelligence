@@ -19,17 +19,21 @@ const SITE_NAME = "weslamic.com";
 // ─── Scope（按"页面子树"过滤）───
 // all     → 不过滤
 // subtree → 显示 pageId 及其全部后代
+// single  → 只显示 pageId 这一页本身（从选题工作台「收录索引命中」深链跳来时用：列表里只留点的那一条）
 export type Scope =
   | { kind: "all" }
-  | { kind: "subtree"; pageId: string };
+  | { kind: "subtree"; pageId: string }
+  | { kind: "single"; pageId: string };
 
 export function scopeKey(s: Scope): string {
-  return s.kind === "all" ? "all" : `subtree:${s.pageId}`;
+  if (s.kind === "all") return "all";
+  return `${s.kind}:${s.pageId}`;
 }
 
 // 判断 p 是否在 scope 范围内 — 需要全集 byId 用于沿 parentId 上溯
 export function scopeMatches(s: Scope, p: PageRow, byId: Map<string, PageRow>): boolean {
   if (s.kind === "all") return true;
+  if (s.kind === "single") return p.id === s.pageId; // 精确一页，不含后代
   let cur: PageRow | undefined = p;
   while (cur) {
     if (cur.id === s.pageId) return true;

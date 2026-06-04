@@ -225,9 +225,10 @@ export function MarketFlags({ markets, maxN = 6 }: { markets: Market[] | string[
   );
 }
 
-// ── 页面类型（Shopify 漏斗层）：品类页 / 产品页 / 博客页 / 工具页 ─────────────────
-// 由页面 URL 前缀推断（urlFunnelLayer），把原本藏在网址里的页面类型显式摆到运营眼前
+// ── 漏斗层级（Shopify 漏斗层）：品类页 / 产品页 / 博客页 / 工具页 ─────────────────
+// 由页面 URL 前缀推断（urlFunnelLayer），把原本藏在网址里的漏斗位置显式摆到运营眼前
 // —— 让人一眼看清「这页处在转化漏斗的哪一层、抓哪种搜索意图」。
+// 注意：这是「按 URL 推断的漏斗层级」，与 page.pageType（规划定的内容类型）是两个维度，勿混。
 type FunnelMeta = { label: string; sublabel: string; icon: LucideIcon; text: string; chip: string };
 export const FUNNEL_META: Record<NonNullable<FunnelLayer>, FunnelMeta> = {
   collection: { label: "品类页", sublabel: "品类导购页 · collection", icon: Store, text: "text-manor-brassHi", chip: "bg-manor-bg3 border-manor-brassDim/55" },
@@ -236,7 +237,7 @@ export const FUNNEL_META: Record<NonNullable<FunnelLayer>, FunnelMeta> = {
   page: { label: "工具页", sublabel: "在线工具页 · pages", icon: Wrench, text: "text-manor-brassDim", chip: "bg-manor-bg3 border-manor-line2" },
 };
 
-/** 页面类型徽标。无 URL（待新建/未定）返回 null —— 不臆造，避免误导。 */
+/** 漏斗层级徽标（按 URL 推断）。无 URL（待新建/未定）返回 null —— 不臆造，避免误导。 */
 export function FunnelChip({ url, size = "md" }: { url: string | null; size?: "sm" | "md" }) {
   const layer = urlFunnelLayer(url);
   if (!layer) return null;
@@ -246,7 +247,7 @@ export function FunnelChip({ url, size = "md" }: { url: string | null; size?: "s
   return (
     <span
       className={`inline-flex items-center rounded border ${pad} ${m.chip} ${m.text} whitespace-nowrap shrink-0`}
-      title={`页面类型：${m.label} — ${m.sublabel}`}
+      title={`漏斗层级：${m.label} — ${m.sublabel}`}
     >
       <Icon size={size === "sm" ? 9 : 11} />
       {m.label}

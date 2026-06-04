@@ -363,7 +363,7 @@ export function dedupeKeywords(kws: RawKeyword[]): DedupedKeyword[] {
 }
 
 // ════════════════════════════════════════════════════════════════════════════
-// 漏斗层 + 意图族：蚕食检测的两个新维度，同时供 UI 显式展示「页面类型 / 搜索意图」。
+// 漏斗层 + 意图族：蚕食检测的两个新维度，同时供 UI 显式展示「漏斗层级 / 搜索意图」。
 // 两者都运行时派生（URL 推断 + 绑定词投票），不入库、不加 WbPage 字段 —— DB/旧草稿零迁移。
 // ════════════════════════════════════════════════════════════════════════════
 
@@ -462,7 +462,7 @@ export type PageRelation = CannibalConflict & {
   advice: string;
 };
 
-/** 红色谓词：Dock 真蚕食计数 / Inspector 红块 / Worklist 作战清单 三处共用，杜绝口径分裂。 */
+/** 红色谓词：Dock 真蚕食计数 / Inspector 红块 共用，杜绝口径分裂。 */
 export function isHardCannibalization(r: PageRelation): boolean {
   return (r.relationType ?? "true_cannibalization") === "true_cannibalization";
 }
