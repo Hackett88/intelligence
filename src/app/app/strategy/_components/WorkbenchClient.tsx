@@ -812,45 +812,44 @@ export function WorkbenchClient({ seed, allKeywords, rankings, indexedMatches, i
           />
         </div>
 
-        {/* Right: Inspector（仅在选中页面时出现 —— 未选页面时中栏画布占满剩余宽度） */}
-        {selectedPage && (
-          rightCollapsed ? (
-            <div
-              className="shrink-0 w-8 border-l border-manor-line flex flex-col items-center py-3 bg-manor-bg cursor-pointer hover:bg-manor-bg3/40 transition-colors"
-              onClick={() => setRightCollapsed(false)}
-              title="Expand inspector"
+        {/* Right: Inspector（常驻占位，不随选中与否插入/移除 —— 未选页面时由 InspectorPanel 显示
+            「点击节点查看」提示。这样点击页面只是往检视栏填数据，中栏宽度恒定，不会忽然内缩） */}
+        {rightCollapsed ? (
+          <div
+            className="shrink-0 w-8 border-l border-manor-line flex flex-col items-center py-3 bg-manor-bg cursor-pointer hover:bg-manor-bg3/40 transition-colors"
+            onClick={() => setRightCollapsed(false)}
+            title="Expand inspector"
+          >
+            <PanelRightOpen size={14} className="text-manor-brassDim mb-2" />
+            <span
+              className="text-[9px] text-manor-brassDim/70 tracking-[0.14em]"
+              style={{ fontFamily: sc, writingMode: "vertical-rl", textOrientation: "mixed" }}
             >
-              <PanelRightOpen size={14} className="text-manor-brassDim mb-2" />
-              <span
-                className="text-[9px] text-manor-brassDim/70 tracking-[0.14em]"
-                style={{ fontFamily: sc, writingMode: "vertical-rl", textOrientation: "mixed" }}
-              >
-                INSPECTOR
-              </span>
-            </div>
-          ) : (
-            <div style={{ width: rightW }} className="shrink-0 border-l border-manor-line flex flex-col min-h-0 bg-manor-bg">
-              <InspectorPanel
-                selectedPage={selectedPage}
-                pages={state.pages}
-                bindings={state.bindings}
-                allKeywords={allKeywords}
-                boundByPage={boundByPage}
-                rankings={rankings}
-                indexedMatches={indexedMatches}
-                onPageSelect={handlePageSelect}
-                onUrlChange={(pageId, url) => dispatch({ type: "SET_PAGE_URL", pageId, url })}
-                onAuxChange={(pageId, words) => dispatch({ type: "SET_AUX_KEYWORDS", pageId, words })}
-                onUnassign={requestUnassign}
-                onCollapse={() => setRightCollapsed(true)}
-              />
-            </div>
-          )
+              INSPECTOR
+            </span>
+          </div>
+        ) : (
+          <div style={{ width: rightW }} className="shrink-0 border-l border-manor-line flex flex-col min-h-0 bg-manor-bg">
+            <InspectorPanel
+              selectedPage={selectedPage}
+              pages={state.pages}
+              bindings={state.bindings}
+              allKeywords={allKeywords}
+              boundByPage={boundByPage}
+              rankings={rankings}
+              indexedMatches={indexedMatches}
+              onPageSelect={handlePageSelect}
+              onUrlChange={(pageId, url) => dispatch({ type: "SET_PAGE_URL", pageId, url })}
+              onAuxChange={(pageId, words) => dispatch({ type: "SET_AUX_KEYWORDS", pageId, words })}
+              onUnassign={requestUnassign}
+              onCollapse={() => setRightCollapsed(true)}
+            />
+          </div>
         )}
 
         {/* 透明拖拽热区（仅在未折叠时显示） */}
         {!leftCollapsed && <ColResizer style={{ left: leftW }} onDown={startResize("left")} />}
-        {selectedPage && !rightCollapsed && <ColResizer style={{ left: `calc(100% - ${rightW}px)` }} onDown={startResize("right")} />}
+        {!rightCollapsed && <ColResizer style={{ left: `calc(100% - ${rightW}px)` }} onDown={startResize("right")} />}
 
         {/* Assign Menu overlay */}
         {state.assignMenuOpen && (
