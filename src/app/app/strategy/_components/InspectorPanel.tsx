@@ -4,8 +4,6 @@ import * as React from "react";
 import { ChevronDown, Pencil, X, ExternalLink } from "lucide-react";
 import type { WbPage, RawKeyword, Market, MarketRankings, IndexedMatches, IndexedUrlMatch } from "./_workbench";
 import {
-  opportunityScore,
-  opportunityTier,
   dedupeKeywords,
   resolvePageIntent,
   urlFunnelLayer,
@@ -271,19 +269,10 @@ function PageInspector({
   React.useEffect(() => { setSelectedMarket(page.market); }, [page.id, page.market]);
   const selRank = pageRanks[selectedMarket];
 
-  // Opportunity score
-  const oppScore = opportunityScore(page.position ? 0 : (page.clicks ?? 0), null, page.status);
-  // Use a more meaningful calculation with the page's bound keywords
   const boundKws = boundByPage.get(page.id) ?? [];
   // 漏斗层级（URL 推断）+ 搜索意图（绑定词意图族投票）—— 显式化「这页在哪层漏斗、抓哪种意图」
   const funnel = urlFunnelLayer(page.url);
   const intentSignal = resolvePageIntent(boundKws);
-  const totalSv = boundKws.reduce((s, k) => s + (k.sv ?? 0), 0);
-  const avgKd = boundKws.length > 0
-    ? Math.round(boundKws.reduce((s, k) => s + (k.kd ?? 0), 0) / boundKws.length)
-    : 0;
-  const pageOppScore = opportunityScore(totalSv, avgKd, page.status);
-  const tier = opportunityTier(pageOppScore);
 
   // Intent distribution of bound keywords
   const intentDist = React.useMemo(() => {
@@ -509,31 +498,6 @@ function PageInspector({
               </div>
             </div>
           )}
-
-          {/* Coverage gap (demo) */}
-          <div className="mb-2">
-            <span className="text-[12px] text-manor-inkFaint block mb-1">
-              覆盖缺口 <span className="italic text-manor-inkFaint">(示例)</span>
-            </span>
-            <span className="text-[12px] text-manor-inkDim">
-              {page.status === "gap"
-                ? "全缺口 — 无承接页"
-                : page.status === "optimize"
-                ? "部分覆盖 — 排名偏后"
-                : "已覆盖"}
-            </span>
-          </div>
-
-          {/* Opportunity score */}
-          <div className="mb-2 flex items-center gap-2">
-            <span className="text-[12px] text-manor-inkFaint">机会分</span>
-            <span className={`text-[13px] font-medium ${tier.cls}`}>
-              {tier.label}
-            </span>
-            <span className="text-[12px] text-manor-inkDim tabular-nums">
-              {pageOppScore.toLocaleString()}
-            </span>
-          </div>
 
           {/* GEO 概述 */}
           {page.geoOverview && (
