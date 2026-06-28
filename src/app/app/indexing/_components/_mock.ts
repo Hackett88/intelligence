@@ -23,6 +23,9 @@ export type PageRow = {
   ctr: number;          // 0.018 = 1.8%
   position: number;     // 平均排名
   indexState: IndexState;
+  // 收录覆盖详情（来自 GSC URL Inspection）。真实页由 coverage-loader 写入，合成/mock 节点不带。
+  coverageText?: string;  // Google 原话直传（如 "Discovered - currently not indexed"）
+  coverageLabel?: string; // 由 coverageText 派生的中文短标，给 UI 显示（如「已发现·未收录」）
   trend12m: number[];   // 12 月 clicks 趋势
   lastSync: string;     // ISO 8601 — 客户端 new Date() 解析
   parentId?: string;    // 显式所属：spoke → pillar / 子枢纽 → 上级枢纽

@@ -14,6 +14,7 @@ import type { PageRow } from "./_mock";
 import {
   IndexStateDot,
   indexStateLabel,
+  coverageLabelColor,
   PageTypeChip,
   LangSiteCell,
   formatPosition,
@@ -39,12 +40,22 @@ export function PageTable({ data, onRowClick }: PageTableProps) {
       accessorKey: "indexState",
       header: "状态",
       size: 90,
-      cell: ({ row }) => (
-        <span className="flex items-center gap-1.5" title={indexStateLabel(row.original.indexState)}>
-          <IndexStateDot state={row.original.indexState} size={8} />
-          <span className="text-[10px] text-manor-ink/70">{indexStateLabel(row.original.indexState)}</span>
-        </span>
-      ),
+      cell: ({ row }) => {
+        const p = row.original;
+        const cl = p.coverageLabel;
+        const showCl = p.indexState !== "indexed" && !!cl;
+        return (
+          <span className="flex items-center gap-1.5" title={p.coverageText ?? indexStateLabel(p.indexState)}>
+            <IndexStateDot state={p.indexState} size={8} />
+            <span className="flex flex-col leading-tight">
+              <span className="text-[10px] text-manor-ink/70">{indexStateLabel(p.indexState)}</span>
+              {showCl && (
+                <span className={`text-[9px] truncate ${coverageLabelColor(cl)}`}>{cl}</span>
+              )}
+            </span>
+          </span>
+        );
+      },
     },
     {
       accessorKey: "url",

@@ -271,3 +271,42 @@ export const strategyBindings = pgTable(
 
 export type StrategyBinding    = typeof strategyBindings.$inferSelect;
 export type NewStrategyBinding = typeof strategyBindings.$inferInsert;
+
+// ────────────────────────────────────────────────────────────────────────────
+// GSC 收录状态（JSON → PG 迁移，2026-06-28）
+// 手写幂等 CREATE TABLE IF NOT EXISTS 直接执行，此定义仅供 ORM 查询使用，
+// 不走 drizzle-kit generate/push/migrate（snapshot 已漂移，禁止调用）。
+// ────────────────────────────────────────────────────────────────────────────
+
+export const gscIndexStatus = pgTable("gsc_index_status", {
+  urlNorm:          text("url_norm").primaryKey(),
+  fullUrl:          text("full_url").notNull(),
+  indexed:          boolean("indexed"),
+  coverageText:     text("coverage_text"),
+  pageIndexingText: text("page_indexing_text"),
+  lastCrawled:      text("last_crawled"),
+  checkedAt:        timestamp("checked_at", { withTimezone: true }),
+  updatedAt:        timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export type GscIndexStatus    = typeof gscIndexStatus.$inferSelect;
+export type NewGscIndexStatus = typeof gscIndexStatus.$inferInsert;
+
+// ────────────────────────────────────────────────────────────────────────────
+// 应用内定时器全局配置（2026-06-28）
+// 单行表：CHECK (id = 1) 约束在 DDL 层保证，Drizzle 定义仅供 ORM 查询。
+// 不走 drizzle-kit generate/push/migrate。
+// ────────────────────────────────────────────────────────────────────────────
+
+export const appSchedulerConfig = pgTable("app_scheduler_config", {
+  id:              integer("id").primaryKey().default(1),
+  enabled:         boolean("enabled").notNull().default(false),
+  intervalMinutes: integer("interval_minutes").notNull().default(1440),
+  mode:            text("mode").notNull().default("all"),
+  lastRunAt:       timestamp("last_run_at", { withTimezone: true }),
+  lastRunSummary:  jsonb("last_run_summary"),
+  updatedAt:       timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export type AppSchedulerConfig    = typeof appSchedulerConfig.$inferSelect;
+export type NewAppSchedulerConfig = typeof appSchedulerConfig.$inferInsert;

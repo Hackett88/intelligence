@@ -14,7 +14,8 @@ import {
 import { PageTable } from "./PageTable";
 import { PageTreeView, type Scope, scopeMatches } from "./PageTreeView";
 import { DetailDrawer } from "./DetailDrawer";
-import { List, Network, RefreshCw, X } from "lucide-react";
+import { Clock, Globe, List, Network, RefreshCw, X } from "lucide-react";
+import { SchedulerSettingsDialog } from "./SchedulerSettingsDialog";
 import {
   type PageRow,
   type IndexingStats,
@@ -184,7 +185,10 @@ export function IndexingClient({
   const [syncing, setSyncing] = useState(false);
   const [syncMenuOpen, setSyncMenuOpen] = useState(false);
   const [syncMode, setSyncMode] = useState<SyncMode>("daily");
-  const [inspecting, setInspecting] = useState(false);
+  const [inspectingMode, setInspectingMode] = useState<"incremental" | "all" | null>(null);
+  const inspecting = inspectingMode !== null;
+  const [rescanning, setRescanning] = useState(false);
+  const [schedulerOpen, setSchedulerOpen] = useState(false);
   const SYNC_MODE_LABEL: Record<SyncMode, string> = { full: "全量", weekly: "周更", daily: "日更" };
   const handleSync = async (mode: SyncMode) => {
     if (syncing) return;
@@ -236,25 +240,32 @@ export function IndexingClient({
     }
   };
 
-  // ── 刷新收录状态：调 /api/indexing/inspect-coverage，分批逐页查 GSC「网址检查」──
-  // 每批默认 12 页（受 Google 软限流，连查约 30 个会触发 reCAPTCHA）；captchaBlocked 时
-  // 提示用户去 GSC 手动过一次验证再续跑。结果缓存累积，刷新后 router.refresh() 见新状态。
-  const handleInspectCoverage = async () => {
+  // ── 刷新收录状态：调 /api/indexing/inspect-coverage，支持 incremental / all 两种模式 ──
+  // incremental（默认）：只查"未检查"页，每批 12 页，日常使用。
+  // all：重查全部页面，走 GSC API 逐页检查，耗时较长（几分钟）。
+  const handleInspectCoverage = async (mode: "incremental" | "all") => {
     if (inspecting) return;
-    setInspecting(true);
-    const toastId = toast.loading("正在检查收录状态…", {
-      description: "逐页查 GSC「网址检查」（每页约 20-50s，受 Google 限流，请勿关闭浏览器）",
-    });
+    setInspectingMode(mode);
+    const isAll = mode === "all";
+    const toastId = toast.loading(
+      isAll ? "正在重新检查全部页面收录状态…" : "正在检查收录状态…",
+      {
+        description: isAll
+          ? "会重新检查所有页面，耗时较长（约几分钟），请勿关闭浏览器"
+          : "逐页查 GSC「网址检查」（每页约 20-50s，受 Google 限流，请勿关闭浏览器）",
+      },
+    );
     try {
       const res = await fetch("/api/indexing/inspect-coverage", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ limit: 12 }),
+        body: JSON.stringify(isAll ? { mode: "all" } : { limit: 12, mode: "incremental" }),
       });
       const body = (await res.json()) as {
         ok: boolean; code?: string; message?: string; hint?: string;
         inspected?: number; indexed?: number; notIndexed?: number; failed?: number;
         captchaBlocked?: boolean; remainingUnchecked?: number; durationMs?: number;
+        mode?: string;
       };
       if (!res.ok || !body.ok) {
         toast.error(body.message || "收录检查失败", {
@@ -272,9 +283,10 @@ export function IndexingClient({
           duration: 12000,
         });
       } else {
-        toast.success("收录状态已刷新", {
+        const modeLabel = isAll ? "全部刷新" : "增量刷新";
+        toast.success(`收录${modeLabel}完成`, {
           id: toastId,
-          description: `本次检查 ${body.inspected ?? 0} 页 · 已收录 ${body.indexed ?? 0}${body.notIndexed ? ` · 未收录 ${body.notIndexed}` : ""}${body.failed ? ` · 未取到 ${body.failed}` : ""} · 还剩 ${remain} 页待检查 · 用时 ${Math.round((body.durationMs ?? 0) / 1000)}s`,
+          description: `本次检查 ${body.inspected ?? 0} 页 · 已收录 ${body.indexed ?? 0}${body.notIndexed ? ` · 未收录 ${body.notIndexed}` : ""}${body.failed ? ` · 未取到 ${body.failed}` : ""}${!isAll ? ` · 还剩 ${remain} 页待检查` : ""} · 用时 ${Math.round((body.durationMs ?? 0) / 1000)}s`,
           duration: 8000,
         });
       }
@@ -286,8 +298,22 @@ export function IndexingClient({
         duration: 8000,
       });
     } finally {
-      setInspecting(false);
+      setInspectingMode(null);
     }
+  };
+
+  // ── 重新扫描站点地图：触发 RSC 重新加载（sitemap 在 RSC 阶段实时抓取） ──
+  const handleRescanSitemap = () => {
+    if (rescanning) return;
+    setRescanning(true);
+    router.refresh();
+    setTimeout(() => {
+      setRescanning(false);
+      toast.success("站点地图已重新扫描", {
+        description: "页面数据已重新加载，新增或移除的页面已同步更新",
+        duration: 4000,
+      });
+    }, 1500);
   };
 
   // 是否为真实 GSC 数据（mock 模式不去 GSC 抓 query，沿用 mock 样本）
@@ -630,23 +656,78 @@ export function IndexingClient({
                 </>
               )}
             </div>
-            {/* 刷新收录状态 —— 逐页查 GSC URL Inspection，更新各页真实收录态（分批，受限流） */}
+            {/* 刷新收录状态 —— 按钮组：增量（只刷未检查）| 全部 */}
+            <div
+              className={[
+                "h-7 inline-flex items-center border rounded overflow-hidden shrink-0 transition-all",
+                inspecting ? "border-manor-brass/25" : "border-manor-brass/45",
+              ].join(" ")}
+            >
+              <button
+                type="button"
+                onClick={() => handleInspectCoverage("incremental")}
+                disabled={inspecting}
+                title={inspecting ? "正在检查收录…" : "只检查尚未检查的页面（增量，更快）"}
+                className={[
+                  "h-full inline-flex items-center gap-1.5 px-2.5 text-[11px] whitespace-nowrap transition-all border-r border-manor-brass/25",
+                  inspecting
+                    ? "text-manor-inkDim cursor-wait"
+                    : "text-manor-brassHi hover:bg-manor-brassDim/10",
+                ].join(" ")}
+                style={{ fontFamily: "var(--font-sc), 'Cormorant SC', serif", letterSpacing: "0.12em" }}
+              >
+                <RefreshCw size={12} className={inspectingMode === "incremental" ? "animate-spin" : ""} aria-hidden="true" />
+                <span>{inspectingMode === "incremental" ? "检查中" : "刷新收录"}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleInspectCoverage("all")}
+                disabled={inspecting}
+                title="重新检查全部页面（耗时较长，约几分钟）"
+                className={[
+                  "h-full inline-flex items-center gap-1 px-2 text-[11px] whitespace-nowrap transition-all",
+                  inspecting
+                    ? "text-manor-inkDim cursor-wait"
+                    : "text-manor-brassDim hover:text-manor-brassHi hover:bg-manor-brassDim/10",
+                ].join(" ")}
+                style={{ fontFamily: "var(--font-sc), 'Cormorant SC', serif", letterSpacing: "0.08em" }}
+              >
+                {inspectingMode === "all" && <RefreshCw size={10} className="animate-spin" aria-hidden="true" />}
+                <span>{inspectingMode === "all" ? "检查中" : "全部"}</span>
+              </button>
+            </div>
+            {/* 重新扫描站点地图 —— 触发 RSC 重新加载 sitemap 数据 */}
             <button
               type="button"
-              onClick={handleInspectCoverage}
-              disabled={inspecting}
-              title={inspecting ? "正在检查收录…" : "逐页查 GSC「网址检查」，更新各页真实收录状态（每批 12 页，受 Google 限流）"}
+              onClick={handleRescanSitemap}
+              disabled={rescanning}
+              title="重新加载站点地图数据，把新增或移除的页面纳入"
               className={[
                 "h-7 inline-flex items-center gap-1.5 px-2.5 rounded text-[11px] whitespace-nowrap shrink-0",
                 "border transition-all",
-                inspecting
+                rescanning
                   ? "border-manor-brass/25 text-manor-inkDim cursor-wait"
-                  : "border-manor-brass/45 text-manor-brassHi hover:border-manor-brassHi hover:shadow-[0_0_10px_-2px_rgba(239,216,154,.65)] hover:bg-manor-brassDim/10",
+                  : "border-manor-brass/35 text-manor-brassDim hover:text-manor-brassHi hover:border-manor-brass/55 hover:bg-manor-brassDim/10",
               ].join(" ")}
-              style={{ fontFamily: "var(--font-sc), 'Cormorant SC', serif", letterSpacing: "0.12em" }}
+              style={{ fontFamily: "var(--font-sc), 'Cormorant SC', serif", letterSpacing: "0.1em" }}
             >
-              <RefreshCw size={12} className={inspecting ? "animate-spin" : ""} aria-hidden="true" />
-              <span>{inspecting ? "检查中" : "刷新收录"}</span>
+              <Globe size={12} className={rescanning ? "animate-spin" : ""} aria-hidden="true" />
+              <span>{rescanning ? "扫描中" : "扫描地图"}</span>
+            </button>
+            {/* 定时收录设置 */}
+            <button
+              type="button"
+              onClick={() => setSchedulerOpen(true)}
+              title="设置定时自动检查收录状态"
+              className={[
+                "h-7 inline-flex items-center gap-1.5 px-2.5 rounded text-[11px] whitespace-nowrap shrink-0",
+                "border transition-all",
+                "border-manor-brass/35 text-manor-brassDim hover:text-manor-brassHi hover:border-manor-brass/55 hover:bg-manor-brassDim/10",
+              ].join(" ")}
+              style={{ fontFamily: "var(--font-sc), 'Cormorant SC', serif", letterSpacing: "0.1em" }}
+            >
+              <Clock size={12} aria-hidden="true" />
+              <span>定时</span>
             </button>
             <div className="relative shrink-0">
               <button
@@ -1003,9 +1084,16 @@ export function IndexingClient({
             timeWindow={drawerTimeWindow}
             onTimeWindowChange={setDrawerTimeWindow}
             onClose={handleClose}
+            syncEnabled={syncEnabled}
           />
         )}
       </div>
+
+      {/* 定时收录设置对话框 */}
+      <SchedulerSettingsDialog
+        open={schedulerOpen}
+        onOpenChange={setSchedulerOpen}
+      />
     </div>
   );
 }

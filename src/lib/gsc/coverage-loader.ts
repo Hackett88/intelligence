@@ -144,6 +144,39 @@ function emptyTrend(): number[] {
 }
 
 /**
+ * 由 coverageText（Google 原话）派生中文短标，供 UI 显示。小写 includes 模糊匹配（官方
+ * coverageState 是自由文案，绝不全等）。两个数据源：① 官方 API 的英文 coverageState
+ * （如 "Discovered - currently not indexed"）；② 会话法的中文裁决（如 "网址已收录到 Google"，
+ * 见 index-inspection-fetcher 的 VERDICT_PHRASES）—— 故先认中文裁决再认英文文案。
+ * 命不中任何已知模式但非空 → 原样返回 coverageText；空/未定义 → undefined。
+ */
+function coverageLabelFromText(t?: string): string | undefined {
+  if (!t || !t.trim()) return undefined;
+  const s = t.toLowerCase();
+
+  // ── 会话法中文裁决（无英文 coverageState，只有 indexed/not 的整句）──
+  // 先判"未收录"：中文"未收录"亦含"收录"二字，必须先于"已收录"判，避免误命中。
+  if (t.includes("网址未收录") || t.includes("网址不在 Google")) return "未收录";
+  if (t.includes("网址已收录") || t.includes("已显示在 Google 搜索结果中")) return "已收录";
+
+  // ── 官方 API 英文 coverageState（按下表模糊匹配）──
+  if (s.includes("submitted and indexed") || (s.includes("indexed") && !s.includes("not indexed")))
+    return "已收录";
+  if (s.includes("crawled - currently not indexed")) return "已抓取·未收录";
+  if (s.includes("discovered - currently not indexed")) return "已发现·未收录";
+  if (s.includes("unknown to google")) return "Google 未发现";
+  if (s.includes("server error") || s.includes("5xx")) return "服务器错误(5xx)";
+  if (s.includes("redirect")) return "重定向页";
+  if (s.includes("not found") || s.includes("404")) return "404 未找到";
+  if (s.includes("blocked") || s.includes("robots")) return "被 robots 拦截";
+  if (s.includes("noindex")) return "noindex 标记";
+  if (s.includes("duplicate")) return "重复页";
+  if (s.includes("alternate")) return "备用页(canonical 在别处)";
+
+  return t; // 其它非空 → 原样返回
+}
+
+/**
  * 从 sitemap + index-status 构建完整 PageRow[] + stats。
  * 返回与 LoadedSnapshot 同形（pages/stats/source/...），额外带 indexedCount。
  */
@@ -220,6 +253,11 @@ export async function loadCoveragePages(): Promise<
     const queries = mergedQueries.get(normKey) ?? [];
     const topQuery = queries[0]?.query ?? "—";
 
+    // 收录覆盖详情：coverageText 直传 Google 原话；coverageLabel 派生中文短标。
+    // 无记录 / 空文案 → 两者皆 undefined（不写脏字段）。
+    const coverageText = status?.coverageText?.trim() ? status.coverageText : undefined;
+    const coverageLabel = coverageLabelFromText(status?.coverageText);
+
     pages.push({
       id: idByPath.get(sp.path)!,
       url: sp.path,
@@ -233,6 +271,8 @@ export async function loadCoveragePages(): Promise<
       ctr,
       position,
       indexState,
+      coverageText,
+      coverageLabel,
       trend12m: emptyTrend(),
       queries,
       lastSync,

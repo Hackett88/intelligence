@@ -67,6 +67,24 @@ export function IndexStateChip({ state }: { state: IndexState }) {
   );
 }
 
+// 收录详情颜色 —— 按 coverageLabel 关键词分档色系：
+//   红系：Google 已看过但不收 / 服务器错误 / 404（行动优先）
+//   琥珀系：已发现但未排上 / 重定向（过渡态）
+//   灰系：未检查 / noindex / Google 未发现
+export function coverageLabelColor(label: string | undefined): string {
+  if (!label) return "text-manor-inkFaint";
+  if (label.includes("已抓取") || label.includes("服务器错误") || label.includes("404")) {
+    return "text-manor-oxbloodHi";
+  }
+  if (label.includes("已发现") || label.includes("重定向")) {
+    return "text-manor-amber";
+  }
+  if (label.includes("已收录")) {
+    return "text-[#7BA67D]";
+  }
+  return "text-manor-inkDim";
+}
+
 // ───────────────────────────────────────────────────────────────────────────
 // 健康灯 —— "状态"列从单纯的"收录态"升级为"健康/可优化/待激活/低优先"业务态。
 //   背景：真实 GSC 数据里几乎所有页都是 indexed，旧绿灯一片绿、不传达任何信息。

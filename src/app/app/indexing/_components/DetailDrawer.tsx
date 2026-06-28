@@ -2,7 +2,8 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { X, ExternalLink, AlertTriangle, Info, Pencil, Check, ChevronDown } from "lucide-react";
+import { X, ExternalLink, AlertTriangle, Info, Pencil, Check, ChevronDown, Send, RefreshCw } from "lucide-react";
+import { toast } from "sonner";
 import { Sparkline } from "../../keywords/_components/_utils";
 import type { PageDetail, QueryRow, Ga4Metrics, Ga4Country } from "./_mock";
 import { GA4_COUNTRY_BY_LANG, ga4CountryPoolKey } from "./_mock";
@@ -14,6 +15,7 @@ import {
   PAGE_TYPE_ORDER,
   IndexStateChip,
   HealthChip,
+  coverageLabelColor,
   formatPosition,
   formatCtr,
   formatLargeNumber,
@@ -25,6 +27,7 @@ interface DetailDrawerProps {
   timeWindow: TimeWindow;
   onTimeWindowChange: (v: TimeWindow) => void;
   onClose: () => void;
+  syncEnabled?: boolean;
 }
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -136,6 +139,85 @@ function PageTypeField({ fullUrl, pageType }: { fullUrl: string; pageType: strin
       </div>
       {error && <span className="text-[10px] text-manor-oxbloodHi">{error}</span>}
     </div>
+  );
+}
+
+// 请求 Google 索引按钮 —— 仅本地环境、仅未收录页显示。
+// 调 POST /api/indexing/request-index 代驾本地浏览器到 GSC 提交该 URL。
+function RequestIndexButton({ fullUrl }: { fullUrl: string }) {
+  const [loading, setLoading] = React.useState(false);
+
+  const handleRequest = async () => {
+    if (loading) return;
+    setLoading(true);
+    try {
+      const res = await fetch("/api/indexing/request-index", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: fullUrl }),
+      });
+      const data = (await res.json()) as {
+        ok?: boolean;
+        status?: string;
+        message?: string;
+      };
+      if (!res.ok) {
+        toast.error(data.message || "请求索引失败", { duration: 6000 });
+        return;
+      }
+      switch (data.status) {
+        case "requested":
+          toast.success("已加入 Google 优先抓取队列，等待重新抓取", {
+            duration: 6000,
+          });
+          break;
+        case "already_indexed":
+          toast.info("该页已收录，无需请求", { duration: 4000 });
+          break;
+        case "captcha":
+          toast.warning("需在浏览器手动完成验证码后重试", { duration: 8000 });
+          break;
+        case "quota_exceeded":
+          toast.warning(
+            "今日 Google 请求索引配额已用尽，请明天再试",
+            { duration: 6000 },
+          );
+          break;
+        case "failed":
+          toast.error(data.message || "请求索引失败", { duration: 6000 });
+          break;
+        default:
+          toast.error(data.message || "未知响应", { duration: 6000 });
+      }
+    } catch (err) {
+      toast.error("请求索引失败", {
+        description: err instanceof Error ? err.message : "网络错误",
+        duration: 6000,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleRequest}
+      disabled={loading}
+      title="向 Google 请求优先抓取此页面（需本地浏览器代驾 GSC）"
+      className="mt-1 inline-flex items-center gap-1.5 px-2 py-1 rounded text-[11px] border border-manor-brassHi/45 text-manor-brassHi bg-manor-brassDim/10 hover:bg-manor-brassDim/20 hover:border-manor-brassHi/65 transition-all disabled:opacity-50 disabled:cursor-wait whitespace-nowrap"
+      style={{
+        fontFamily: "var(--font-sc), 'Cormorant SC', serif",
+        letterSpacing: "0.08em",
+      }}
+    >
+      {loading ? (
+        <RefreshCw size={11} className="animate-spin" aria-hidden="true" />
+      ) : (
+        <Send size={11} aria-hidden="true" />
+      )}
+      {loading ? "请求中…" : "请求 Google 索引"}
+    </button>
   );
 }
 
@@ -790,6 +872,7 @@ export function DetailDrawer({
   timeWindow,
   onTimeWindowChange,
   onClose,
+  syncEnabled,
 }: DetailDrawerProps) {
   if (!page) return null;
 
@@ -870,7 +953,34 @@ export function DetailDrawer({
           <Field label="页面类型" value={<PageTypeField key={page.fullUrl} fullUrl={page.fullUrl} pageType={page.pageType} />} />
           <Field label="主关键词" value={effectiveTopQuery} />
           <Field label="页面健康" value={<HealthChip page={page} />} />
-          <Field label="收录状态" value={<IndexStateChip state={page.indexState} />} />
+          <Field
+            label="收录状态"
+            value={
+              <span className="flex flex-col gap-1">
+                <IndexStateChip state={page.indexState} />
+                {page.coverageLabel ? (
+                  <span className="flex flex-col gap-0.5">
+                    <span className={`text-[11px] font-medium ${coverageLabelColor(page.coverageLabel)}`}>
+                      {page.coverageLabel}
+                    </span>
+                    {page.coverageText && (
+                      <span
+                        className="text-[10px] text-manor-inkFaint leading-snug"
+                        title={`Google 原话：${page.coverageText}`}
+                      >
+                        {page.coverageText}
+                      </span>
+                    )}
+                  </span>
+                ) : page.indexState !== "indexed" ? (
+                  <span className="text-[10px] text-manor-inkFaint">待检查</span>
+                ) : null}
+                {page.indexState !== "indexed" && syncEnabled && (
+                  <RequestIndexButton fullUrl={page.fullUrl} />
+                )}
+              </span>
+            }
+          />
           <div className="col-span-2">
             <Field
               label="URL"

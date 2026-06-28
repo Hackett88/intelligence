@@ -1,22 +1,18 @@
 // POST /api/indexing/inspect-coverage
 //
 // 按需检查新站 sitemap 页面的 Google 收录状态。
-// 从 sitemap 中选"未检查"的前 limit 个 → inspectUrls() 逐页查 GSC
-// → 合并写入 data/gsc-index-status.json → 返回统计摘要。
+// 收录检查主逻辑已抽到 @/lib/gsc/run-inspection 的 runInspectionCore（路由与应用内定时器共用）。
+// 本路由只保留：鉴权 + 生产环境守卫 + body 解析 + 调核心 + revalidate + 响应/错误包装。
+//
+// 对外行为与重构前逐字一致（前端"刷新收录状态①②"在用此响应体）。
 //
 // 鉴权 + 生产环境守卫照抄 sync/route.ts。
 
 import { NextResponse, type NextRequest } from "next/server";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
-import { fetchSitemapPages } from "@/lib/gsc/sitemap";
-import { loadIndexStatus, saveMergeIndexStatus } from "@/lib/gsc/index-status-store";
-import { normalizeForMatch } from "@/lib/gsc/url-normalize";
-import { inspectUrls, type IndexInspectionResult } from "@/lib/gsc/index-inspection-fetcher";
-import {
-  inspectUrlsViaApi,
-  isGscApiConfigured,
-} from "@/lib/gsc/index-inspection-api-fetcher";
+import { isGscApiConfigured } from "@/lib/gsc/index-inspection-api-fetcher";
+import { runInspectionCore } from "@/lib/gsc/run-inspection";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -47,114 +43,41 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // 取数前先看是否配了官方 API：API 法稳且快（~120ms/页、无 reCAPTCHA）→ 批量上限放大到 50；
-  // 会话法慢且有 reCAPTCHA 风险 → 沿用 57 上限。
-  const apiConfigured = isGscApiConfigured();
-  const hardCap = apiConfigured ? 50 : 57;
-
-  let limit = 12;
+  // 解析 body：mode（刷新模式，默认 incremental）。
+  // limit 不再透传——批量上限/默认 12 由核心内部按原路由逻辑固定（前端 incremental 本就发
+  // limit:12 == 该默认值，响应逐字一致）。
+  let mode: "incremental" | "all" = "incremental";
   try {
-    const body = (await req.json()) as { limit?: number };
-    if (typeof body?.limit === "number" && body.limit > 0) {
-      limit = Math.min(body.limit, hardCap);
-    }
+    const body = (await req.json()) as { limit?: number; mode?: "incremental" | "all" };
+    if (body?.mode === "all") mode = "all";
   } catch {
-    // 没 body 也行，用默认 limit
+    // 没 body 也行，用默认 mode
   }
 
   const startedAt = Date.now();
 
   try {
-    // 取 sitemap 全量页 + 当前已检查状态
-    const [sitemapPages, status] = await Promise.all([
-      fetchSitemapPages(),
-      loadIndexStatus(),
-    ]);
+    const summary = await runInspectionCore({ mode, apiOnly: false });
 
-    // 挑出"未检查"的 URL（status 里无记录或 indexed===null）
-    const unchecked = sitemapPages.filter((sp) => {
-      const key = normalizeForMatch(sp.fullUrl);
-      const entry = status.byUrl[key];
-      return !entry || entry.indexed === null;
-    });
-
-    const toInspect = unchecked.slice(0, limit).map((sp) => sp.fullUrl);
-
-    if (toInspect.length === 0) {
-      return NextResponse.json({
-        ok: true,
-        via: apiConfigured ? "api" : "session",
-        inspected: 0,
-        indexed: 0,
-        notIndexed: 0,
-        failed: 0,
-        captchaBlocked: false,
-        remainingUnchecked: 0,
-        durationMs: Date.now() - startedAt,
-      });
-    }
-
-    // 取数：优先官方 API（稳/快/无验证码），未配置则回退会话抓取法（reCAPTCHA 逻辑原样保留）。
-    let results: IndexInspectionResult[];
-    let captchaBlocked = false;
-    let via: "api" | "session" = "session";
-
-    const api = apiConfigured ? await inspectUrlsViaApi(toInspect) : null;
-
-    if (api && api.configured && api.error) {
-      // 配了 key 但鉴权/授权失败（多为服务账号没被加进 GSC 属性）→ 4xx 带提示，
-      // 让前端 toast 指引去 GSC 加 Full User；不静默回退会话法，避免掩盖配置问题。
+    // 配了 key 但鉴权/授权失败 → 维持原 400 + 同 message（让前端 toast 指引去 GSC 加 Full User）。
+    if (!summary.ok && summary.code === "GSC_API_NOT_AUTHORIZED") {
       return NextResponse.json(
         {
           ok: false,
-          code: "GSC_API_NOT_AUTHORIZED",
-          message: api.error,
-          via: "api",
-          durationMs: Date.now() - startedAt,
+          code: summary.code,
+          message: summary.error,
+          via: summary.via,
+          durationMs: summary.durationMs,
         },
         { status: 400 }
       );
     }
 
-    if (api && api.configured) {
-      results = api.results;
-      via = "api"; // captchaBlocked 保持 false：API 法无 reCAPTCHA
-    } else {
-      // 未配置 API（或极端情况下 API 自检为未配置）→ 走原会话抓取法。
-      const session = await inspectUrls(toInspect);
-      results = session.results;
-      captchaBlocked = session.captchaBlocked;
-      via = "session";
-    }
-
-    // 合并写入
-    await saveMergeIndexStatus(
-      results.map((r) => ({
-        url: r.url,
-        indexed: r.indexed,
-        coverageText: r.coverageText,
-        lastCrawled: r.lastCrawled,
-      }))
-    );
-
     // 让 RSC 重新跑
     revalidatePath("/app/indexing");
 
-    const indexed = results.filter((r) => r.indexed === true).length;
-    const notIndexed = results.filter((r) => r.indexed === false).length;
-    const failed = results.filter((r) => r.indexed === null).length;
-
-    return NextResponse.json({
-      ok: true,
-      via,
-      inspected: results.length,
-      indexed,
-      notIndexed,
-      failed,
-      captchaBlocked,
-      remainingUnchecked: unchecked.length - results.length,
-      durationMs: Date.now() - startedAt,
-    });
+    // 成功态 summary 的 code/error 恒为 undefined → JSON 自动省略，响应字段与重构前完全一致。
+    return NextResponse.json(summary);
   } catch (err) {
     const message = err instanceof Error ? err.message : "未知错误";
     return NextResponse.json(
