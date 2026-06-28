@@ -282,6 +282,14 @@ export function IndexingClient({
           description: `本次已查 ${body.inspected ?? 0} 页（已收录 ${body.indexed ?? 0}）。请在浏览器的 GSC 手动检查任意一个网址、通过 reCAPTCHA 后，再点"刷新收录"续跑。还剩 ${remain} 页待检查。`,
           duration: 12000,
         });
+      } else if ((body.inspected ?? 0) === 0) {
+        // 所有页面都已检查过、没有"未检查"的新页 → 给明确反馈，避免"点了像没反应"。
+        toast.success("收录状态已是最新", {
+          id: toastId,
+          description:
+            "所有页面都已检查过，暂无新增待检查页。如需重新核对全部页面的最新收录情况，可在「定时」里开启定时全量检查（服务端运行、不受网关超时限制，更可靠）。",
+          duration: 7000,
+        });
       } else {
         const modeLabel = isAll ? "全部刷新" : "增量刷新";
         toast.success(`收录${modeLabel}完成`, {
@@ -669,7 +677,7 @@ export function IndexingClient({
                 disabled={inspecting}
                 title={inspecting ? "正在检查收录…" : "只检查尚未检查的页面（增量，更快）"}
                 className={[
-                  "h-full inline-flex items-center gap-1.5 px-2.5 text-[11px] whitespace-nowrap transition-all border-r border-manor-brass/25",
+                  "h-full inline-flex items-center gap-1.5 px-2.5 text-[11px] whitespace-nowrap transition-all",
                   inspecting
                     ? "text-manor-inkDim cursor-wait"
                     : "text-manor-brassHi hover:bg-manor-brassDim/10",
@@ -678,22 +686,6 @@ export function IndexingClient({
               >
                 <RefreshCw size={12} className={inspectingMode === "incremental" ? "animate-spin" : ""} aria-hidden="true" />
                 <span>{inspectingMode === "incremental" ? "检查中" : "刷新收录"}</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleInspectCoverage("all")}
-                disabled={inspecting}
-                title="重新检查全部页面（耗时较长，约几分钟）"
-                className={[
-                  "h-full inline-flex items-center gap-1 px-2 text-[11px] whitespace-nowrap transition-all",
-                  inspecting
-                    ? "text-manor-inkDim cursor-wait"
-                    : "text-manor-brassDim hover:text-manor-brassHi hover:bg-manor-brassDim/10",
-                ].join(" ")}
-                style={{ fontFamily: "var(--font-sc), 'Cormorant SC', serif", letterSpacing: "0.08em" }}
-              >
-                {inspectingMode === "all" && <RefreshCw size={10} className="animate-spin" aria-hidden="true" />}
-                <span>{inspectingMode === "all" ? "检查中" : "全部"}</span>
               </button>
             </div>
             {/* 重新扫描站点地图 —— 触发 RSC 重新加载 sitemap 数据 */}
