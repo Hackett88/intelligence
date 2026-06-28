@@ -16,13 +16,13 @@ const INDEX_STATE_META: Record<IndexState, { label: string; latin: string; dot: 
     ring: "rgba(189,230,177,.65)",
   },
   discovered: {
-    label: "已发现",
-    latin: "INVENTUS",
+    label: "待检查",
+    latin: "PENDENS",
     dot: "radial-gradient(circle at 30% 30%, #F8E6B0, #D4B36F 55%, #A08850)",
     ring: "rgba(239,216,154,.65)",
   },
   excluded: {
-    label: "已排除",
+    label: "未收录",
     latin: "EXCLUSUS",
     dot: "radial-gradient(circle at 30% 30%, #777, #444 55%, #222)",
     ring: "rgba(120,120,120,.4)",

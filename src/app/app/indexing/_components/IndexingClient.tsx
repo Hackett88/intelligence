@@ -184,6 +184,7 @@ export function IndexingClient({
   const [syncing, setSyncing] = useState(false);
   const [syncMenuOpen, setSyncMenuOpen] = useState(false);
   const [syncMode, setSyncMode] = useState<SyncMode>("daily");
+  const [inspecting, setInspecting] = useState(false);
   const SYNC_MODE_LABEL: Record<SyncMode, string> = { full: "全量", weekly: "周更", daily: "日更" };
   const handleSync = async (mode: SyncMode) => {
     if (syncing) return;
@@ -232,6 +233,60 @@ export function IndexingClient({
       });
     } finally {
       setSyncing(false);
+    }
+  };
+
+  // ── 刷新收录状态：调 /api/indexing/inspect-coverage，分批逐页查 GSC「网址检查」──
+  // 每批默认 12 页（受 Google 软限流，连查约 30 个会触发 reCAPTCHA）；captchaBlocked 时
+  // 提示用户去 GSC 手动过一次验证再续跑。结果缓存累积，刷新后 router.refresh() 见新状态。
+  const handleInspectCoverage = async () => {
+    if (inspecting) return;
+    setInspecting(true);
+    const toastId = toast.loading("正在检查收录状态…", {
+      description: "逐页查 GSC「网址检查」（每页约 20-50s，受 Google 限流，请勿关闭浏览器）",
+    });
+    try {
+      const res = await fetch("/api/indexing/inspect-coverage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ limit: 12 }),
+      });
+      const body = (await res.json()) as {
+        ok: boolean; code?: string; message?: string; hint?: string;
+        inspected?: number; indexed?: number; notIndexed?: number; failed?: number;
+        captchaBlocked?: boolean; remainingUnchecked?: number; durationMs?: number;
+      };
+      if (!res.ok || !body.ok) {
+        toast.error(body.message || "收录检查失败", {
+          id: toastId,
+          description: body.hint || body.code,
+          duration: 8000,
+        });
+        return;
+      }
+      const remain = body.remainingUnchecked ?? 0;
+      if (body.captchaBlocked) {
+        toast.warning("被 Google 限流（reCAPTCHA）", {
+          id: toastId,
+          description: `本次已查 ${body.inspected ?? 0} 页（已收录 ${body.indexed ?? 0}）。请在浏览器的 GSC 手动检查任意一个网址、通过 reCAPTCHA 后，再点"刷新收录"续跑。还剩 ${remain} 页待检查。`,
+          duration: 12000,
+        });
+      } else {
+        toast.success("收录状态已刷新", {
+          id: toastId,
+          description: `本次检查 ${body.inspected ?? 0} 页 · 已收录 ${body.indexed ?? 0}${body.notIndexed ? ` · 未收录 ${body.notIndexed}` : ""}${body.failed ? ` · 未取到 ${body.failed}` : ""} · 还剩 ${remain} 页待检查 · 用时 ${Math.round((body.durationMs ?? 0) / 1000)}s`,
+          duration: 8000,
+        });
+      }
+      router.refresh();
+    } catch (err) {
+      toast.error("收录检查请求失败", {
+        id: toastId,
+        description: err instanceof Error ? err.message : "网络错误",
+        duration: 8000,
+      });
+    } finally {
+      setInspecting(false);
     }
   };
 
@@ -575,6 +630,24 @@ export function IndexingClient({
                 </>
               )}
             </div>
+            {/* 刷新收录状态 —— 逐页查 GSC URL Inspection，更新各页真实收录态（分批，受限流） */}
+            <button
+              type="button"
+              onClick={handleInspectCoverage}
+              disabled={inspecting}
+              title={inspecting ? "正在检查收录…" : "逐页查 GSC「网址检查」，更新各页真实收录状态（每批 12 页，受 Google 限流）"}
+              className={[
+                "h-7 inline-flex items-center gap-1.5 px-2.5 rounded text-[11px] whitespace-nowrap shrink-0",
+                "border transition-all",
+                inspecting
+                  ? "border-manor-brass/25 text-manor-inkDim cursor-wait"
+                  : "border-manor-brass/45 text-manor-brassHi hover:border-manor-brassHi hover:shadow-[0_0_10px_-2px_rgba(239,216,154,.65)] hover:bg-manor-brassDim/10",
+              ].join(" ")}
+              style={{ fontFamily: "var(--font-sc), 'Cormorant SC', serif", letterSpacing: "0.12em" }}
+            >
+              <RefreshCw size={12} className={inspecting ? "animate-spin" : ""} aria-hidden="true" />
+              <span>{inspecting ? "检查中" : "刷新收录"}</span>
+            </button>
             <div className="relative shrink-0">
               <button
                 type="button"

@@ -20,7 +20,7 @@ const cards: {
   fmt: (v: number) => string;
   bg: string;
 }[] = [
-  { label: "收录页数",     latin: "AGNITI",     key: "totalPages",       fmt: (v) => v.toLocaleString(),     bg: "/summary/vocabula.svg" },
+  { label: "已收录",       latin: "AGNITI",     key: "totalPages",       fmt: () => "",                      bg: "/summary/vocabula.svg" },
   { label: "总点击次数",   latin: "CLICKS",     key: "totalClicks",      fmt: (v) => v.toLocaleString(),     bg: "/summary/aestimata.svg" },
   { label: "总曝光次数",   latin: "VISUS",      key: "totalImpressions", fmt: (v) => formatLargeNumber(v),   bg: "/summary/rudes.svg" },
   { label: "平均 CTR",     latin: "PROPORTIO",  key: "avgCtr",           fmt: (v) => `${(v * 100).toFixed(1)}%`, bg: "/summary/media-cpc.svg" },
@@ -96,13 +96,20 @@ export function SummaryBar({ stats, onCardClick }: SummaryBarProps) {
             className="relative z-[1] text-brass-gradient font-semibold tabnum leading-none num-breath"
             style={{ fontFamily: serif, fontSize: 22 }}
           >
-            {card.fmt(stats[card.key])}
+            {card.key === "totalPages" ? (
+              <>
+                {(stats.indexedCount ?? 0).toLocaleString()}
+                <span className="text-manor-ink/50" style={{ fontSize: 13, fontWeight: 400 }}>{" / "}{stats.totalPages}</span>
+              </>
+            ) : (
+              card.fmt(stats[card.key])
+            )}
           </p>
           <p
             className="relative z-[1] text-manor-ink/70 mt-1.5"
             style={{ fontFamily: serif, fontSize: 10.5, letterSpacing: "0.04em" }}
           >
-            {card.label}
+            {card.key === "totalPages" ? `已收录 · 共 ${stats.totalPages} 页` : card.label}
           </p>
           <span
             aria-hidden="true"

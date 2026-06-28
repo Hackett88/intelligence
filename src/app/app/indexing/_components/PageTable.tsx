@@ -12,7 +12,8 @@ import { useEffect, useRef, useState } from "react";
 import { Sparkline } from "../../keywords/_components/_utils";
 import type { PageRow } from "./_mock";
 import {
-  HealthDot,
+  IndexStateDot,
+  indexStateLabel,
   PageTypeChip,
   LangSiteCell,
   formatPosition,
@@ -37,8 +38,13 @@ export function PageTable({ data, onRowClick }: PageTableProps) {
     {
       accessorKey: "indexState",
       header: "状态",
-      size: 70,
-      cell: ({ row }) => <HealthDot page={row.original} />,
+      size: 90,
+      cell: ({ row }) => (
+        <span className="flex items-center gap-1.5" title={indexStateLabel(row.original.indexState)}>
+          <IndexStateDot state={row.original.indexState} size={8} />
+          <span className="text-[10px] text-manor-ink/70">{indexStateLabel(row.original.indexState)}</span>
+        </span>
+      ),
     },
     {
       accessorKey: "url",

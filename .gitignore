@@ -33,6 +33,9 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# 服务账号密钥等机密文件（GSC URL Inspection API 的 SA key 建议放 secrets/gsc-sa-key.json）
+secrets/
+
 # vercel
 .vercel
 

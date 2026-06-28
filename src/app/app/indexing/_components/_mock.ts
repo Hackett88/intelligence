@@ -87,6 +87,7 @@ export type IndexingStats = {
   avgPosition: number;
   top10Pages: number;   // position <= 10 的页数
   lastSync: string;
+  indexedCount?: number; // 已收录页数（coverage-loader 提供）
 };
 
 // ───────────────────────────────────────────────────────────────────────────
