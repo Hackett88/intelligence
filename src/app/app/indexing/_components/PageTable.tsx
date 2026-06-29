@@ -178,21 +178,9 @@ export function PageTable({ data, onRowClick }: PageTableProps) {
         // indexed / discovered 的页即使 clicks=0 也是真实的"暂无点击"，要显示数字。
         const v = getValue() as number;
         const hasData = row.original.indexState === "indexed" || row.original.indexState === "discovered";
-        const ts = row.original.trafficSplit;
-        // 仅当 trafficSplit 存在且 own+bridged 非全零时显示拆分行
-        const showSplit = hasData && ts && (ts.own.clicks > 0 || ts.bridged.clicks > 0);
         return (
-          <span className="flex flex-col leading-tight">
-            <span className="text-xs text-manor-ink tabular-nums">
-              {hasData ? v.toLocaleString() : <span className="text-manor-inkGhost">—</span>}
-            </span>
-            {showSplit && (
-              <span className="text-[9px] tabular-nums leading-none mt-0.5">
-                <span className="text-manor-brassHi/85">自 {ts.own.clicks.toLocaleString()}</span>
-                <span className="text-manor-inkGhost mx-0.5">/</span>
-                <span className="text-manor-inkDim">桥 {ts.bridged.clicks.toLocaleString()}</span>
-              </span>
-            )}
+          <span className="text-xs text-manor-ink tabular-nums">
+            {hasData ? v.toLocaleString() : <span className="text-manor-inkGhost">—</span>}
           </span>
         );
       },

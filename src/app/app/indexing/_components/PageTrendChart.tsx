@@ -149,7 +149,7 @@ const COLORS = {
 };
 
 const CHART_W = 370;
-const CHART_H = 130;
+const CHART_H = 184; // 加高，给「悬浮卡片浮在数据点正上方」留出顶部空间
 const PAD = { top: 8, right: 34, bottom: 20, left: 34 };
 const INNER_W = CHART_W - PAD.left - PAD.right;
 const INNER_H = CHART_H - PAD.top - PAD.bottom;
@@ -424,88 +424,65 @@ function UnifiedTrendChart({ data }: { data: CumulativeDay[] }) {
         ))}
       </svg>
 
-      {/* 统一 Tooltip — 同时显示曝光 + 点击 */}
-      {hoveredDay && hoverIdx !== null && (
-        <div
-          className="absolute pointer-events-none z-10 px-2.5 py-2 rounded text-[10px] leading-snug"
-          style={{
-            background: COLORS.tooltipBg,
-            border: `1px solid ${COLORS.tooltipBorder}`,
-            boxShadow: "0 2px 8px rgba(0,0,0,.5)",
-            left: Math.min(Math.max(xPos(hoverIdx), 90), CHART_W - 90),
-            top: -4,
-            transform: "translateX(-50%) translateY(-100%)",
-            whiteSpace: "nowrap",
-          }}
-        >
-          <div className="text-manor-brassHi/90 tabular-nums mb-1">
-            {fmtDateFull(hoveredDay.date)}
-          </div>
-          <div className="flex gap-3">
-            {/* 曝光列 */}
-            <div>
-              <div
-                className="text-[9px] mb-0.5"
-                style={{ color: COLORS.imprLine, opacity: 0.8 }}
-              >
-                曝光
-              </div>
-              <div className="text-manor-ink tabular-nums">
-                当日{" "}
-                <span
-                  className="font-medium"
-                  style={{ color: COLORS.imprLine }}
-                >
-                  {hoveredDay.impressions.toLocaleString()}
-                </span>
-              </div>
-              <div className="text-manor-inkDim tabular-nums text-[9px]">
-                累计{" "}
-                <span
-                  className="font-medium"
-                  style={{ color: COLORS.imprLine }}
-                >
-                  {formatLargeNumber(hoveredDay.cumImpressions)}
-                </span>
-              </div>
-            </div>
-            {/* 分隔线 */}
+      {/* 统一 Tooltip — 浮在所指数据点的正上方，随该点曲线峰值上下移动；
+          横向跟随该点、纵向贴着两线中更高的那条，不压住趋势线，靠近顶部时夹住不溢出 */}
+      {hoveredDay &&
+        hoverIdx !== null &&
+        (() => {
+          const CARD_W = 176;
+          const CARD_H = 66;
+          const GAP = 26; // 卡片底边距数据点（顶点）的间隙——留出明显距离，不贴着峰值
+          // 两条线在该 x 处更高（y 更小）的那个标记点 → 卡片贴它上方
+          const markerTopY = Math.min(
+            yImpr(hoveredDay.impressions),
+            yClick(hoveredDay.clicks)
+          );
+          const left = Math.max(
+            2,
+            Math.min(CHART_W - CARD_W - 2, xPos(hoverIdx) - CARD_W / 2)
+          );
+          const top = Math.max(2, markerTopY - GAP - CARD_H);
+          return (
             <div
+              className="absolute pointer-events-none z-10 px-3 py-2 rounded-md leading-snug"
               style={{
-                borderLeft: `1px solid ${COLORS.tooltipBorder}`,
-                opacity: 0.3,
+                background: COLORS.tooltipBg,
+                border: `1px solid ${COLORS.tooltipBorder}`,
+                boxShadow: "0 6px 18px rgba(0,0,0,.6)",
+                left,
+                top,
+                width: CARD_W,
+                whiteSpace: "nowrap",
               }}
-            />
-            {/* 点击列 */}
-            <div>
-              <div
-                className="text-[9px] mb-0.5"
-                style={{ color: COLORS.clickLine, opacity: 0.8 }}
-              >
-                点击
+            >
+              <div className="text-manor-brassHi tabular-nums text-[11px] mb-1">
+                {fmtDateFull(hoveredDay.date)}
               </div>
-              <div className="text-manor-ink tabular-nums">
-                当日{" "}
-                <span
-                  className="font-medium"
-                  style={{ color: COLORS.clickLine }}
-                >
-                  {hoveredDay.clicks.toLocaleString()}
+              <div className="flex items-baseline justify-between tabular-nums mb-0.5">
+                <span className="text-[11px]" style={{ color: COLORS.imprLine }}>
+                  曝光{" "}
+                  <span className="font-semibold text-[13px]">
+                    {hoveredDay.impressions.toLocaleString()}
+                  </span>
+                </span>
+                <span className="text-manor-inkDim text-[10px]">
+                  累计 {formatLargeNumber(hoveredDay.cumImpressions)}
                 </span>
               </div>
-              <div className="text-manor-inkDim tabular-nums text-[9px]">
-                累计{" "}
-                <span
-                  className="font-medium"
-                  style={{ color: COLORS.clickLine }}
-                >
-                  {formatLargeNumber(hoveredDay.cumClicks)}
+              <div className="flex items-baseline justify-between tabular-nums">
+                <span className="text-[11px]" style={{ color: COLORS.clickLine }}>
+                  点击{" "}
+                  <span className="font-semibold text-[13px]">
+                    {hoveredDay.clicks.toLocaleString()}
+                  </span>
+                </span>
+                <span className="text-manor-inkDim text-[10px]">
+                  累计 {formatLargeNumber(hoveredDay.cumClicks)}
                 </span>
               </div>
             </div>
-          </div>
-        </div>
-      )}
+          );
+        })()}
     </div>
   );
 }
