@@ -22,9 +22,9 @@ import {
   type PageDetail,
   getMockPageDetail,
 } from "./_mock";
-import { LANG_SITE_LABELS, positionBucket, comparePageType, resolvePageStatus } from "./_utils";
+import { LANG_SITE_LABELS, positionBucket, comparePageType } from "./_utils";
 import type { LastSyncMeta, SyncModeStatus } from "./IndexingWrapper";
-import { type HealthState } from "@/lib/gsc/classify";
+import { type PageStatus } from "@/lib/gsc/classify";
 
 interface IndexingClientProps {
   initialData: PageRow[];
@@ -406,10 +406,10 @@ export function IndexingClient({
       }
       if (filters.market.length > 0 && !filters.market.includes(p.market)) return false;
       if (filters.pageType.length > 0 && !filters.pageType.includes(p.pageType)) return false;
-      // 健康筛选：合成目录节点豁免（保树视图骨架不断层），真实页按健康态过滤
+      // 页面状态筛选：合成目录节点豁免（保树视图骨架不断层），真实页按 pageStatus 过滤
       if (filters.health.length > 0 && !p.isSynthetic) {
-        const kind = resolvePageStatus(p).kind;
-        if (!filters.health.includes(kind as HealthState)) return false;
+        const ps = p.pageStatus as PageStatus | undefined;
+        if (!ps || !filters.health.includes(ps)) return false;
       }
       if (filters.position.length > 0) {
         const b = positionBucket(p.position);

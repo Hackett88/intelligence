@@ -201,11 +201,17 @@ function num(v: number | undefined): number {
  *
  * withQueries=true 时**另外**拉一轮 dimensions:["page","query"]（同样分页），按 page 归组，
  * 每页取 Top 50（clicks 降序）挂到对应 SAPageRow.queries。
+ *
+ * queriesOnly=true 时**跳过** dimensions:["page"] 那一趟（省一次批量拉取），只拉
+ * ["page","query"]，每个 page 由其 query 行聚合还原出 clicks/impressions/ctr/position
+ * （走原 synthesize 分支），并挂 queries。用于"流量更新"新流程：页级指标改从 gsc_page_daily
+ * 求和得来（per-page 那趟已被证明冗余），这里只需要关键词。queriesOnly 隐含 withQueries。
  */
 export async function fetchSearchAnalytics(opts: {
   startDate: string;
   endDate: string;
   withQueries?: boolean;
+  queriesOnly?: boolean;
 }): Promise<FetchSearchAnalyticsResult> {
   // 1) 解析凭证：未配置 → configured:false；配了读不出 → configured:true + error。
   let credentials: ServiceAccountKey | null;
@@ -229,13 +235,20 @@ export async function fetchSearchAnalytics(opts: {
     scopes: [SCOPE],
   });
 
+  // queriesOnly 隐含需要 query 行（页级指标改由上层从每日表求和，不再用这趟的 per-page）。
+  const withQueries = opts.withQueries || opts.queriesOnly;
+
   try {
     // 2) per-page（dimensions:["page"]），分页拉满。
-    const pageRows = await fetchAllRows(client, endpoint, {
-      startDate: opts.startDate,
-      endDate: opts.endDate,
-      dimensions: ["page"],
-    });
+    //    queriesOnly=true 时跳过这一趟批量拉取 —— 页级指标改从 gsc_page_daily 求和得来，
+    //    per-page 那趟（已证明 == 每日明细按窗口求和）属冗余，省掉它把每轮批量拉取从 3 次降到 2 次。
+    const pageRows = opts.queriesOnly
+      ? []
+      : await fetchAllRows(client, endpoint, {
+          startDate: opts.startDate,
+          endDate: opts.endDate,
+          dimensions: ["page"],
+        });
 
     const pages: SAPageRow[] = [];
     const pageByUrl = new Map<string, SAPageRow>();
@@ -254,7 +267,8 @@ export async function fetchSearchAnalytics(opts: {
     }
 
     // 3) 可选：page×query 再拉一轮，按 page 归组 → 每页 Top 50 挂到 SAPageRow.queries。
-    if (opts.withQueries) {
+    //    queriesOnly 时 pageByUrl 为空，每个 page 都走下方 synthesize 分支由 query 行聚合还原。
+    if (withQueries) {
       const pqRows = await fetchAllRows(client, endpoint, {
         startDate: opts.startDate,
         endDate: opts.endDate,

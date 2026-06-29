@@ -20,9 +20,12 @@ import {
 } from "./transform";
 import { loadLatestSnapshot, type LoadedSnapshot } from "./loader";
 import { loadRedirectMap } from "./redirect-map";
-import { isHardNonContent } from "./classify";
+import { isHardNonContent, classifyPageStatus } from "./classify";
 import { loadSnapshot } from "./store";
 import { loadDailyAggregates, type DailyAggregate } from "./page-daily-store";
+import { db } from "@/db/client";
+import { gscPageDaily } from "@/db/schema";
+import { sql, inArray } from "drizzle-orm";
 
 // ── 桥排除名单（全新板块不继承旧流量）────────────────────────────────────────
 // 迁站后【全新建】的板块：它们不是任何旧页的继承者，旧址 308 兜底到这里属"清理式重定向"，
@@ -63,12 +66,13 @@ interface MergedMetric {
  */
 async function buildMergedMetrics(
   windowDays = 60,
+  lagDays = 1,
   preloadedDaily?: Map<string, DailyAggregate> | null,
 ): Promise<{ merged: Map<string, MergedMetric>; splitAvailable: boolean }> {
   // ── 优先路径：每日明细按窗口求和（纯归并：排除自映射）──
   try {
     const daily =
-      preloadedDaily !== undefined ? preloadedDaily : await loadDailyAggregates(windowDays, 1);
+      preloadedDaily !== undefined ? preloadedDaily : await loadDailyAggregates(windowDays, lagDays);
     if (daily && daily.size > 0) {
       const redirectFile = await loadRedirectMap();
       const byOldUrl = redirectFile.byOldUrl;
@@ -139,6 +143,55 @@ async function buildMergedMetricsFromBatch(): Promise<Map<string, MergedMetric>>
     console.warn("[coverage-loader] 旧址流量归并跳过:", (e as Error).message);
   }
   return merged;
+}
+
+/**
+ * 某新页【每日总流量趋势】——总流量 = 自身(own) + 旧址归并(bridged)，精确到日。
+ * 口径与 buildMergedMetrics / loadCoveragePages 顶部显示完全一致：
+ *   · 来源集合 sourceNorms = ① 自身 newNorm（own，永远算）
+ *     + ② 若 !isBridgeExcluded(newNorm)，所有 byOldUrl[oldNorm]===newNorm 且 oldNorm!==newNorm
+ *       且 !isHardNonContent(oldNorm) 的旧址（bridged）。
+ *   · 一条 SQL 把这些 url_norm 在 gsc_page_daily 里按 date 求和（SUM clicks/impressions），按日升序。
+ * 只返回每日序列；累计由前端自行 reduce。空（该页及其来源都无每日数据）→ series:[], startDate:null。
+ */
+export async function loadPageDailyTrend(fullUrl: string): Promise<{
+  startDate: string | null;
+  series: { date: string; clicks: number; impressions: number }[];
+}> {
+  const newNorm = normalizeForMatch(fullUrl);
+
+  // ── 算来源集合（own + bridged），与桥同口径 ──
+  const sourceNorms = new Set<string>([newNorm]); // own：自身永远算
+  if (!isBridgeExcluded(newNorm)) {
+    const redirectFile = await loadRedirectMap();
+    const byOldUrl = redirectFile.byOldUrl;
+    for (const [oldNorm, target] of Object.entries(byOldUrl)) {
+      if (target !== newNorm) continue; // 只收归并到本页的旧址
+      if (oldNorm === newNorm) continue; // 自映射 = own，已在集合里
+      if (isHardNonContent({ url: oldNorm })) continue; // 资产/系统页旧址不归并
+      sourceNorms.add(oldNorm);
+    }
+  }
+
+  // ── 一条 SQL：来源集合在 gsc_page_daily 里按 date 求和，升序 ──
+  const rows = await db
+    .select({
+      date: gscPageDaily.date,
+      clicks: sql<string>`SUM(${gscPageDaily.clicks})`,
+      impressions: sql<string>`SUM(${gscPageDaily.impressions})`,
+    })
+    .from(gscPageDaily)
+    .where(inArray(gscPageDaily.urlNorm, [...sourceNorms]))
+    .groupBy(gscPageDaily.date)
+    .orderBy(gscPageDaily.date);
+
+  const series = rows.map((r) => ({
+    date: String(r.date).slice(0, 10), // date 列 mode:"string" 已是 YYYY-MM-DD，防御性截断
+    clicks: Number(r.clicks) || 0,
+    impressions: Number(r.impressions) || 0,
+  }));
+
+  return { startDate: series[0]?.date ?? null, series };
 }
 
 /**
@@ -278,9 +331,31 @@ export async function loadCoveragePages(windowDays = 90): Promise<
   // mergedMetrics = 纯归并（排除自映射）；own 另从 dailyAgg 取；total = own + bridged。
   // splitAvailable=false（daily 不可用、走批次回退）时 mergedMetrics 即 total，不做拆分。
   const [{ merged: mergedMetrics, splitAvailable }, mergedQueries] = await Promise.all([
-    buildMergedMetrics(windowDays, dailyAgg),
+    buildMergedMetrics(windowDays, 1, dailyAgg),
     buildMergedQueries(),
   ]);
+
+  // ── 周环比（状态灯 declining 判据）──────────────────────────────────────────
+  // 两个 7 天窗口的「每页总点击」(own + bridged)，口径与上方主流量一致：
+  //   · 本周 = 最近 7 个已结算日 → lag 取 2（避开 GSC 最新 1-2 天还没结算的不完整数据）
+  //   · 上周 = 再往前 7 日       → lag 取 9
+  // own 从 loadDailyAggregates(7,lag) 自身 url_norm 取；bridged 从 buildMergedMetrics 归并取。
+  const [weekLastDaily, weekPrevDaily] = await Promise.all([
+    loadDailyAggregates(7, 2),
+    loadDailyAggregates(7, 9),
+  ]);
+  // loadDailyAggregates 空窗口返回 null（绝不返回空非 null Map）；为 null 时归并取空 Map，
+  // 避免把 null 传进 buildMergedMetrics 触发"全量批次回退"（那会污染成非 7 天窗口）。
+  const [bridgeLast, bridgePrev] = await Promise.all([
+    weekLastDaily
+      ? buildMergedMetrics(7, 2, weekLastDaily).then((r) => r.merged)
+      : Promise.resolve(new Map<string, MergedMetric>()),
+    weekPrevDaily
+      ? buildMergedMetrics(7, 9, weekPrevDaily).then((r) => r.merged)
+      : Promise.resolve(new Map<string, MergedMetric>()),
+  ]);
+  /** 上周点击的"够判趋势"下限：低于它视为噪声，不判下滑（常量，可调）。 */
+  const DECLINE_MIN_PREV_CLICKS = 3;
 
   // 真实页 pathnames（sitemap 每个 <loc>）
   const realPathnames = sitemapPages.map((p) => p.path);
@@ -380,6 +455,20 @@ export async function loadCoveragePages(windowDays = 90): Promise<
     const coverageText = status?.coverageText?.trim() ? status.coverageText : undefined;
     const coverageLabel = coverageLabelFromText(status?.coverageText);
 
+    // ── 状态灯：本周/上周总点击（own + bridged）→ declining → 七档 ──
+    const lastClicks =
+      (weekLastDaily?.get(normKey)?.clicks ?? 0) + (bridgeLast.get(normKey)?.clicks ?? 0);
+    const prevClicks =
+      (weekPrevDaily?.get(normKey)?.clicks ?? 0) + (bridgePrev.get(normKey)?.clicks ?? 0);
+    const declineComparable = prevClicks >= DECLINE_MIN_PREV_CLICKS;
+    const declining = declineComparable && lastClicks < prevClicks;
+    const pageStatus = classifyPageStatus({
+      indexed: status?.indexed ?? null,
+      coverageText,
+      declining,
+      declineComparable,
+    });
+
     pages.push({
       id: idByPath.get(sp.path)!,
       url: sp.path,
@@ -396,6 +485,8 @@ export async function loadCoveragePages(windowDays = 90): Promise<
       coverageText,
       coverageLabel,
       trafficSplit,
+      pageStatus,
+      weekTrend: { last: lastClicks, prev: prevClicks },
       trend12m: emptyTrend(),
       queries,
       lastSync,

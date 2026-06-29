@@ -8,7 +8,7 @@ import {
 import { Menu as MenuPrimitive } from "@base-ui/react/menu";
 import { Check, ChevronDown, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { HEALTH_META, type HealthState } from "@/lib/gsc/classify";
+import { PAGE_STATUS_META, type PageStatus } from "@/lib/gsc/classify";
 
 export type TimeWindow = "7d" | "28d" | "90d";
 
@@ -19,7 +19,7 @@ export interface IndexingFilterState {
   market: string[];
   pageType: string[];
   position: PositionBucketValue[];
-  health: HealthState[];
+  health: PageStatus[];
 }
 
 export const DEFAULT_INDEXING_FILTERS: IndexingFilterState = {
@@ -50,10 +50,18 @@ const POSITION_OPTIONS: { value: PositionBucketValue; label: string }[] = [
   { value: "deep",  label: "21+ 深页" },
 ];
 
-// 页面健康筛选 —— 取代失效的"收录状态"（真实数据全是已收录）。与状态列健康灯同源。
-const HEALTH_OPTIONS: { value: HealthState; label: string }[] = (
-  ["healthy", "improve", "activate", "lowpriority"] as HealthState[]
-).map((k) => ({ value: k, label: HEALTH_META[k].label }));
+// 页面状态筛选 —— 七档统一，按「收录进度 / 已收录健康度」分组。
+const PAGE_STATUS_OPTIONS: { value: PageStatus; label: string }[] = [
+  // 收录进度 5 档
+  { value: "undiscovered", label: PAGE_STATUS_META.undiscovered.label },
+  { value: "discovered",   label: PAGE_STATUS_META.discovered.label },
+  { value: "crawled",      label: PAGE_STATUS_META.crawled.label },
+  { value: "error",        label: PAGE_STATUS_META.error.label },
+  { value: "unchecked",    label: PAGE_STATUS_META.unchecked.label },
+  // 已收录健康度 2 档
+  { value: "healthy",      label: PAGE_STATUS_META.healthy.label },
+  { value: "declining",    label: PAGE_STATUS_META.declining.label },
+];
 
 interface MultiSelectProps {
   placeholder: string;
@@ -288,10 +296,10 @@ export function FilterBar({
         width="flex-1 basis-0 min-w-[76px] max-w-[148px]"
       />
       <MultiSelect
-        placeholder="页面健康"
+        placeholder="页面状态"
         values={filters.health}
-        options={HEALTH_OPTIONS}
-        onChange={(v) => update("health", v as HealthState[])}
+        options={PAGE_STATUS_OPTIONS}
+        onChange={(v) => update("health", v as PageStatus[])}
         width="flex-1 basis-0 min-w-[76px] max-w-[148px]"
       />
 

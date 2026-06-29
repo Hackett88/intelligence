@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import type { IndexState, ClusterKey, QueryRow } from "./_mock";
-import { classifyHealth, HEALTH_META, type HealthState } from "@/lib/gsc/classify";
+import { classifyHealth, HEALTH_META, type HealthState, PAGE_STATUS_META, type PageStatus } from "@/lib/gsc/classify";
 
 // ───────────────────────────────────────────────────────────────────────────
 // 收录状态点 — 4 档：indexed(绿) / discovered(琥珀) / excluded(灰) / error(红)
@@ -213,26 +213,12 @@ export interface StatusLight {
   group: "health" | "coverage" | "neutral";
 }
 
-/**
- * 收录态颜色方案 —— 与健康灯 4 色（绿 #7BA67D / 黄 #EFD89A / 橙 #F59E0B / 灰 #8B8B7A）
- * 在色相和明度上做了刻意区分，避免撞色：
- *   · 已爬取未收录 → 暗血红 #A8453A（Google 看过不收，最紧急）
- *   · 未爬取(已发现) → 深琥珀 #C87533（已发现但还没爬，过渡态，比健康"待激活"更暖更深）
- *   · 未发现 → 冷石灰 #6B6B6B（Google 尚不知道这页，比健康"低优先"更冷更暗）
- *   · 待检查 → 空心虚线点 #5A5A52（indexState=discovered 但未用 API 查过，中性）
- *   · excluded/error 无细分 → 沿用暗红 #A8453A
- */
-const COVERAGE_COLORS = {
-  crawledNotIndexed: "#A8453A",   // 暗血红
-  discoveredNotCrawled: "#C87533", // 深琥珀
-  unknownToGoogle: "#6B6B6B",     // 冷石灰
-  pending: "#5A5A52",             // 中性暗点（空心）
-  excludedFallback: "#A8453A",    // 默认红
-} as const;
 
 export function resolveStatusLight(page: PageStatusInput & {
   coverageLabel?: string;
   coverageText?: string;
+  pageStatus?: PageStatus;
+  weekTrend?: { last: number; prev: number };
 }): StatusLight {
   // 1. 合成目录节点 → 中性不评
   if (page.isSynthetic) {
@@ -244,80 +230,34 @@ export function resolveStatusLight(page: PageStatusInput & {
     };
   }
 
-  // 2. 已收录页 → 按健康度上色（沿用 resolvePageStatus / HEALTH_META）
-  if (page.indexState === "indexed") {
-    const status = resolvePageStatus(page);
+  // 2. pageStatus undefined（合成节点已排除，此处为真实页但后端未写入）→ 空心兜底
+  const ps = page.pageStatus;
+  if (!ps) {
     return {
-      color: status.color,
-      label: status.label,
-      tooltip: `${status.label}（${status.latin}） —— ${status.hint}`,
-      group: "health",
-    };
-  }
-
-  // 3. 非收录页 → 按 coverageLabel / coverageText 细分收录态
-  const cl = page.coverageLabel ?? "";
-  const ct = page.coverageText ?? "";
-
-  // 3a. 已爬取未收录（Google 看过但不收，最紧急）
-  if (cl.includes("已抓取") || ct.toLowerCase().includes("crawled - currently not indexed")) {
-    return {
-      color: COVERAGE_COLORS.crawledNotIndexed,
-      label: "已抓取·未收录",
-      tooltip: `已抓取·未收录 —— Google 已爬取但未收录，最需处理。${ct ? `\nGSC: ${ct}` : ""}`,
-      group: "coverage",
-    };
-  }
-
-  // 3b. 已发现未爬取（过渡态）
-  if (cl.includes("已发现") || ct.toLowerCase().includes("discovered - currently not indexed")) {
-    return {
-      color: COVERAGE_COLORS.discoveredNotCrawled,
-      label: "已发现·未爬取",
-      tooltip: `已发现·未爬取 —— Google 已发现但尚未爬取，等待排队。${ct ? `\nGSC: ${ct}` : ""}`,
-      group: "coverage",
-    };
-  }
-
-  // 3c. Google 未发现
-  if (cl.includes("未发现") || ct.toLowerCase().includes("unknown to google") || ct.toLowerCase().includes("url is not on google")) {
-    return {
-      color: COVERAGE_COLORS.unknownToGoogle,
-      label: "Google 未发现",
-      tooltip: `Google 未发现 —— Google 尚不知道这个页面存在。${ct ? `\nGSC: ${ct}` : ""}`,
-      group: "coverage",
-    };
-  }
-
-  // 3d. 待检查（indexState=discovered 但无 coverageText/coverageLabel → 还没用 API 查过）
-  if (page.indexState === "discovered" && !cl && !ct) {
-    return {
-      color: COVERAGE_COLORS.pending,
-      label: "待检查",
-      tooltip: "待检查 —— 尚未通过 API 查询收录状态。",
+      color: PAGE_STATUS_META.unchecked.color,
+      label: PAGE_STATUS_META.unchecked.label,
+      tooltip: PAGE_STATUS_META.unchecked.hint,
       hollow: true,
-      group: "coverage",
+      group: "neutral",
     };
   }
 
-  // 3e. excluded / error 有 coverageLabel 但不属于上面分支 → 用其文本
-  if (page.indexState === "excluded" || page.indexState === "error") {
-    const fallbackLabel = cl || (page.indexState === "error" ? "异常" : "未收录");
-    return {
-      color: COVERAGE_COLORS.excludedFallback,
-      label: fallbackLabel,
-      tooltip: `${fallbackLabel}${ct ? ` —— GSC: ${ct}` : ""}`,
-      group: "coverage",
-    };
-  }
+  // 3. 读 PAGE_STATUS_META 渲染
+  const meta = PAGE_STATUS_META[ps];
+  const ct = page.coverageText ?? "";
+  const wt = page.weekTrend;
+  let tooltip = `${meta.label}`;
+  if (meta.latin) tooltip += `（${meta.latin}）`;
+  tooltip += ` —— ${meta.hint}`;
+  if (ct) tooltip += `\nGSC: ${ct}`;
+  if (wt) tooltip += `\n本周 ${wt.last} / 上周 ${wt.prev} 点击`;
 
-  // 3f. 兜底（不应到达）
   return {
-    color: COVERAGE_COLORS.pending,
-    label: "未知",
-    tooltip: "状态未知",
-    hollow: true,
-    group: "neutral",
+    color: meta.color,
+    label: meta.label,
+    tooltip,
+    hollow: !!meta.hollow,
+    group: ps === "healthy" || ps === "declining" ? "health" : "coverage",
   };
 }
 
@@ -370,20 +310,21 @@ export function StatusLightDot({
   );
 }
 
-/** 状态说明图例 —— 所有灯色含义的完整列表。
- *  点击表头旁的「图例」按钮时弹出。 */
+/** 状态说明图例 —— 七档统一灯色含义的完整列表。
+ *  点击表头旁的「图例」按钮时弹出。按「收录进度 / 已收录健康度 / 未检查」分三组。 */
 export function StatusLegendContent() {
+  const M = PAGE_STATUS_META;
   const items: { color: string; label: string; hint: string; hollow?: boolean; section: string }[] = [
-    // A. 已收录页 — 健康度
-    { section: "已收录（按健康度）", color: HEALTH_META.healthy.color, label: "健康", hint: "关键词丰富且排名进首页" },
-    { section: "已收录（按健康度）", color: HEALTH_META.improve.color, label: "可优化", hint: "有关键词但排名靠后" },
-    { section: "已收录（按健康度）", color: HEALTH_META.activate.color, label: "待激活", hint: "已收录但无关键词排名" },
-    { section: "已收录（按健康度）", color: HEALTH_META.lowpriority.color, label: "低优先", hint: "结构/政策页，无需投入" },
-    // B. 未收录页 — 收录态
-    { section: "未收录（按收录态）", color: COVERAGE_COLORS.crawledNotIndexed, label: "已抓取·未收录", hint: "Google 看过但不收，需处理" },
-    { section: "未收录（按收录态）", color: COVERAGE_COLORS.discoveredNotCrawled, label: "已发现·未爬取", hint: "等待 Google 排队爬取" },
-    { section: "未收录（按收录态）", color: COVERAGE_COLORS.unknownToGoogle, label: "Google 未发现", hint: "Google 尚不知道此页" },
-    { section: "未收录（按收录态）", color: COVERAGE_COLORS.pending, label: "待检查", hint: "尚未查询收录状态", hollow: true },
+    // A. 收录进度（浅灰→灰→深灰→红）
+    { section: "收录进度", color: M.undiscovered.color, label: M.undiscovered.label, hint: "Google 还不知道" },
+    { section: "收录进度", color: M.discovered.color, label: M.discovered.label, hint: "已发现但未爬取" },
+    { section: "收录进度", color: M.crawled.color, label: M.crawled.label, hint: "已爬取但未收录" },
+    { section: "收录进度", color: M.error.color, label: M.error.label, hint: "页面错误（5xx/404）" },
+    // B. 已收录（绿/橙 — 周环比趋势）
+    { section: "已收录（健康度）", color: M.healthy.color, label: M.healthy.label, hint: "收录且本周 >= 上周" },
+    { section: "已收录（健康度）", color: M.declining.color, label: M.declining.label, hint: "收录但本周 < 上周" },
+    // C. 未检查（空心）
+    { section: "未检查", color: M.unchecked.color, label: M.unchecked.label, hint: "尚未查询过收录状态", hollow: true },
   ];
 
   let lastSection = "";
@@ -424,6 +365,42 @@ export function StatusLegendContent() {
         );
       })}
     </div>
+  );
+}
+
+/** 新七档状态 chip —— 抽屉里用。灯 + 中文标签 + hint + 本周/上周点击。 */
+export function PageStatusChip({
+  pageStatus,
+  weekTrend,
+}: {
+  pageStatus?: PageStatus;
+  weekTrend?: { last: number; prev: number };
+}) {
+  if (!pageStatus) return <span className="text-manor-inkGhost">—</span>;
+  const m = PAGE_STATUS_META[pageStatus];
+  const c = m.color;
+  return (
+    <span className="inline-flex flex-col gap-1">
+      <span
+        className="inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded text-[10.5px] border"
+        title={m.hint}
+        style={{ borderColor: `${c}55`, background: `${c}14` }}
+      >
+        <StatusLightDot
+          light={{ color: c, label: m.label, tooltip: m.hint, hollow: !!m.hollow, group: "coverage" }}
+          size={7}
+        />
+        <span className="text-manor-ink/90">{m.label}</span>
+        {m.latin && (
+          <span className="text-manor-inkGhost text-[9px] tracking-[0.16em]">{m.latin}</span>
+        )}
+      </span>
+      {weekTrend && (
+        <span className="text-[10px] text-manor-inkDim">
+          本周 {weekTrend.last} / 上周 {weekTrend.prev} 点击
+        </span>
+      )}
+    </span>
   );
 }
 

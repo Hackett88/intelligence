@@ -4,7 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { X, ExternalLink, AlertTriangle, Info, Pencil, Check, ChevronDown, Send, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
-import { Sparkline } from "../../keywords/_components/_utils";
+import { usePageTrend, PageTrendSection } from "./PageTrendChart";
 import type { PageDetail, QueryRow, Ga4Metrics, Ga4Country } from "./_mock";
 import { GA4_COUNTRY_BY_LANG, ga4CountryPoolKey } from "./_mock";
 import type { TimeWindow } from "./FilterBar";
@@ -14,7 +14,7 @@ import {
   PageTypeChip,
   PAGE_TYPE_ORDER,
   IndexStateChip,
-  HealthChip,
+  PageStatusChip,
   coverageLabelColor,
   formatPosition,
   formatCtr,
@@ -226,7 +226,7 @@ const SECTION_LATIN: Record<string, string> = {
   "性能指标":       "METRICA · GSC",
   "流量构成":       "FONS · VIAE",
   "进站后表现":     "BEHAVIOR · GA4",
-  "12 月趋势":      "ANNUS · TRENDORUM",
+  "流量趋势":       "CURSUS · DIERUM",
   "页面关键词排名":  "QUAERELAE · IN PAGINA",
   "关联词库":       "NEXUS · ARCHIVUM",
 };
@@ -875,6 +875,13 @@ export function DetailDrawer({
   onClose,
   syncEnabled,
 }: DetailDrawerProps) {
+  // 流量趋势 hook — 放在 return null 之前以遵守 hooks 规则（不可条件调用）。
+  // page 为 null 时传 null url，hook 内部跳过请求。
+  const trend = usePageTrend(
+    page?.url ?? null,
+    page?.isSynthetic ?? false,
+  );
+
   if (!page) return null;
 
   // 主关键词：页面级抓取拿不到（GSC 网页视图无 query 维度），用已加载的关键词
@@ -953,7 +960,7 @@ export function DetailDrawer({
           <Field label="站点语言" value={langSiteLabel} />
           <Field label="页面类型" value={<PageTypeField key={page.fullUrl} fullUrl={page.fullUrl} pageType={page.pageType} />} />
           <Field label="主关键词" value={effectiveTopQuery} />
-          <Field label="页面健康" value={<HealthChip page={page} />} />
+          <Field label="页面状态" value={<PageStatusChip pageStatus={page.pageStatus} weekTrend={page.weekTrend} />} />
           <Field
             label="收录状态"
             value={
@@ -1293,17 +1300,17 @@ export function DetailDrawer({
           </Section>
         )}
 
-        {/* 12 月趋势 */}
-        <Section title="12 月趋势" grid={false}>
-          {page.trend12m && page.trend12m.some((v) => v > 0) ? (
-            <div className="flex items-center gap-2">
-              <Sparkline data={page.trend12m} width={380} height={80} variant="bar" />
-              <span className="text-[10px] text-manor-inkFaint">12 月点击</span>
-            </div>
-          ) : (
-            <span className="text-manor-inkGhost text-xs">—</span>
-          )}
-        </Section>
+        {/* 流量趋势 — 每日+累计（曝光/点击分图）。替换旧 12 月趋势占位。
+            合成目录节点不拉数据，不显示此段。 */}
+        {!page.isSynthetic && (
+          <Section title="流量趋势" grid={false}>
+            <PageTrendSection
+              data={trend.data}
+              loading={trend.loading}
+              error={trend.error}
+            />
+          </Section>
+        )}
 
         {/* 页面关键词排名 */}
         <Section

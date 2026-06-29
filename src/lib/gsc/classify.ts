@@ -167,3 +167,139 @@ export const HEALTH_META: Record<
     color: "#8B8B7A",
   },
 };
+
+// ── 页面状态灯（七档统一）─────────────────────────────────────────────────────
+// 一条灯同时表达"收录到哪一步（收录态）"和"收录后健不健康（本周 vs 上周趋势）"。
+// 与上面的 classifyHealth/HEALTH_META 是两套并存的口径：classifyHealth 按关键词+排名判，
+// 本套按 GSC 收录态 + 周环比点击判，状态灯用本套。两者都保留，别处可能各有引用。
+export type PageStatus =
+  | "unchecked"
+  | "undiscovered"
+  | "discovered"
+  | "crawled"
+  | "error"
+  | "healthy"
+  | "declining";
+
+export const PAGE_STATUS_META: Record<
+  PageStatus,
+  { label: string; latin?: string; hint: string; color: string; hollow?: boolean }
+> = {
+  unchecked: {
+    label: "未检查",
+    latin: "INTACTUS",
+    hint: "尚无收录记录（既无 indexed 结果、也无 GSC 覆盖文案）——还没查过这页。",
+    color: "#6B6B5E", // 暗灰（空心）
+    hollow: true,
+  },
+  undiscovered: {
+    label: "未发现",
+    latin: "IGNOTUS",
+    hint: "Google 还不知道这个 URL（unknown to Google）——尚未进入抓取队列。",
+    color: "#C2C2B6", // 浅灰
+  },
+  discovered: {
+    label: "发现未抓取",
+    latin: "REPERTUS",
+    hint: "Google 已发现该 URL 但还没抓取（Discovered - currently not indexed）——多为抓取预算/优先级问题。",
+    color: "#8E8E80", // 灰
+  },
+  crawled: {
+    label: "抓取未收录",
+    latin: "EXPLORATUS",
+    hint: "已抓取但未收录（Crawled - currently not indexed），或 noindex / 重复 / 备用页 / 重定向等「抓了故意不收」的情形。",
+    color: "#5C5C50", // 深灰
+  },
+  error: {
+    label: "错误",
+    latin: "ERRATUM",
+    hint: "硬错误（服务器 5xx / 404 未找到等）——页面取不到或返回错误，需排查。",
+    color: "#B8453A", // 红
+  },
+  healthy: {
+    label: "收录·健康",
+    latin: "SANUS",
+    hint: "已收录且未下滑（本周点击 ≥ 上周）——表现良好，保持节奏即可。",
+    color: "#7BA67D", // 绿
+  },
+  declining: {
+    label: "收录·需优化",
+    latin: "LABENS",
+    hint: "已收录但在下滑（本周点击 < 上周，且上周有像样量）——值得人去看一眼。",
+    color: "#E8883A", // 橙
+  },
+};
+
+/**
+ * 七档统一状态灯判定。优先级（从硬到软）：
+ *   硬错误 → 未发现 → 发现未抓取 → 抓取未收录 → （已收录）下滑?需优化:健康 → 无记录=未检查。
+ * coverageText 一律小写 includes 模糊匹配（GSC 是自由文案，绝不全等），中英文都覆盖
+ * （口径参考 coverage-loader 的 coverageLabelFromText）。
+ *
+ * @param indexed          GSC 裁决：true=已收录 / false=未收录 / null=无记录
+ * @param coverageText     GSC 覆盖原话（英文 coverageState 或中文裁决整句），可空
+ * @param declining        本周点击 < 上周（由调用方算好传入）
+ * @param declineComparable 上周是否有像样量（够判趋势；防噪声下限由调用方定）
+ */
+export function classifyPageStatus(input: {
+  indexed: boolean | null;
+  coverageText?: string;
+  declining: boolean;
+  declineComparable: boolean;
+}): PageStatus {
+  const { indexed, coverageText, declining, declineComparable } = input;
+  const t = coverageText ?? "";
+  const s = t.toLowerCase();
+
+  // 1) 硬错误：服务器 5xx / 404 / not found（中英覆盖）
+  if (
+    s.includes("server error") ||
+    s.includes("5xx") ||
+    s.includes("404") ||
+    s.includes("not found") ||
+    t.includes("服务器错误") ||
+    t.includes("未找到")
+  ) {
+    return "error";
+  }
+
+  // 2) 未发现：Google 不知道这个 URL
+  if (s.includes("unknown to google") || t.includes("未发现")) {
+    return "undiscovered";
+  }
+
+  // 3) 发现未抓取
+  if (
+    s.includes("discovered - currently not indexed") ||
+    (s.includes("discovered") && s.includes("not indexed")) ||
+    t.includes("已发现·未收录") ||
+    t.includes("已发现")
+  ) {
+    return "discovered";
+  }
+
+  // 4) 抓取未收录 + "抓了故意不收"（noindex / 重复 / 备用 / 重定向）
+  if (
+    s.includes("crawled - currently not indexed") ||
+    (s.includes("crawled") && s.includes("not indexed")) ||
+    s.includes("noindex") ||
+    s.includes("duplicate") ||
+    s.includes("alternate") ||
+    s.includes("redirect") ||
+    t.includes("已抓取·未收录") ||
+    t.includes("已抓取") ||
+    t.includes("重复") ||
+    t.includes("备用") ||
+    t.includes("重定向")
+  ) {
+    return "crawled";
+  }
+
+  // 5) 已收录：看本周 vs 上周趋势
+  if (indexed === true) {
+    return declining && declineComparable ? "declining" : "healthy";
+  }
+
+  // 6) 都不命中且无记录 → 未检查
+  return "unchecked";
+}
