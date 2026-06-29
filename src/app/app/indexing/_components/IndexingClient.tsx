@@ -447,18 +447,24 @@ export function IndexingClient({
     const n = rows.length;
     const totalClicks = rows.reduce((s, p) => s + p.clicks, 0);
     const totalImpressions = rows.reduce((s, p) => s + p.impressions, 0);
+    // 平均排名口径与服务端 coverage-loader 完全对齐：只对"有曝光"的页求均值
+    // （position=0 表示无曝光/未上榜，计入会把均值往下拉 → 点根节点时全站口径对不上，
+    //  曾出现 9.3→7.0 的漂移）。
+    const withImpr = rows.filter((p) => p.impressions > 0);
     return {
       totalPages: n,
       totalClicks,
       totalImpressions,
       // CTR 用加权口径（总点击/总曝光），与发亮卡片 CTR、GSC 全站 CTR 同义
       avgCtr: totalImpressions > 0 ? totalClicks / totalImpressions : 0,
-      // 平均排名沿用 transform 的简单均值口径
-      avgPosition: n
-        ? parseFloat((rows.reduce((s, p) => s + p.position, 0) / n).toFixed(1))
+      avgPosition: withImpr.length
+        ? parseFloat((withImpr.reduce((s, p) => s + p.position, 0) / withImpr.length).toFixed(1))
         : 0,
       top10Pages: rows.filter((p) => p.position > 0 && p.position <= 10).length,
       lastSync: stats.lastSync,
+      // 已收录数：scope 内 indexState==="indexed" 的真实页数。缺了这个字段，SummaryBar 的
+      // AGNITI 卡片读 (indexedCount ?? 0) 会恒显 0 —— 点结构树任意节点（含根节点）即触发。
+      indexedCount: rows.filter((p) => p.indexState === "indexed").length,
     };
   }, [scope, scopedReal, stats]);
 
