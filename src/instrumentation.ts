@@ -10,5 +10,5 @@ export async function register() {
   g.__weslamicSchedulerStarted = true;
   const { startScheduler } = await import("@/lib/gsc/scheduler"); // 动态导入，避免 edge 打包
   startScheduler();
-  console.log("[scheduler] 应用内定时收录调度器已启动（60s 心跳）");
+  console.log("[scheduler] 应用内定时调度器已启动（收录 + 流量更新，60s 心跳）");
 }

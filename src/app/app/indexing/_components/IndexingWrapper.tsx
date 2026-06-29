@@ -23,6 +23,8 @@ interface IndexingWrapperProps {
   lastSyncMeta?: LastSyncMeta;
   syncStatus?: SyncModeStatus;
   syncEnabled?: boolean;
+  trafficApiConfigured?: boolean;
+  windowDays?: number;
 }
 
 const IndexingClientDynamic = dynamic(
@@ -43,6 +45,8 @@ export function IndexingWrapper({
   lastSyncMeta,
   syncStatus,
   syncEnabled,
+  trafficApiConfigured,
+  windowDays,
 }: IndexingWrapperProps) {
   return (
     <IndexingClientDynamic
@@ -51,6 +55,8 @@ export function IndexingWrapper({
       lastSyncMeta={lastSyncMeta}
       syncStatus={syncStatus}
       syncEnabled={syncEnabled}
+      trafficApiConfigured={trafficApiConfigured}
+      windowDays={windowDays}
     />
   );
 }

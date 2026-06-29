@@ -43,12 +43,11 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // 解析 body：mode（刷新模式，默认 incremental）。
-  // limit 不再透传——批量上限/默认 12 由核心内部按原路由逻辑固定（前端 incremental 本就发
-  // limit:12 == 该默认值，响应逐字一致）。
-  let mode: "incremental" | "all" = "incremental";
+  // 解析 body：mode（刷新模式，默认 on-demand）。
+  // limit 固定为 12 传给核心，防止按钮触发的同步请求超过网关 ~11s 超时。
+  let mode: "on-demand" | "all" = "on-demand";
   try {
-    const body = (await req.json()) as { limit?: number; mode?: "incremental" | "all" };
+    const body = (await req.json()) as { mode?: "on-demand" | "all" };
     if (body?.mode === "all") mode = "all";
   } catch {
     // 没 body 也行，用默认 mode
@@ -57,7 +56,7 @@ export async function POST(req: NextRequest) {
   const startedAt = Date.now();
 
   try {
-    const summary = await runInspectionCore({ mode, apiOnly: false });
+    const summary = await runInspectionCore({ mode, limit: 12, apiOnly: false });
 
     // 配了 key 但鉴权/授权失败 → 维持原 400 + 同 message（让前端 toast 指引去 GSC 加 Full User）。
     if (!summary.ok && summary.code === "GSC_API_NOT_AUTHORIZED") {

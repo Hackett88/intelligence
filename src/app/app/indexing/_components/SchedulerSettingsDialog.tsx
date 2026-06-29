@@ -8,7 +8,7 @@ import { SwitchInline } from "../../keywords/fetch/_components/SwitchInline";
 
 /* ── Types ─────────────────────────────────────────────────────────────── */
 
-interface LastRunSummary {
+interface CoverageLastRunSummary {
   inspected?: number;
   indexed?: number;
   notIndexed?: number;
@@ -19,13 +19,33 @@ interface LastRunSummary {
   error?: string;
 }
 
-interface SchedulerConfig {
+interface CoverageSchedulerConfig {
   ok: boolean;
   enabled: boolean;
   intervalMinutes: number;
-  mode: "incremental" | "all";
+  mode: string;
   lastRunAt: string | null;
-  lastRunSummary: LastRunSummary | null;
+  lastRunSummary: CoverageLastRunSummary | null;
+}
+
+interface TrafficLastRunSummary {
+  pages?: number;
+  totalClicks?: number;
+  totalImpressions?: number;
+  retiredThisRun?: number;
+  retiredTotal?: number;
+  durationMs?: number;
+  via?: string;
+  code?: string;
+  error?: string;
+}
+
+interface TrafficSchedulerConfig {
+  ok: boolean;
+  enabled: boolean;
+  intervalMinutes: number;
+  lastRunAt: string | null;
+  lastRunSummary: TrafficLastRunSummary | null;
 }
 
 interface SchedulerSettingsDialogProps {
@@ -38,8 +58,8 @@ interface SchedulerSettingsDialogProps {
 const INTERVAL_PRESETS = [
   { label: "每小时", value: 60 },
   { label: "每6小时", value: 360 },
+  { label: "每12小时", value: 720 },
   { label: "每天", value: 1440 },
-  { label: "每周", value: 10080 },
 ] as const;
 
 function humanInterval(min: number): string {
@@ -50,16 +70,10 @@ function humanInterval(min: number): string {
       ? h === 1 ? "每小时" : `每 ${h} 小时`
       : `每 ${min} 分钟`;
   }
-  if (min < 10080) {
-    const d = min / 1440;
-    return Number.isInteger(d)
-      ? d === 1 ? "每天" : `每 ${d} 天`
-      : `每 ${(min / 60).toFixed(1)} 小时`;
-  }
-  const w = min / 10080;
-  return Number.isInteger(w)
-    ? w === 1 ? "每周" : `每 ${w} 周`
-    : `每 ${(min / 1440).toFixed(1)} 天`;
+  const d = min / 1440;
+  return Number.isInteger(d)
+    ? d === 1 ? "每天" : `每 ${d} 天`
+    : `每 ${(min / 60).toFixed(1)} 小时`;
 }
 
 function formatRelative(iso: string): string {
@@ -100,12 +114,20 @@ function nextRunText(
   return `约 ${Math.floor(h / 24)} 天后`;
 }
 
-function summaryLine(s: LastRunSummary): string {
+function coverageSummaryLine(s: CoverageLastRunSummary): string {
   const parts: string[] = [];
   if (typeof s.inspected === "number") parts.push(`${s.inspected} 查`);
   if (typeof s.indexed === "number") parts.push(`${s.indexed} 收录`);
   if (typeof s.notIndexed === "number") parts.push(`${s.notIndexed} 未收录`);
   if (typeof s.failed === "number" && s.failed > 0) parts.push(`${s.failed} 失败`);
+  return parts.length > 0 ? parts.join(" / ") : "--";
+}
+
+function trafficSummaryLine(s: TrafficLastRunSummary): string {
+  const parts: string[] = [];
+  if (typeof s.pages === "number") parts.push(`${s.pages} 页`);
+  if (typeof s.totalClicks === "number") parts.push(`${s.totalClicks} 点击`);
+  if (typeof s.retiredTotal === "number" && s.retiredTotal > 0) parts.push(`退休 ${s.retiredTotal}`);
   return parts.length > 0 ? parts.join(" / ") : "--";
 }
 
@@ -123,29 +145,43 @@ export function SchedulerSettingsDialog({
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  // Server-side config snapshot (for status display & dirty detection)
-  const [config, setConfig] = useState<SchedulerConfig | null>(null);
+  // ── Coverage scheduler state ──
+  const [covConfig, setCovConfig] = useState<CoverageSchedulerConfig | null>(null);
+  const [covEnabled, setCovEnabled] = useState(false);
+  const [covInterval, setCovInterval] = useState(1440);
+  const [covIntervalInput, setCovIntervalInput] = useState("1440");
 
-  // Form state (editable)
-  const [enabled, setEnabled] = useState(false);
-  const [intervalMinutes, setIntervalMinutes] = useState(1440);
-  const [intervalInput, setIntervalInput] = useState("1440");
-  const [mode, setMode] = useState<"incremental" | "all">("incremental");
+  // ── Traffic scheduler state ──
+  const [trafConfig, setTrafConfig] = useState<TrafficSchedulerConfig | null>(null);
+  const [trafEnabled, setTrafEnabled] = useState(false);
+  const [trafInterval, setTrafInterval] = useState(1440);
+  const [trafIntervalInput, setTrafIntervalInput] = useState("1440");
 
-  /* ── Fetch current config on open ──────────────────────────────────── */
+  /* ── Fetch both configs on open ──────────────────────────────────── */
 
-  const fetchConfig = useCallback(async () => {
+  const fetchConfigs = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/indexing/scheduler-config");
-      const data = (await res.json()) as SchedulerConfig;
-      if (data.ok) {
-        setConfig(data);
-        setEnabled(data.enabled);
-        setIntervalMinutes(data.intervalMinutes);
-        setIntervalInput(String(data.intervalMinutes));
-        setMode(data.mode);
-      } else {
+      const [covRes, trafRes] = await Promise.all([
+        fetch("/api/indexing/scheduler-config"),
+        fetch("/api/indexing/traffic-scheduler-config"),
+      ]);
+      const covData = (await covRes.json()) as CoverageSchedulerConfig;
+      const trafData = (await trafRes.json()) as TrafficSchedulerConfig;
+
+      if (covData.ok) {
+        setCovConfig(covData);
+        setCovEnabled(covData.enabled);
+        setCovInterval(covData.intervalMinutes);
+        setCovIntervalInput(String(covData.intervalMinutes));
+      }
+      if (trafData.ok) {
+        setTrafConfig(trafData);
+        setTrafEnabled(trafData.enabled);
+        setTrafInterval(trafData.intervalMinutes);
+        setTrafIntervalInput(String(trafData.intervalMinutes));
+      }
+      if (!covData.ok && !trafData.ok) {
         toast.error("无法加载定时配置");
       }
     } catch {
@@ -156,49 +192,71 @@ export function SchedulerSettingsDialog({
   }, []);
 
   useEffect(() => {
-    if (open) fetchConfig();
-  }, [open, fetchConfig]);
+    if (open) fetchConfigs();
+  }, [open, fetchConfigs]);
 
   /* ── Interval input handlers ───────────────────────────────────────── */
 
-  const handleIntervalChange = (raw: string) => {
-    setIntervalInput(raw);
-    const n = parseInt(raw, 10);
-    if (!Number.isNaN(n) && n >= 1) {
-      setIntervalMinutes(n);
-    }
+  const MAX_INTERVAL = 1440;
+
+  const handleCovIntervalBlur = () => {
+    const clamped = Math.max(5, Math.min(MAX_INTERVAL, covInterval));
+    setCovInterval(clamped);
+    setCovIntervalInput(String(clamped));
   };
 
-  const handleIntervalBlur = () => {
-    const clamped = Math.max(5, Math.min(43200, intervalMinutes));
-    setIntervalMinutes(clamped);
-    setIntervalInput(String(clamped));
+  const handleTrafIntervalBlur = () => {
+    const clamped = Math.max(5, Math.min(MAX_INTERVAL, trafInterval));
+    setTrafInterval(clamped);
+    setTrafIntervalInput(String(clamped));
   };
 
-  /* ── Save ───────────────────────────────────────────────────────────── */
+  /* ── Save both ─────────────────────────────────────────────────────── */
 
   const handleSave = async () => {
     if (saving) return;
-    const clamped = Math.max(5, Math.min(43200, intervalMinutes));
+    const covClamped = Math.max(5, Math.min(MAX_INTERVAL, covInterval));
+    const trafClamped = Math.max(5, Math.min(MAX_INTERVAL, trafInterval));
     setSaving(true);
     try {
-      const res = await fetch("/api/indexing/scheduler-config", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ enabled, intervalMinutes: clamped, mode }),
-      });
-      const data = (await res.json()) as SchedulerConfig & { message?: string };
-      if (!res.ok || !data.ok) {
-        toast.error(data.message || "保存失败");
+      const [covRes, trafRes] = await Promise.all([
+        fetch("/api/indexing/scheduler-config", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ enabled: covEnabled, intervalMinutes: covClamped }),
+        }),
+        fetch("/api/indexing/traffic-scheduler-config", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ enabled: trafEnabled, intervalMinutes: trafClamped }),
+        }),
+      ]);
+      const covData = (await covRes.json()) as CoverageSchedulerConfig & { message?: string };
+      const trafData = (await trafRes.json()) as TrafficSchedulerConfig & { message?: string };
+
+      if ((!covRes.ok || !covData.ok) && (!trafRes.ok || !trafData.ok)) {
+        toast.error(covData.message || trafData.message || "保存失败");
         return;
       }
-      // Update local state with server response
-      setConfig(data);
-      setEnabled(data.enabled);
-      setIntervalMinutes(data.intervalMinutes);
-      setIntervalInput(String(data.intervalMinutes));
-      setMode(data.mode);
-      toast.success("定时设置已保存");
+      if (!covRes.ok || !covData.ok) {
+        toast.error(covData.message || "收录定时保存失败");
+      } else {
+        setCovConfig(covData);
+        setCovEnabled(covData.enabled);
+        setCovInterval(covData.intervalMinutes);
+        setCovIntervalInput(String(covData.intervalMinutes));
+      }
+      if (!trafRes.ok || !trafData.ok) {
+        toast.error(trafData.message || "流量定时保存失败");
+      } else {
+        setTrafConfig(trafData);
+        setTrafEnabled(trafData.enabled);
+        setTrafInterval(trafData.intervalMinutes);
+        setTrafIntervalInput(String(trafData.intervalMinutes));
+      }
+      if ((covRes.ok && covData.ok) && (trafRes.ok && trafData.ok)) {
+        toast.success("定时设置已保存");
+      }
     } catch {
       toast.error("保存请求失败");
     } finally {
@@ -206,27 +264,177 @@ export function SchedulerSettingsDialog({
     }
   };
 
-  /* ── Derived display values ────────────────────────────────────────── */
+  /* ── Derived display values (Coverage) ─────────────────────────────── */
 
-  const lastRunDisplay = config?.lastRunAt
-    ? formatRelative(config.lastRunAt)
+  const covLastRunDisplay = covConfig?.lastRunAt
+    ? formatRelative(covConfig.lastRunAt)
     : "尚未运行";
-  const lastRunTooltip = config?.lastRunAt
-    ? formatAbsolute(config.lastRunAt)
+  const covLastRunTooltip = covConfig?.lastRunAt
+    ? formatAbsolute(covConfig.lastRunAt)
     : undefined;
-
-  const hasSummaryError =
-    config?.lastRunSummary?.code || config?.lastRunSummary?.error;
-  const summaryDisplay = config?.lastRunSummary
-    ? hasSummaryError
-      ? null // rendered separately as error
-      : summaryLine(config.lastRunSummary)
+  const covHasSummaryError =
+    covConfig?.lastRunSummary?.code || covConfig?.lastRunSummary?.error;
+  const covSummaryDisplay = covConfig?.lastRunSummary
+    ? covHasSummaryError
+      ? null
+      : coverageSummaryLine(covConfig.lastRunSummary)
     : "--";
+  const covNextDisplay = nextRunText(
+    covConfig?.lastRunAt ?? null,
+    covInterval,
+    covEnabled,
+  );
 
-  const nextDisplay = nextRunText(
-    config?.lastRunAt ?? null,
-    intervalMinutes,
-    enabled,
+  /* ── Derived display values (Traffic) ──────────────────────────────── */
+
+  const trafLastRunDisplay = trafConfig?.lastRunAt
+    ? formatRelative(trafConfig.lastRunAt)
+    : "尚未运行";
+  const trafLastRunTooltip = trafConfig?.lastRunAt
+    ? formatAbsolute(trafConfig.lastRunAt)
+    : undefined;
+  const trafHasSummaryError =
+    trafConfig?.lastRunSummary?.code || trafConfig?.lastRunSummary?.error;
+  const trafSummaryDisplay = trafConfig?.lastRunSummary
+    ? trafHasSummaryError
+      ? null
+      : trafficSummaryLine(trafConfig.lastRunSummary)
+    : "--";
+  const trafNextDisplay = nextRunText(
+    trafConfig?.lastRunAt ?? null,
+    trafInterval,
+    trafEnabled,
+  );
+
+  /* ── Shared sub-components ─────────────────────────────────────────── */
+
+  const renderIntervalInput = (
+    value: string,
+    parsed: number,
+    onChange: (raw: string) => void,
+    onBlur: () => void,
+  ) => (
+    <div className="flex flex-col gap-2">
+      <label
+        className="font-sc tracking-[0.22em] text-manor-brass leading-none"
+        style={{ fontFamily: sc, fontSize: 10 }}
+      >
+        INTERVALLUM
+      </label>
+      <div className="flex items-center gap-2">
+        <input
+          type="number"
+          min={5}
+          max={MAX_INTERVAL}
+          step={1}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          onBlur={onBlur}
+          className="w-24 bg-manor-void/60 border border-manor-brass/30 px-3 py-2 text-sm text-manor-ink placeholder:text-manor-inkFaint focus:outline-none focus:border-manor-brass focus:ring-1 focus:ring-manor-brass/30 tabnum"
+          style={{ borderRadius: 3, fontFamily: serif }}
+        />
+        <span className="text-xs text-manor-inkDim" style={{ fontFamily: serif }}>
+          分钟
+        </span>
+        <span className="text-manor-inkFaint text-xs mx-1">=</span>
+        <span className="text-xs text-manor-brassHi" style={{ fontFamily: serif }}>
+          {humanInterval(parsed)}
+        </span>
+      </div>
+      <div className="flex items-center gap-1.5 flex-wrap">
+        {INTERVAL_PRESETS.map((p) => (
+          <button
+            key={p.value}
+            type="button"
+            onClick={() => {
+              onChange(String(p.value));
+              // Also update parsed value directly since onChange only parses
+              // but the parent may need the clamped value
+            }}
+            className={[
+              "px-2.5 py-1 text-[11px] rounded border transition-colors whitespace-nowrap",
+              parsed === p.value
+                ? "border-manor-brassHi/60 text-manor-brassHi bg-manor-brassDim/15"
+                : "border-manor-brass/30 text-manor-inkDim hover:text-manor-brassHi hover:border-manor-brass/55",
+            ].join(" ")}
+            style={{ fontFamily: sc, letterSpacing: "0.06em" }}
+          >
+            {p.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+
+  const renderStatus = (
+    lastRunDisplay: string,
+    lastRunTooltip: string | undefined,
+    hasSummaryError: string | undefined | false | null,
+    summaryDisplay: string | null,
+    summaryErrorText: string | undefined,
+    nextDisplay: string,
+    enabled: boolean,
+  ) => (
+    <div className="flex flex-col gap-2">
+      <label
+        className="font-sc tracking-[0.22em] text-manor-brass leading-none"
+        style={{ fontFamily: sc, fontSize: 10 }}
+      >
+        STATUS
+      </label>
+      <div
+        className="px-3 py-2.5 rounded flex flex-col gap-1.5 text-[11.5px]"
+        style={{
+          background:
+            "linear-gradient(180deg, rgba(20,42,28,.85) 0%, rgba(10,24,16,.92) 100%)",
+          border: "1px solid rgba(201,169,97,.2)",
+        }}
+      >
+        <div className="flex items-center justify-between">
+          <span className="text-manor-inkDim" style={{ fontFamily: serif }}>
+            上次运行
+          </span>
+          <span
+            className="text-manor-brassHi tabnum"
+            style={{ fontFamily: serif }}
+            title={lastRunTooltip}
+          >
+            {lastRunDisplay}
+          </span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-manor-inkDim" style={{ fontFamily: serif }}>
+            上次结果
+          </span>
+          {hasSummaryError ? (
+            <span
+              className="text-manor-oxbloodHi text-[11px]"
+              style={{ fontFamily: serif }}
+            >
+              上次失败：{summaryErrorText || "未知错误"}
+            </span>
+          ) : (
+            <span className="text-manor-ink tabnum" style={{ fontFamily: serif }}>
+              {summaryDisplay}
+            </span>
+          )}
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-manor-inkDim" style={{ fontFamily: serif }}>
+            下次预计
+          </span>
+          <span
+            className={[
+              "tabnum",
+              enabled ? "text-manor-brassHi" : "text-manor-inkFaint",
+            ].join(" ")}
+            style={{ fontFamily: serif }}
+          >
+            {nextDisplay}
+          </span>
+        </div>
+      </div>
+    </div>
   );
 
   /* ── Render ─────────────────────────────────────────────────────────── */
@@ -242,15 +450,15 @@ export function SchedulerSettingsDialog({
           }}
         />
         <Dialog.Popup
-          className="fixed z-50 top-1/2 left-1/2 w-full max-w-[460px] transition-all duration-200 data-starting-style:opacity-0 data-starting-style:scale-95 data-ending-style:opacity-0 data-ending-style:scale-95 outline-none"
+          className="fixed z-50 top-1/2 left-1/2 w-full max-w-[500px] max-h-[85vh] transition-all duration-200 data-starting-style:opacity-0 data-starting-style:scale-95 data-ending-style:opacity-0 data-ending-style:scale-95 outline-none"
           style={{
             transform: "translate(-50%, -50%)",
             borderRadius: 6,
           }}
         >
           <div
-            className="glass-panel-brass"
-            style={{ borderRadius: 6 }}
+            className="glass-panel-brass overflow-y-auto"
+            style={{ borderRadius: 6, maxHeight: "85vh" }}
           >
             <div className="p-5 flex flex-col gap-4">
               {/* ── Header ───────────────────────────────────── */}
@@ -261,7 +469,7 @@ export function SchedulerSettingsDialog({
                     style={{ fontFamily: sc, fontSize: 10 }}
                   >
                     <Dialog.Description className="sr-only">
-                      配置定时收录检查的启用状态、检查频率和检查范围
+                      配置定时收录检查和定时流量更新的启用状态与检查频率
                     </Dialog.Description>
                   </div>
                   <Dialog.Title
@@ -274,7 +482,7 @@ export function SchedulerSettingsDialog({
                     >
                       ◆ HOROLOGIUM · 定时设置
                     </span>
-                    定时收录检查
+                    自动调度
                   </Dialog.Title>
                 </div>
                 <Dialog.Close
@@ -287,6 +495,14 @@ export function SchedulerSettingsDialog({
 
               <span className="brass-divider opacity-60 -mt-1" />
 
+              {/* 总说明 */}
+              <p
+                className="text-[10.5px] text-manor-inkDim leading-snug -mt-1"
+                style={{ fontFamily: serif }}
+              >
+                两个定时都保证：服务器在线时，数据最多 24 小时就会自动刷新一次（间隔上限 24h）
+              </p>
+
               {loading ? (
                 <div
                   className="py-8 text-center text-manor-inkDim text-sm"
@@ -296,199 +512,119 @@ export function SchedulerSettingsDialog({
                 </div>
               ) : (
                 <>
-                  {/* ── 1. 启用开关 ──────────────────────────── */}
-                  <div className="flex items-center gap-3">
-                    <SwitchInline
-                      checked={enabled}
-                      onChange={setEnabled}
-                      label="启用定时收录"
-                    />
-                    <span
-                      className="text-sm text-manor-ink"
-                      style={{ fontFamily: serif }}
-                    >
-                      {enabled ? "启用定时收录" : "定时收录已关闭"}
-                    </span>
-                  </div>
-
-                  {/* ── 2. 检查频率 ──────────────────────────── */}
-                  <div className="flex flex-col gap-2">
+                  {/* ══════════════════════════════════════════════ */}
+                  {/* ── 区块 A：定时收录 ─────────────────────────── */}
+                  {/* ══════════════════════════════════════════════ */}
+                  <div className="flex flex-col gap-3">
                     <label
-                      className="font-sc tracking-[0.22em] text-manor-brass leading-none"
-                      style={{ fontFamily: sc, fontSize: 10 }}
+                      className="font-sc tracking-[0.22em] text-manor-brassHi leading-none"
+                      style={{ fontFamily: sc, fontSize: 11 }}
                     >
-                      INTERVALLUM · 检查频率
+                      I · 定时收录
                     </label>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="number"
-                        min={5}
-                        max={43200}
-                        step={1}
-                        value={intervalInput}
-                        onChange={(e) => handleIntervalChange(e.target.value)}
-                        onBlur={handleIntervalBlur}
-                        className="w-24 bg-manor-void/60 border border-manor-brass/30 px-3 py-2 text-sm text-manor-ink placeholder:text-manor-inkFaint focus:outline-none focus:border-manor-brass focus:ring-1 focus:ring-manor-brass/30 tabnum"
-                        style={{ borderRadius: 3, fontFamily: serif }}
+
+                    {/* 启用开关 */}
+                    <div className="flex items-center gap-3">
+                      <SwitchInline
+                        checked={covEnabled}
+                        onChange={setCovEnabled}
+                        label="启用定时收录"
                       />
                       <span
-                        className="text-xs text-manor-inkDim"
+                        className="text-sm text-manor-ink"
                         style={{ fontFamily: serif }}
                       >
-                        分钟
-                      </span>
-                      <span className="text-manor-inkFaint text-xs mx-1">=</span>
-                      <span
-                        className="text-xs text-manor-brassHi"
-                        style={{ fontFamily: serif }}
-                      >
-                        {humanInterval(intervalMinutes)}
+                        {covEnabled ? "启用定时收录" : "定时收录已关闭"}
                       </span>
                     </div>
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      {INTERVAL_PRESETS.map((p) => (
-                        <button
-                          key={p.value}
-                          type="button"
-                          onClick={() => {
-                            setIntervalMinutes(p.value);
-                            setIntervalInput(String(p.value));
-                          }}
-                          className={[
-                            "px-2.5 py-1 text-[11px] rounded border transition-colors whitespace-nowrap",
-                            intervalMinutes === p.value
-                              ? "border-manor-brassHi/60 text-manor-brassHi bg-manor-brassDim/15"
-                              : "border-manor-brass/30 text-manor-inkDim hover:text-manor-brassHi hover:border-manor-brass/55",
-                          ].join(" ")}
-                          style={{ fontFamily: sc, letterSpacing: "0.06em" }}
-                        >
-                          {p.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
 
-                  {/* ── 3. 检查范围 ──────────────────────────── */}
-                  <div className="flex flex-col gap-2">
-                    <label
-                      className="font-sc tracking-[0.22em] text-manor-brass leading-none"
-                      style={{ fontFamily: sc, fontSize: 10 }}
-                    >
-                      MODUS · 检查范围
-                    </label>
-                    <div
-                      className="inline-flex items-center border border-manor-brass/30 rounded-md overflow-hidden self-start"
-                      style={{
-                        background:
-                          "linear-gradient(180deg, rgba(20,42,28,.95) 0%, rgba(8,20,13,.97) 100%)",
-                        boxShadow:
-                          "inset 0 1px 0 rgba(224,197,122,.18), inset 0 -1px 0 rgba(0,0,0,.45)",
-                      }}
-                    >
-                      <button
-                        type="button"
-                        onClick={() => setMode("all")}
-                        className={[
-                          "h-8 px-3 text-[11.5px] transition-colors border-r border-manor-brass/15 whitespace-nowrap",
-                          mode === "all"
-                            ? "text-manor-brassHi bg-manor-brassDim/15"
-                            : "text-manor-inkDim hover:text-manor-brassHi hover:bg-manor-brassDim/10",
-                        ].join(" ")}
-                        style={{ fontFamily: sc, letterSpacing: "0.06em" }}
-                      >
-                        全部重查
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setMode("incremental")}
-                        className={[
-                          "h-8 px-3 text-[11.5px] transition-colors whitespace-nowrap",
-                          mode === "incremental"
-                            ? "text-manor-brassHi bg-manor-brassDim/15"
-                            : "text-manor-inkDim hover:text-manor-brassHi hover:bg-manor-brassDim/10",
-                        ].join(" ")}
-                        style={{ fontFamily: sc, letterSpacing: "0.06em" }}
-                      >
-                        只查未检查
-                      </button>
-                    </div>
+                    {/* 频率 */}
+                    {renderIntervalInput(
+                      covIntervalInput,
+                      covInterval,
+                      (raw) => {
+                        setCovIntervalInput(raw);
+                        const n = parseInt(raw, 10);
+                        if (!Number.isNaN(n) && n >= 1) setCovInterval(n);
+                      },
+                      handleCovIntervalBlur,
+                    )}
+
+                    {/* 按需分级说明（替换原 MODUS 切换） */}
                     <p
-                      className="text-[10.5px] text-manor-inkFaint leading-snug"
-                      style={{ fontFamily: serif }}
-                    >
-                      {mode === "all"
-                        ? "全部重查：每次重新检查所有页面的收录状态，更全面但耗时更长。"
-                        : "只查未检查：每次只检查尚未检查过的页面，速度更快，适合日常巡检。"}
-                    </p>
-                  </div>
-
-                  {/* ── 4. 运行状态（只读） ──────────────────── */}
-                  <div className="flex flex-col gap-2">
-                    <label
-                      className="font-sc tracking-[0.22em] text-manor-brass leading-none"
-                      style={{ fontFamily: sc, fontSize: 10 }}
-                    >
-                      STATUS · 运行状态
-                    </label>
-                    <div
-                      className="px-3 py-2.5 rounded flex flex-col gap-1.5 text-[11.5px]"
+                      className="text-[10.5px] text-manor-inkDim leading-snug px-3 py-2 rounded"
                       style={{
+                        fontFamily: serif,
                         background:
-                          "linear-gradient(180deg, rgba(20,42,28,.85) 0%, rgba(10,24,16,.92) 100%)",
-                        border: "1px solid rgba(201,169,97,.2)",
+                          "linear-gradient(180deg, rgba(20,42,28,.6) 0%, rgba(10,24,16,.7) 100%)",
+                        border: "1px solid rgba(201,169,97,.15)",
                       }}
                     >
-                      {/* Last run */}
-                      <div className="flex items-center justify-between">
-                        <span className="text-manor-inkDim" style={{ fontFamily: serif }}>
-                          上次运行
-                        </span>
-                        <span
-                          className="text-manor-brassHi tabnum"
-                          style={{ fontFamily: serif }}
-                          title={lastRunTooltip}
-                        >
-                          {lastRunDisplay}
-                        </span>
-                      </div>
-                      {/* Last result */}
-                      <div className="flex items-center justify-between">
-                        <span className="text-manor-inkDim" style={{ fontFamily: serif }}>
-                          上次结果
-                        </span>
-                        {hasSummaryError ? (
-                          <span
-                            className="text-manor-oxbloodHi text-[11px]"
-                            style={{ fontFamily: serif }}
-                            title={`code: ${config?.lastRunSummary?.code ?? "N/A"}`}
-                          >
-                            上次失败：{config?.lastRunSummary?.error || config?.lastRunSummary?.code || "未知错误"}
-                          </span>
-                        ) : (
-                          <span
-                            className="text-manor-ink tabnum"
-                            style={{ fontFamily: serif }}
-                          >
-                            {summaryDisplay}
-                          </span>
-                        )}
-                      </div>
-                      {/* Next estimated */}
-                      <div className="flex items-center justify-between">
-                        <span className="text-manor-inkDim" style={{ fontFamily: serif }}>
-                          下次预计
-                        </span>
-                        <span
-                          className={[
-                            "tabnum",
-                            enabled ? "text-manor-brassHi" : "text-manor-inkFaint",
-                          ].join(" ")}
-                          style={{ fontFamily: serif }}
-                        >
-                          {nextDisplay}
-                        </span>
-                      </div>
+                      按需分级：没查过的立即查 · 未收录的每 24 小时复查 · 已收录的每 7 天兜底复查（防掉出索引）
+                    </p>
+
+                    {/* 运行状态 */}
+                    {renderStatus(
+                      covLastRunDisplay,
+                      covLastRunTooltip,
+                      covHasSummaryError,
+                      covSummaryDisplay,
+                      covConfig?.lastRunSummary?.error || covConfig?.lastRunSummary?.code,
+                      covNextDisplay,
+                      covEnabled,
+                    )}
+                  </div>
+
+                  <span className="brass-divider opacity-40" />
+
+                  {/* ══════════════════════════════════════════════ */}
+                  {/* ── 区块 B：定时更新（流量） ──────────────────── */}
+                  {/* ══════════════════════════════════════════════ */}
+                  <div className="flex flex-col gap-3">
+                    <label
+                      className="font-sc tracking-[0.22em] text-manor-brassHi leading-none"
+                      style={{ fontFamily: sc, fontSize: 11 }}
+                    >
+                      II · 定时更新
+                    </label>
+
+                    {/* 启用开关 */}
+                    <div className="flex items-center gap-3">
+                      <SwitchInline
+                        checked={trafEnabled}
+                        onChange={setTrafEnabled}
+                        label="启用定时更新"
+                      />
+                      <span
+                        className="text-sm text-manor-ink"
+                        style={{ fontFamily: serif }}
+                      >
+                        {trafEnabled ? "启用定时更新" : "定时更新已关闭"}
+                      </span>
                     </div>
+
+                    {/* 频率 */}
+                    {renderIntervalInput(
+                      trafIntervalInput,
+                      trafInterval,
+                      (raw) => {
+                        setTrafIntervalInput(raw);
+                        const n = parseInt(raw, 10);
+                        if (!Number.isNaN(n) && n >= 1) setTrafInterval(n);
+                      },
+                      handleTrafIntervalBlur,
+                    )}
+
+                    {/* 运行状态 */}
+                    {renderStatus(
+                      trafLastRunDisplay,
+                      trafLastRunTooltip,
+                      trafHasSummaryError,
+                      trafSummaryDisplay,
+                      trafConfig?.lastRunSummary?.error || trafConfig?.lastRunSummary?.code,
+                      trafNextDisplay,
+                      trafEnabled,
+                    )}
                   </div>
 
                   {/* ── Footer buttons ───────────────────────── */}

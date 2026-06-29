@@ -9,12 +9,13 @@ import {
   type SortingState,
 } from "@tanstack/react-table";
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Sparkline } from "../../keywords/_components/_utils";
 import type { PageRow } from "./_mock";
 import {
-  IndexStateDot,
-  indexStateLabel,
-  coverageLabelColor,
+  resolveStatusLight,
+  StatusLightDot,
+  StatusLegendContent,
   PageTypeChip,
   LangSiteCell,
   formatPosition,
@@ -25,6 +26,75 @@ import {
 interface PageTableProps {
   data: PageRow[];
   onRowClick: (page: PageRow) => void;
+}
+
+// ─── 状态图例弹层（portal 到 body，避免被 th overflow-hidden 裁切） ───
+function StatusLegendPopover() {
+  const [open, setOpen] = useState(false);
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const dropRef = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
+
+  // 点击外部关闭
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      const target = e.target as Node;
+      if (btnRef.current?.contains(target)) return;
+      if (dropRef.current?.contains(target)) return;
+      setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  const toggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!open && btnRef.current) {
+      const r = btnRef.current.getBoundingClientRect();
+      setPos({ top: r.bottom + 4, left: r.left });
+    }
+    setOpen((v) => !v);
+  };
+
+  return (
+    <>
+      <button
+        ref={btnRef}
+        type="button"
+        onClick={toggle}
+        title="状态灯色说明"
+        aria-label="状态灯色说明"
+        className="inline-flex items-center justify-center w-3.5 h-3.5 rounded-full text-manor-brassDim hover:text-manor-brassHi transition-colors"
+        style={{ fontSize: 8, lineHeight: 1, border: "1px solid rgba(212,179,111,.35)" }}
+      >
+        ?
+      </button>
+      {open && createPortal(
+        <div
+          ref={dropRef}
+          className="fixed z-[9999] rounded border border-manor-brass/40 shadow-lg"
+          style={{
+            top: pos.top,
+            left: pos.left,
+            background: "linear-gradient(180deg, rgba(18,38,26,.98) 0%, rgba(8,20,13,.99) 100%)",
+            boxShadow: "0 8px 24px rgba(0,0,0,.5), inset 0 1px 0 rgba(224,197,122,.15)",
+            minWidth: 320,
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div
+            className="px-2.5 py-1.5 border-b border-manor-brass/25 flex items-center gap-1.5"
+            style={{ fontFamily: "var(--font-sc), 'Cormorant SC', serif", fontSize: 9.5, letterSpacing: "0.24em" }}
+          >
+            <span className="text-manor-brassHi/80">LEGENDA · 状态说明</span>
+          </div>
+          <StatusLegendContent />
+        </div>,
+        document.body,
+      )}
+    </>
+  );
 }
 
 export function PageTable({ data, onRowClick }: PageTableProps) {
@@ -38,21 +108,19 @@ export function PageTable({ data, onRowClick }: PageTableProps) {
   const columns: ColumnDef<PageRow>[] = [
     {
       accessorKey: "indexState",
-      header: "状态",
-      size: 90,
+      header: () => (
+        <span className="inline-flex items-center gap-1">
+          状态
+          <StatusLegendPopover />
+        </span>
+      ),
+      size: 48,
       cell: ({ row }) => {
         const p = row.original;
-        const cl = p.coverageLabel;
-        const showCl = p.indexState !== "indexed" && !!cl;
+        const light = resolveStatusLight(p);
         return (
-          <span className="flex items-center gap-1.5" title={p.coverageText ?? indexStateLabel(p.indexState)}>
-            <IndexStateDot state={p.indexState} size={8} />
-            <span className="flex flex-col leading-tight">
-              <span className="text-[10px] text-manor-ink/70">{indexStateLabel(p.indexState)}</span>
-              {showCl && (
-                <span className={`text-[9px] truncate ${coverageLabelColor(cl)}`}>{cl}</span>
-              )}
-            </span>
+          <span className="flex items-center justify-center">
+            <StatusLightDot light={light} size={9} />
           </span>
         );
       },
@@ -110,9 +178,21 @@ export function PageTable({ data, onRowClick }: PageTableProps) {
         // indexed / discovered 的页即使 clicks=0 也是真实的"暂无点击"，要显示数字。
         const v = getValue() as number;
         const hasData = row.original.indexState === "indexed" || row.original.indexState === "discovered";
+        const ts = row.original.trafficSplit;
+        // 仅当 trafficSplit 存在且 own+bridged 非全零时显示拆分行
+        const showSplit = hasData && ts && (ts.own.clicks > 0 || ts.bridged.clicks > 0);
         return (
-          <span className="text-xs text-manor-ink tabular-nums">
-            {hasData ? v.toLocaleString() : <span className="text-manor-inkGhost">—</span>}
+          <span className="flex flex-col leading-tight">
+            <span className="text-xs text-manor-ink tabular-nums">
+              {hasData ? v.toLocaleString() : <span className="text-manor-inkGhost">—</span>}
+            </span>
+            {showSplit && (
+              <span className="text-[9px] tabular-nums leading-none mt-0.5">
+                <span className="text-manor-brassHi/85">自 {ts.own.clicks.toLocaleString()}</span>
+                <span className="text-manor-inkGhost mx-0.5">/</span>
+                <span className="text-manor-inkDim">桥 {ts.bridged.clicks.toLocaleString()}</span>
+              </span>
+            )}
           </span>
         );
       },

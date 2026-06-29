@@ -26,6 +26,13 @@ export type PageRow = {
   // 收录覆盖详情（来自 GSC URL Inspection）。真实页由 coverage-loader 写入，合成/mock 节点不带。
   coverageText?: string;  // Google 原话直传（如 "Discovered - currently not indexed"）
   coverageLabel?: string; // 由 coverageText 派生的中文短标，给 UI 显示（如「已发现·未收录」）
+  // 流量拆分：own=本页自身 url_norm 当窗口流量；bridged=旧址按 308 归并继承来的流量。
+  // clicks/impressions/ctr/position 仍是 own+bridged 的 total（聚合口径不变）；本字段额外给出两路明细。
+  // 仅 daily 路径（gsc_page_daily 可用）才填；批次回退路径 / 合成目录节点为 undefined（前端只显示 total）。
+  trafficSplit?: {
+    own:     { clicks: number; impressions: number; ctr: number; position: number };
+    bridged: { clicks: number; impressions: number; ctr: number; position: number };
+  };
   trend12m: number[];   // 12 月 clicks 趋势
   lastSync: string;     // ISO 8601 — 客户端 new Date() 解析
   parentId?: string;    // 显式所属：spoke → pillar / 子枢纽 → 上级枢纽

@@ -1,49 +1,49 @@
-// GET/PUT /api/indexing/scheduler-config
+// GET/PUT /api/indexing/traffic-scheduler-config
 //
-// 应用内「收录定时检查」配置读写（app_scheduler_config 单行，id=1）。
-// 由前端设置面板调用：GET 读当前配置，PUT 改 enabled / intervalMinutes / mode（可自由编辑）。
+// 应用内「定时更新（流量）」配置读写（app_traffic_scheduler_config 单行，id=1）。
+// 与「定时收录」(scheduler-config) 并列的第二个定时；由前端设置面板调用：
+// GET 读当前配置，PUT 改 enabled / intervalMinutes（无 mode）。
 //
-// 鉴权照抄 inspect-coverage/route.ts。
-// 刻意【不加】生产 403 守卫：这只是改 PG 一行配置，生产也该能改；真正跑收录时调度器自己会判 key。
+// 鉴权照抄 scheduler-config/route.ts。
+// 刻意【不加】生产 403 守卫：这只是改 PG 一行配置，生产也该能改；真正跑更新时调度器自己会判 key。
 
 import { NextResponse, type NextRequest } from "next/server";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { db } from "@/db/client";
-import { appSchedulerConfig, type AppSchedulerConfig } from "@/db/schema";
+import { appTrafficSchedulerConfig, type AppTrafficSchedulerConfig } from "@/db/schema";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// intervalMinutes 范围 5..43200（5 分钟 ~ 30 天）。只校验传入字段，全部可选（部分更新）。
+// intervalMinutes 范围 5..1440（5 分钟 ~ 24h）。上限 24h 即"服务器在线超 24h 自动补更"的兜底周期。
+// 只校验传入字段，全部可选（部分更新）。
 const PutSchema = z.object({
   enabled: z.boolean().optional(),
   intervalMinutes: z.number().int().min(5).max(1440).optional(),
-  mode: z.enum(["incremental", "all"]).optional(),
 });
 
-function toWire(row: AppSchedulerConfig) {
+function toWire(row: AppTrafficSchedulerConfig) {
   return {
     ok: true as const,
     enabled: row.enabled,
     intervalMinutes: row.intervalMinutes,
-    mode: row.mode,
     lastRunAt: row.lastRunAt ? row.lastRunAt.toISOString() : null,
     lastRunSummary: row.lastRunSummary ?? null,
   };
 }
 
-async function readConfigRow(): Promise<AppSchedulerConfig | undefined> {
+async function readConfigRow(): Promise<AppTrafficSchedulerConfig | undefined> {
   const rows = await db
     .select()
-    .from(appSchedulerConfig)
-    .where(eq(appSchedulerConfig.id, 1));
+    .from(appTrafficSchedulerConfig)
+    .where(eq(appTrafficSchedulerConfig.id, 1));
   return rows[0];
 }
 
 export async function GET() {
-  // ── 鉴权（照抄 inspect-coverage/route.ts） ──
+  // ── 鉴权（照抄 scheduler-config/route.ts） ──
   const session = await auth();
   if (!session) {
     return NextResponse.json(
@@ -68,7 +68,7 @@ export async function GET() {
 }
 
 export async function PUT(req: NextRequest) {
-  // ── 鉴权（照抄 inspect-coverage/route.ts） ──
+  // ── 鉴权（照抄 scheduler-config/route.ts） ──
   const session = await auth();
   if (!session) {
     return NextResponse.json(
@@ -97,16 +97,15 @@ export async function PUT(req: NextRequest) {
   const data = parsed.data;
 
   // 只更传入字段 + updatedAt=now()。
-  const patch: Partial<typeof appSchedulerConfig.$inferInsert> = { updatedAt: new Date() };
+  const patch: Partial<typeof appTrafficSchedulerConfig.$inferInsert> = { updatedAt: new Date() };
   if (data.enabled !== undefined) patch.enabled = data.enabled;
   if (data.intervalMinutes !== undefined) patch.intervalMinutes = data.intervalMinutes;
-  if (data.mode !== undefined) patch.mode = data.mode;
 
   try {
     const updated = await db
-      .update(appSchedulerConfig)
+      .update(appTrafficSchedulerConfig)
       .set(patch)
-      .where(eq(appSchedulerConfig.id, 1))
+      .where(eq(appTrafficSchedulerConfig.id, 1))
       .returning();
     const row = updated[0];
     if (!row) {

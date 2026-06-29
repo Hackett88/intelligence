@@ -1,5 +1,5 @@
 import {
-  pgTable, text, integer, real, timestamp, serial, boolean, jsonb, index, uuid, varchar, doublePrecision, bigint, bigserial, uniqueIndex
+  pgTable, text, integer, real, timestamp, serial, boolean, jsonb, index, uuid, varchar, doublePrecision, bigint, bigserial, uniqueIndex, date, primaryKey
 } from "drizzle-orm/pg-core";
 
 // ---- Main keyword table (mirrors N8N keywords_pool DataTable) ----
@@ -310,3 +310,45 @@ export const appSchedulerConfig = pgTable("app_scheduler_config", {
 
 export type AppSchedulerConfig    = typeof appSchedulerConfig.$inferSelect;
 export type NewAppSchedulerConfig = typeof appSchedulerConfig.$inferInsert;
+
+// 应用内「定时更新（流量）」配置（2026-06-28）——与 app_scheduler_config 并列的第二个定时。
+// 单行表 CHECK(id=1)，手写幂等 DDL，禁 drizzle-kit。
+export const appTrafficSchedulerConfig = pgTable("app_traffic_scheduler_config", {
+  id:              integer("id").primaryKey().default(1),
+  enabled:         boolean("enabled").notNull().default(false),
+  intervalMinutes: integer("interval_minutes").notNull().default(1440),
+  lastRunAt:       timestamp("last_run_at", { withTimezone: true }),
+  lastRunSummary:  jsonb("last_run_summary"),
+  updatedAt:       timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+export type AppTrafficSchedulerConfig    = typeof appTrafficSchedulerConfig.$inferSelect;
+export type NewAppTrafficSchedulerConfig = typeof appTrafficSchedulerConfig.$inferInsert;
+
+// ────────────────────────────────────────────────────────────────────────────
+// GSC 每页每天流量明细（T2，2026-06-28）
+// 地基：任一窗口（7/28/90 天等）的流量 = gsc_page_daily 按 date 求和最近 N 天。
+// 取数 dimensions:["page","date"]；按 normalizeForMatch(fullUrl) 归一化为主键之一，
+// 桥(coverage-loader)直接按 url_norm 匹配重定向图。
+// sum_position = Σ(position*impressions) 当天 —— 窗口加权位置 = Σsum_position / Σimpressions。
+// 手写幂等 CREATE TABLE IF NOT EXISTS 直接执行，此定义仅供 ORM 查询，禁 drizzle-kit。
+// ────────────────────────────────────────────────────────────────────────────
+
+export const gscPageDaily = pgTable(
+  "gsc_page_daily",
+  {
+    urlNorm:     text("url_norm").notNull(),            // normalizeForMatch(fullUrl)
+    fullUrl:     text("full_url").notNull(),
+    date:        date("date", { mode: "string" }).notNull(),
+    clicks:      integer("clicks").notNull().default(0),
+    impressions: integer("impressions").notNull().default(0),
+    sumPosition: doublePrecision("sum_position").notNull().default(0), // Σ(position*impressions) 当天
+    updatedAt:   timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    pk:      primaryKey({ columns: [t.urlNorm, t.date] }),
+    dateIdx: index("idx_gsc_page_daily_date").on(t.date),
+  })
+);
+
+export type GscPageDaily    = typeof gscPageDaily.$inferSelect;
+export type NewGscPageDaily = typeof gscPageDaily.$inferInsert;

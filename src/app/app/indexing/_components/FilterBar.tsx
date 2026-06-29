@@ -20,7 +20,6 @@ export interface IndexingFilterState {
   pageType: string[];
   position: PositionBucketValue[];
   health: HealthState[];
-  timeWindow: TimeWindow;
 }
 
 export const DEFAULT_INDEXING_FILTERS: IndexingFilterState = {
@@ -29,7 +28,6 @@ export const DEFAULT_INDEXING_FILTERS: IndexingFilterState = {
   pageType: [],
   position: [],
   health: [],
-  timeWindow: "90d",
 };
 
 type Option = { value: string; label: string; flag?: string };
@@ -39,6 +37,10 @@ interface FilterBarProps {
   onFilterChange: (filters: IndexingFilterState) => void;
   marketOptions: Option[];
   pageTypeOptions: Option[];
+  /** 当前生效的时间窗（来自 URL searchParam，服务端驱动） */
+  activeWindow: TimeWindow;
+  /** 切换时间窗 → 由父组件 router.push 改 URL，触发 RSC 重渲染 */
+  onWindowNavigate: (tw: TimeWindow) => void;
 }
 
 const POSITION_OPTIONS: { value: PositionBucketValue; label: string }[] = [
@@ -162,13 +164,12 @@ function MultiSelect({
   );
 }
 
-// 时间窗 segmented — 7d / 28d / 90d
-// GSC 当前一次同步拉的是 3 个月窗口，7d / 28d 暂时禁用并标注原因。
+// 时间窗 segmented — 7d / 28d / 90d（服务端驱动，点击切 URL 触发 RSC 重渲染）
 function TimeWindowSelect({ value, onChange }: { value: TimeWindow; onChange: (v: TimeWindow) => void }) {
-  const opts: { value: TimeWindow; label: string; disabled?: boolean; reason?: string }[] = [
-    { value: "7d",  label: "7 天",   disabled: true, reason: "GSC 当前一次同步拉的是 3 个月窗口" },
-    { value: "28d", label: "28 天",  disabled: true, reason: "GSC 当前一次同步拉的是 3 个月窗口" },
-    { value: "90d", label: "3 个月" },
+  const opts: { value: TimeWindow; label: string; tip: string }[] = [
+    { value: "7d",  label: "7 天",   tip: "按最近 7 天窗口统计流量" },
+    { value: "28d", label: "28 天",  tip: "按最近 28 天窗口统计流量" },
+    { value: "90d", label: "3 个月", tip: "按最近 90 天窗口统计流量" },
   ];
   return (
     <div
@@ -182,24 +183,20 @@ function TimeWindowSelect({ value, onChange }: { value: TimeWindow; onChange: (v
     >
       {opts.map((o) => {
         const active = value === o.value;
-        const disabled = !!o.disabled;
         return (
           <button
             key={o.value}
             type="button"
-            disabled={disabled}
-            title={o.reason}
-            onClick={() => { if (!disabled) onChange(o.value); }}
+            title={o.tip}
+            onClick={() => onChange(o.value)}
             className={[
               "h-full px-2.5 text-xs font-medium transition-colors border-r border-manor-brass/15 last:border-r-0",
-              disabled
-                ? "text-manor-inkFaint/60 cursor-not-allowed opacity-50"
-                : active
+              active
                 ? "text-manor-brassHi bg-manor-brassDim/15"
                 : "text-manor-inkDim hover:text-manor-brassHi hover:bg-manor-brassDim/10",
             ].join(" ")}
             style={
-              !disabled && active
+              active
                 ? { textShadow: "0 0 6px rgba(239,216,154,.45)" }
                 : undefined
             }
@@ -217,6 +214,8 @@ export function FilterBar({
   onFilterChange,
   marketOptions,
   pageTypeOptions,
+  activeWindow,
+  onWindowNavigate,
 }: FilterBarProps) {
   const update = <K extends keyof IndexingFilterState>(key: K, value: IndexingFilterState[K]) => {
     onFilterChange({ ...filters, [key]: value });
@@ -231,8 +230,7 @@ export function FilterBar({
     filters.market.length > 0 ||
     filters.pageType.length > 0 ||
     filters.position.length > 0 ||
-    filters.health.length > 0 ||
-    filters.timeWindow !== "90d";
+    filters.health.length > 0;
 
   return (
     // R107 去掉横向滚动条 → 只让 4 个 MultiSelect 自适应收缩（flex-1 + min-w-0），
@@ -266,7 +264,7 @@ export function FilterBar({
         />
       </span>
 
-      <TimeWindowSelect value={filters.timeWindow} onChange={(v) => update("timeWindow", v)} />
+      <TimeWindowSelect value={activeWindow} onChange={onWindowNavigate} />
 
       <MultiSelect
         placeholder="站点语言"

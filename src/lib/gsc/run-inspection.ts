@@ -10,7 +10,11 @@
 //   true 且未配官方 API → 直接返回 inspected:0 的空 summary，连 sitemap 都不取、更不碰会话法。
 
 import { fetchSitemapPages } from "@/lib/gsc/sitemap";
-import { loadIndexStatus, saveMergeIndexStatus } from "@/lib/gsc/index-status-store";
+import {
+  loadIndexStatus,
+  saveMergeIndexStatus,
+  type IndexStatusEntry,
+} from "@/lib/gsc/index-status-store";
 import { normalizeForMatch } from "@/lib/gsc/url-normalize";
 import { inspectUrls, type IndexInspectionResult } from "@/lib/gsc/index-inspection-fetcher";
 import {
@@ -22,7 +26,7 @@ import {
 // 由路由据此转成 400（前端 toast 指引去 GSC 加 Full User）；成功态二者恒为 undefined（JSON 自动省略）。
 export interface InspectionSummary {
   ok: boolean;
-  mode: "incremental" | "all";
+  mode: "on-demand" | "all";
   via: "api" | "session";
   inspected: number;
   indexed: number;
@@ -35,25 +39,62 @@ export interface InspectionSummary {
   error?: string;
 }
 
+// ── 新鲜度阈值 ──────────────────────────────────────────────────────────────────
+const STALE_NOT_INDEXED_MS = 24 * 60 * 60 * 1000; // 未收录 → 24h 后复查
+const STALE_INDEXED_MS = 7 * 24 * 60 * 60 * 1000; // 已收录 → 7d 后复查
+
+/**
+ * 判断该 entry 是否需要重新检查（新鲜度判定）。
+ * - 无 entry（未查过）→ 需查
+ * - indexed===null（失败/未知）→ 需查
+ * - indexed===false（未收录）→ 距上次检查 ≥ 24h 才查
+ * - indexed===true（已收录）→ 距上次检查 ≥ 7d 才查
+ * - checkedAt 缺失/解析为 NaN → 当作 0（很旧）→ 需查
+ */
+function needsInspection(entry: IndexStatusEntry | undefined, now: number): boolean {
+  if (!entry) return true;
+  if (entry.indexed === null) return true;
+  const checkedTime = entry.checkedAt ? new Date(entry.checkedAt).getTime() : 0;
+  if (entry.indexed === false) return now - checkedTime >= STALE_NOT_INDEXED_MS;
+  return now - checkedTime >= STALE_INDEXED_MS; // indexed === true
+}
+
+/**
+ * 优先级得分（升序，越小越优先，limit 截断时先查最紧要的页）。
+ * 0 = 无记录（从未检查）
+ * 1 = indexed===null（上次失败/未知）
+ * 2 = indexed===false（未收录，24h 到期）
+ * 3 = indexed===true（已收录，7d 到期）
+ */
+function inspectionPriority(entry: IndexStatusEntry | undefined): number {
+  if (!entry) return 0;
+  if (entry.indexed === null) return 1;
+  if (entry.indexed === false) return 2;
+  return 3; // indexed === true
+}
+
 /**
  * 收录检查核心（鉴权与生产守卫之外的全部逻辑）。
  *
- * @param opts.mode    incremental（仅查"未检查"页）| all（仅 API 法生效，全量重查）。
+ * @param opts.mode    on-demand（按新鲜度选候选集）| all（仅 API 法，强制重查全部）。
  * @param opts.apiOnly 默认 false。true 时若未配官方 API → 直接返回空 summary（不碰会话法），给定时器用。
+ * @param opts.limit   截断候选数上限；缺省（undefined）= 不截断，查全部到期页，给定时器用。
  */
 export async function runInspectionCore(
-  opts: { mode: "incremental" | "all"; apiOnly?: boolean }
+  opts: { mode: "on-demand" | "all"; apiOnly?: boolean; limit?: number }
 ): Promise<InspectionSummary> {
   const { mode } = opts;
   const apiOnly = opts.apiOnly ?? false;
+  const requestedLimit = opts.limit;
 
   const startedAt = Date.now();
+  const now = startedAt;
   const apiConfigured = isGscApiConfigured();
 
-  // all 模式仅对【官方 API 法】生效（API 稳/快/无验证码，maxDuration 放得下全 57 页）；
-  // 会话法（无 key）有 reCAPTCHA 软拦截风险，强制全量重查不安全 → 退回 incremental。
+  // "all" 模式仅对【官方 API 法】生效（稳/快/无验证码，maxDuration 放得下全量页）；
+  // 会话法（无 key）有 reCAPTCHA 软拦截风险，强制全量重查不安全 → 退回 on-demand。
   const effectiveAll = mode === "all" && apiConfigured;
-  const effectiveMode: "incremental" | "all" = effectiveAll ? "all" : "incremental";
+  const effectiveMode: "on-demand" | "all" = effectiveAll ? "all" : "on-demand";
 
   // apiOnly 守卫：强制 API-only 但未配 key → 直接空返回，绝不触发会话法/浏览器（给定时器兜底）。
   if (apiOnly && !apiConfigured) {
@@ -71,28 +112,41 @@ export async function runInspectionCore(
     };
   }
 
-  // hardCap / limit：照搬原路由。requestedLimit 在核心里恒取默认（路由不再透传 limit）——
-  // 前端 incremental 本就发 limit:12 == 此默认值，故响应与重构前逐字一致。
-  const hardCap = apiConfigured ? (effectiveAll ? 57 : 50) : 57;
-  const limit = effectiveAll ? hardCap : Math.min(12, hardCap);
-
   // 取 sitemap 全量页 + 当前已检查状态
   const [sitemapPages, status] = await Promise.all([
     fetchSitemapPages(),
     loadIndexStatus(),
   ]);
 
-  // 候选集：all（仅 API 法）= 全部 sitemap 页（强制重新 inspect）；
-  // 否则 incremental = 仅"未检查"（status 里无记录或 indexed===null）。
-  const candidates = effectiveAll
-    ? sitemapPages
-    : sitemapPages.filter((sp) => {
-        const key = normalizeForMatch(sp.fullUrl);
-        const entry = status.byUrl[key];
-        return !entry || entry.indexed === null;
-      });
+  // ── 候选集选取 ───────────────────────────────────────────────────────────────
+  // "all"（仅 API 法）= 全部 sitemap 页（强制重查，忽略新鲜度）；
+  // "on-demand" = 仅"需查"页（新鲜度判定），按优先级升序排序后再截断。
+  let candidates: typeof sitemapPages;
 
-  const toInspect = candidates.slice(0, limit).map((sp) => sp.fullUrl);
+  if (effectiveAll) {
+    // 强制全量，不过滤、不排序（顺序与 sitemap 一致）
+    candidates = sitemapPages;
+  } else {
+    // 新鲜度过滤
+    candidates = sitemapPages.filter((sp) => {
+      const key = normalizeForMatch(sp.fullUrl);
+      return needsInspection(status.byUrl[key], now);
+    });
+    // 优先级排序（升序：越小越优先）——排在 limit 截断之前，确保截断后留下最紧要的页
+    candidates.sort((a, b) => {
+      const keyA = normalizeForMatch(a.fullUrl);
+      const keyB = normalizeForMatch(b.fullUrl);
+      return (
+        inspectionPriority(status.byUrl[keyA]) -
+        inspectionPriority(status.byUrl[keyB])
+      );
+    });
+  }
+
+  // limit 截断：按钮传 12 防网关超时；定时器缺省不截断，查全部到期页
+  const toInspect = (
+    requestedLimit !== undefined ? candidates.slice(0, requestedLimit) : candidates
+  ).map((sp) => sp.fullUrl);
 
   if (toInspect.length === 0) {
     return {
@@ -109,7 +163,7 @@ export async function runInspectionCore(
     };
   }
 
-  // 取数：优先官方 API（稳/快/无验证码），未配置则回退会话抓取法（reCAPTCHA 逻辑原样保留）。
+  // ── 取数：优先官方 API；未配置则回退会话抓取法 ──────────────────────────────
   let results: IndexInspectionResult[];
   let captchaBlocked = false;
   let via: "api" | "session" = "session";
@@ -147,7 +201,7 @@ export async function runInspectionCore(
     via = "session";
   }
 
-  // 合并写入
+  // ── 合并写入 PG ─────────────────────────────────────────────────────────────
   await saveMergeIndexStatus(
     results.map((r) => ({
       url: r.url,
@@ -170,8 +224,7 @@ export async function runInspectionCore(
     notIndexed,
     failed,
     captchaBlocked,
-    // all 模式覆盖全部 → candidates=全 57 页，inspected 全部后此值=0；
-    // incremental → 本轮未检查里还剩多少没查。
+    // 本轮到期但因 limit 未查的页数 = 候选总数 - 本轮实际查数
     remainingUnchecked: candidates.length - results.length,
     durationMs: Date.now() - startedAt,
   };

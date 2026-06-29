@@ -24,9 +24,7 @@ import {
 } from "./_mock";
 import { LANG_SITE_LABELS, positionBucket, comparePageType, resolvePageStatus } from "./_utils";
 import type { LastSyncMeta, SyncModeStatus } from "./IndexingWrapper";
-import { classifyCadence, CADENCE_META, type Cadence, type HealthState } from "@/lib/gsc/classify";
-
-type SyncMode = "full" | "weekly" | "daily";
+import { type HealthState } from "@/lib/gsc/classify";
 
 interface IndexingClientProps {
   initialData: PageRow[];
@@ -34,31 +32,9 @@ interface IndexingClientProps {
   lastSyncMeta?: LastSyncMeta;
   syncStatus?: SyncModeStatus;
   syncEnabled?: boolean;
+  trafficApiConfigured?: boolean;
+  windowDays?: number;
 }
-
-type SyncResponse = {
-  ok: boolean;
-  code?: string;
-  message?: string;
-  hint?: string;
-  durationMs?: number;
-  property?: string;
-  fetchedAt?: string;
-  freshnessText?: string;
-  mode?: SyncMode;
-  requestedMode?: SyncMode;
-  pagesQueried?: number;
-  queryFetched?: number;
-  queryFailures?: number;
-  stats?: {
-    totalPages: number;
-    totalClicks: number;
-    totalImpressions: number;
-    avgCtr: number;
-    avgPosition: number;
-    top10Pages: number;
-  };
-};
 
 function formatRelative(iso: string | undefined): string {
   if (!iso) return "—";
@@ -174,92 +150,53 @@ function ScopeBreadcrumb({
   );
 }
 
+/** 服务端 windowDays (7/28/90) → 客户端 TimeWindow ("7d"/"28d"/"90d") */
+function daysToTimeWindow(d: number): TimeWindow {
+  if (d === 7) return "7d";
+  if (d === 28) return "28d";
+  return "90d";
+}
+
 export function IndexingClient({
   initialData,
   stats,
   lastSyncMeta,
-  syncStatus,
+  syncStatus: _syncStatus,
   syncEnabled = true,
+  trafficApiConfigured = false,
+  windowDays = 90,
 }: IndexingClientProps) {
   const router = useRouter();
+
+  // ── 时间窗切换（URL searchParam 驱动，服务端重算）──
+  const activeWindow: TimeWindow = daysToTimeWindow(windowDays);
+  const handleWindowNavigate = (tw: TimeWindow) => {
+    if (tw === activeWindow) return; // 已选中，不重复导航
+    const days = tw === "7d" ? 7 : tw === "28d" ? 28 : 90;
+    const params = new URLSearchParams(window.location.search);
+    params.set("window", String(days));
+    router.push(`/app/indexing?${params.toString()}`);
+  };
+
   const [syncing, setSyncing] = useState(false);
-  const [syncMenuOpen, setSyncMenuOpen] = useState(false);
-  const [syncMode, setSyncMode] = useState<SyncMode>("daily");
-  const [inspectingMode, setInspectingMode] = useState<"incremental" | "all" | null>(null);
+  const [inspectingMode, setInspectingMode] = useState<"on-demand" | "all" | null>(null);
   const inspecting = inspectingMode !== null;
   const [rescanning, setRescanning] = useState(false);
   const [schedulerOpen, setSchedulerOpen] = useState(false);
-  const SYNC_MODE_LABEL: Record<SyncMode, string> = { full: "全量", weekly: "周更", daily: "日更" };
-  const handleSync = async (mode: SyncMode) => {
-    if (syncing) return;
-    setSyncMenuOpen(false);
-    setSyncing(true);
-    const toastId = toast.loading(`正在${SYNC_MODE_LABEL[mode]}同步 GSC 数据…`, {
-      description:
-        mode === "full"
-          ? "全量抓取页面指标 + 逐页关键词（约 250+ 页，需数分钟，请勿关闭浏览器）"
-          : "抓取该档页面的关键词排名，请勿关闭浏览器",
-    });
-    try {
-      const res = await fetch("/api/indexing/sync", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mode }),
-      });
-      const body = (await res.json()) as SyncResponse;
-      if (!res.ok || !body.ok) {
-        toast.error(body.message || "同步失败", {
-          id: toastId,
-          description: body.hint || body.code,
-          duration: 8000,
-        });
-        return;
-      }
-      const s = body.stats;
-      const kwPart =
-        typeof body.queryFetched === "number"
-          ? ` · 关键词 ${body.queryFetched} 页${body.queryFailures ? `（${body.queryFailures} 页失败）` : ""}`
-          : "";
-      const modeLabel = body.mode ? SYNC_MODE_LABEL[body.mode] ?? body.mode : "";
-      toast.success(`${modeLabel}同步完成`, {
-        id: toastId,
-        description: s
-          ? `共 ${s.totalPages} 页 · 本次爬 ${body.pagesQueried ?? "?"} 页${kwPart} · 用时 ${Math.round((body.durationMs ?? 0) / 1000)}s`
-          : `用时 ${Math.round((body.durationMs ?? 0) / 1000)}s`,
-        duration: 6000,
-      });
-      router.refresh();
-    } catch (err) {
-      toast.error("同步请求失败", {
-        id: toastId,
-        description: err instanceof Error ? err.message : "网络错误",
-        duration: 8000,
-      });
-    } finally {
-      setSyncing(false);
-    }
-  };
 
-  // ── 刷新收录状态：调 /api/indexing/inspect-coverage，支持 incremental / all 两种模式 ──
-  // incremental（默认）：只查"未检查"页，每批 12 页，日常使用。
-  // all：重查全部页面，走 GSC API 逐页检查，耗时较长（几分钟）。
-  const handleInspectCoverage = async (mode: "incremental" | "all") => {
+  // ── 刷新收录状态：调 /api/indexing/inspect-coverage，按需分级查收录 ──
+  // on-demand（默认）：按需分级——没查过的立即查、未收录24h复查、已收录7天兜底复查。
+  const handleInspectCoverage = async () => {
     if (inspecting) return;
-    setInspectingMode(mode);
-    const isAll = mode === "all";
-    const toastId = toast.loading(
-      isAll ? "正在重新检查全部页面收录状态…" : "正在检查收录状态…",
-      {
-        description: isAll
-          ? "会重新检查所有页面，耗时较长（约几分钟），请勿关闭浏览器"
-          : "逐页查 GSC「网址检查」（每页约 20-50s，受 Google 限流，请勿关闭浏览器）",
-      },
-    );
+    setInspectingMode("on-demand");
+    const toastId = toast.loading("正在检查收录状态…", {
+      description: "按需分级查 GSC「网址检查」（每批上限 12 页，受 Google 限流，请勿关闭浏览器）",
+    });
     try {
       const res = await fetch("/api/indexing/inspect-coverage", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(isAll ? { mode: "all" } : { limit: 12, mode: "incremental" }),
+        body: JSON.stringify({ mode: "on-demand" }),
       });
       const body = (await res.json()) as {
         ok: boolean; code?: string; message?: string; hint?: string;
@@ -283,18 +220,17 @@ export function IndexingClient({
           duration: 12000,
         });
       } else if ((body.inspected ?? 0) === 0) {
-        // 所有页面都已检查过、没有"未检查"的新页 → 给明确反馈，避免"点了像没反应"。
+        // 所有页面都在新鲜期内 → 给明确反馈
         toast.success("收录状态已是最新", {
           id: toastId,
           description:
-            "所有页面都已检查过，暂无新增待检查页。如需重新核对全部页面的最新收录情况，可在「定时」里开启定时全量检查（服务端运行、不受网关超时限制，更可靠）。",
+            "所有页面都在新鲜期内（已收录 7 天内、未收录 24 小时内都已检查过），无需重复调用 API。到期页会由「定时」自动按需复查。",
           duration: 7000,
         });
       } else {
-        const modeLabel = isAll ? "全部刷新" : "增量刷新";
-        toast.success(`收录${modeLabel}完成`, {
+        toast.success("收录刷新完成", {
           id: toastId,
-          description: `本次检查 ${body.inspected ?? 0} 页 · 已收录 ${body.indexed ?? 0}${body.notIndexed ? ` · 未收录 ${body.notIndexed}` : ""}${body.failed ? ` · 未取到 ${body.failed}` : ""}${!isAll ? ` · 还剩 ${remain} 页待检查` : ""} · 用时 ${Math.round((body.durationMs ?? 0) / 1000)}s`,
+          description: `本次检查 ${body.inspected ?? 0} 页 · 已收录 ${body.indexed ?? 0}${body.notIndexed ? ` · 未收录 ${body.notIndexed}` : ""}${body.failed ? ` · 未取到 ${body.failed}` : ""}${remain > 0 ? ` · 还剩 ${remain} 页待检查` : ""} · 用时 ${Math.round((body.durationMs ?? 0) / 1000)}s`,
           duration: 8000,
         });
       }
@@ -327,53 +263,44 @@ export function IndexingClient({
   // 是否为真实 GSC 数据（mock 模式不去 GSC 抓 query，沿用 mock 样本）
   const isRealData = lastSyncMeta?.source === "gsc";
 
-  // 同步页数 / 耗时预估 —— 口径严格对齐 sync/route：
-  //   · 只统计"有曝光的真实页"（impressions>0）；合成节点 + 零曝光页都不导航、不计入。
-  //   · 分档同 classifyCadence（关键词数 + 页面类型）；full 档 = 三档之和（全爬有曝光页）。
-  //   · 耗时不能按页数线性外推：无关键词页要等满 table-wait（~20s/页），有关键词页较快
-  //     （~5s/页），并发 4。分别累加再除并发，避免"全量大量无数据页"被严重低估。
-  const SYNC_CONCURRENCY = 4;
-  const SEC_NO_DATA = 20;
-  const SEC_HAS_DATA = 5;
-  const syncEst = useMemo(() => {
-    const z = () => ({ pages: 0, seconds: 0 });
-    const byCadence: Record<Cadence, { pages: number; seconds: number }> = {
-      daily: z(),
-      weekly: z(),
-      monthly: z(),
-    };
-    const full = z();
-    for (const p of initialData) {
-      if (p.isSynthetic || p.impressions <= 0) continue;
-      const kc = p.queries?.length ?? 0;
-      const sec = kc > 0 ? SEC_HAS_DATA : SEC_NO_DATA;
-      const cad = classifyCadence({ pageType: p.pageType, keywordCount: kc, url: p.fullUrl });
-      byCadence[cad].pages += 1;
-      byCadence[cad].seconds += sec;
-      full.pages += 1;
-      full.seconds += sec;
+  // ── 更新流量：调 /api/indexing/update-traffic（官方 API，生产可跑） ──
+  const handleUpdateTraffic = async () => {
+    if (syncing) return;
+    setSyncing(true);
+    const toastId = toast.loading("正在更新流量数据…", {
+      description: "通过官方 API 拉取最近 60 天 per-page 流量",
+    });
+    try {
+      const res = await fetch("/api/indexing/update-traffic", { method: "POST" });
+      const body = (await res.json()) as {
+        ok: boolean; code?: string; message?: string;
+        pages?: number; totalClicks?: number; totalImpressions?: number;
+        retiredThisRun?: number; retiredTotal?: number; durationMs?: number; via?: string;
+      };
+      if (!res.ok || !body.ok) {
+        const desc =
+          body.code === "GSC_API_NOT_CONFIGURED"
+            ? "未配置官方 API（GSC_SA_KEY_JSON）"
+            : body.message || "更新失败";
+        toast.error(desc, { id: toastId, duration: 8000 });
+        return;
+      }
+      toast.success("流量已更新", {
+        id: toastId,
+        description: `本次 ${body.pages ?? 0} 页 · ${body.totalClicks ?? 0} 点击 · ${body.totalImpressions ?? 0} 曝光${body.retiredThisRun ? ` · 退休旧址 ${body.retiredThisRun}` : ""}`,
+        duration: 6000,
+      });
+      router.refresh();
+    } catch (err) {
+      toast.error("更新请求失败", {
+        id: toastId,
+        description: err instanceof Error ? err.message : "网络错误",
+        duration: 8000,
+      });
+    } finally {
+      setSyncing(false);
     }
-    const toMin = (s: number) => Math.max(1, Math.ceil(s / SYNC_CONCURRENCY / 60));
-    return {
-      daily: { pages: byCadence.daily.pages, minutes: toMin(byCadence.daily.seconds) },
-      weekly: { pages: byCadence.weekly.pages, minutes: toMin(byCadence.weekly.seconds) },
-      full: { pages: full.pages, minutes: toMin(full.seconds) },
-    } as Record<SyncMode, { pages: number; minutes: number }>;
-  }, [initialData]);
-
-  // 弹窗里三档的展示元信息（顺序：日更 → 周更 → 全量）。
-  const SYNC_OPTIONS: { mode: SyncMode; title: string; latin: string; hint: string }[] = [
-    { mode: "daily", title: "日更", latin: CADENCE_META.daily.latin, hint: CADENCE_META.daily.hint },
-    { mode: "weekly", title: "周更", latin: CADENCE_META.weekly.latin, hint: CADENCE_META.weekly.hint },
-    {
-      mode: "full",
-      title: "全量",
-      latin: "OMNIA",
-      hint: "重抓全部有曝光页并刷新关键词基准；日更/周更的分档以最近一次全量为准，建议每月一次。",
-    },
-  ];
-  const lastSyncOf = (mode: SyncMode): string | undefined =>
-    (syncStatus?.[mode] ?? undefined) || undefined;
+  };
 
   const [filters, setFilters] = useState<IndexingFilterState>({ ...DEFAULT_INDEXING_FILTERS });
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -664,7 +591,7 @@ export function IndexingClient({
                 </>
               )}
             </div>
-            {/* 刷新收录状态 —— 按钮组：增量（只刷未检查）| 全部 */}
+            {/* 刷新收录状态 —— 按需分级查收录 */}
             <div
               className={[
                 "h-7 inline-flex items-center border rounded overflow-hidden shrink-0 transition-all",
@@ -673,9 +600,9 @@ export function IndexingClient({
             >
               <button
                 type="button"
-                onClick={() => handleInspectCoverage("incremental")}
+                onClick={handleInspectCoverage}
                 disabled={inspecting}
-                title={inspecting ? "正在检查收录…" : "只检查尚未检查的页面（增量，更快）"}
+                title={inspecting ? "正在检查收录…" : "按需分级：没查过的立即查 · 未收录24h复查 · 已收录7天兜底"}
                 className={[
                   "h-full inline-flex items-center gap-1.5 px-2.5 text-[11px] whitespace-nowrap transition-all",
                   inspecting
@@ -684,8 +611,8 @@ export function IndexingClient({
                 ].join(" ")}
                 style={{ fontFamily: "var(--font-sc), 'Cormorant SC', serif", letterSpacing: "0.12em" }}
               >
-                <RefreshCw size={12} className={inspectingMode === "incremental" ? "animate-spin" : ""} aria-hidden="true" />
-                <span>{inspectingMode === "incremental" ? "检查中" : "刷新收录"}</span>
+                <RefreshCw size={12} className={inspectingMode === "on-demand" ? "animate-spin" : ""} aria-hidden="true" />
+                <span>{inspectingMode === "on-demand" ? "检查中" : "刷新收录"}</span>
               </button>
             </div>
             {/* 重新扫描站点地图 —— 触发 RSC 重新加载 sitemap 数据 */}
@@ -721,149 +648,36 @@ export function IndexingClient({
               <Clock size={12} aria-hidden="true" />
               <span>定时</span>
             </button>
-            <div className="relative shrink-0">
-              <button
-                type="button"
-                onClick={() => setSyncMenuOpen((o) => !o)}
-                disabled={syncing}
-                title={syncing ? "正在抓取…" : "选择更新范围，从本地浏览器的 GSC 抓取"}
-                className={[
-                  "h-7 inline-flex items-center gap-1.5 px-2.5 rounded text-[11px] whitespace-nowrap",
-                  "border transition-all",
-                  syncing
-                    ? "border-manor-brass/25 text-manor-inkDim cursor-wait"
+            {/* 更新流量 —— 官方 API，生产可跑 */}
+            <button
+              type="button"
+              onClick={handleUpdateTraffic}
+              disabled={syncing || !trafficApiConfigured}
+              title={
+                !trafficApiConfigured
+                  ? "未配置官方 API，无法更新流量"
+                  : syncing
+                    ? "正在更新…"
+                    : "通过官方 API 拉取最近 60 天流量数据"
+              }
+              className={[
+                "h-7 inline-flex items-center gap-1.5 px-2.5 rounded text-[11px] whitespace-nowrap shrink-0",
+                "border transition-all",
+                syncing
+                  ? "border-manor-brass/25 text-manor-inkDim cursor-wait"
+                  : !trafficApiConfigured
+                    ? "border-manor-brass/15 text-manor-inkGhost cursor-not-allowed"
                     : "border-manor-brass/45 text-manor-brassHi hover:border-manor-brassHi hover:shadow-[0_0_10px_-2px_rgba(239,216,154,.65)] hover:bg-manor-brassDim/10",
-                ].join(" ")}
-                style={{ fontFamily: "var(--font-sc), 'Cormorant SC', serif", letterSpacing: "0.12em" }}
-              >
-                <RefreshCw
-                  size={12}
-                  className={syncing ? "animate-spin" : ""}
-                  aria-hidden="true"
-                />
-                <span>{syncing ? "同步中" : "更新"}</span>
-                {!syncing && (
-                  <span className="text-manor-brassDim text-[9px] -mr-0.5" aria-hidden="true">▾</span>
-                )}
-              </button>
-
-              {syncMenuOpen && !syncing && (
-                <>
-                  {/* 点击遮罩关闭 */}
-                  <div
-                    className="fixed inset-0 z-40"
-                    onClick={() => setSyncMenuOpen(false)}
-                    aria-hidden="true"
-                  />
-                  <div
-                    className="absolute right-0 mt-2 w-[290px] z-50 rounded-lg border border-manor-brass/30 shadow-[0_12px_40px_-8px_rgba(0,0,0,.7)] overflow-hidden"
-                    style={{
-                      background:
-                        "linear-gradient(180deg, rgba(20,42,28,.98) 0%, rgba(8,20,13,.99) 100%)",
-                    }}
-                    role="dialog"
-                    aria-label="选择更新范围"
-                  >
-                    <div
-                      className="px-3.5 py-2.5 border-b border-manor-brass/15 text-[11px] text-manor-brassHi"
-                      style={{ fontFamily: "var(--font-sc), 'Cormorant SC', serif", letterSpacing: "0.1em" }}
-                    >
-                      选择更新范围 · SYNC SCOPE
-                    </div>
-
-                    {!syncEnabled ? (
-                      // 部署/非本地环境：无本地 Chrome，禁用抓取并提示联系管理员
-                      <div className="px-3.5 py-4 text-[11.5px] text-manor-inkDim leading-relaxed"
-                        style={{ fontFamily: "var(--font-serif), 'EB Garamond', serif" }}
-                      >
-                        <p>更新数据<span className="text-manor-brassHi">请联系管理员</span></p>
-                      </div>
-                    ) : (
-                      <>
-                        <div className="py-1.5">
-                          {SYNC_OPTIONS.map((opt) => {
-                            const active = syncMode === opt.mode;
-                            const { pages, minutes } = syncEst[opt.mode];
-                            const last = lastSyncOf(opt.mode);
-                            return (
-                              <button
-                                key={opt.mode}
-                                type="button"
-                                onClick={() => setSyncMode(opt.mode)}
-                                className={[
-                                  "w-full text-left px-3.5 py-2 flex items-start gap-2.5 transition-colors",
-                                  active ? "bg-manor-brassDim/12" : "hover:bg-manor-brassDim/6",
-                                ].join(" ")}
-                              >
-                                {/* 单选点 */}
-                                <span
-                                  className={[
-                                    "mt-0.5 w-3 h-3 rounded-full border shrink-0 flex items-center justify-center",
-                                    active ? "border-manor-brassHi" : "border-manor-brass/40",
-                                  ].join(" ")}
-                                  aria-hidden="true"
-                                >
-                                  {active && (
-                                    <span className="w-1.5 h-1.5 rounded-full bg-manor-brassHi" />
-                                  )}
-                                </span>
-                                <span className="min-w-0 flex-1">
-                                  <span className="flex items-baseline justify-between gap-2">
-                                    <span
-                                      className={active ? "text-manor-brassHi text-[12.5px]" : "text-manor-ink text-[12.5px]"}
-                                      style={{ fontFamily: "var(--font-sc), 'Cormorant SC', serif", letterSpacing: "0.08em" }}
-                                    >
-                                      {opt.title}
-                                      <span className="text-manor-inkGhost text-[9px] ml-1.5 tracking-[0.18em]">
-                                        {opt.latin}
-                                      </span>
-                                    </span>
-                                    <span className="text-manor-brassDim text-[10.5px] tabnum shrink-0">
-                                      约 {pages} 页 · ≈{minutes} 分
-                                    </span>
-                                  </span>
-                                  <span
-                                    className="block text-[10.5px] text-manor-inkDim mt-0.5 leading-snug"
-                                    style={{ fontFamily: "var(--font-serif), 'EB Garamond', serif" }}
-                                  >
-                                    {opt.hint}
-                                  </span>
-                                  <span className="block text-[10px] text-manor-inkFaint mt-1">
-                                    上次{opt.title}：
-                                    <span className="text-manor-brassDim tabnum">
-                                      {last ? formatRelative(last) : "未运行过"}
-                                    </span>
-                                  </span>
-                                </span>
-                              </button>
-                            );
-                          })}
-                        </div>
-
-                        <div className="px-3.5 py-2.5 border-t border-manor-brass/15 flex items-center justify-end gap-2">
-                          <button
-                            type="button"
-                            onClick={() => setSyncMenuOpen(false)}
-                            className="h-7 px-3 rounded text-[11px] border border-manor-brass/25 text-manor-inkDim hover:text-manor-ink hover:border-manor-brass/45 transition-colors"
-                            style={{ fontFamily: "var(--font-serif), 'EB Garamond', serif" }}
-                          >
-                            取消
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleSync(syncMode)}
-                            className="h-7 px-3.5 rounded text-[11px] border border-manor-brassHi/60 text-manor-brassHi bg-manor-brassDim/15 hover:bg-manor-brassDim/25 hover:shadow-[0_0_10px_-2px_rgba(239,216,154,.65)] transition-all"
-                            style={{ fontFamily: "var(--font-sc), 'Cormorant SC', serif", letterSpacing: "0.1em" }}
-                          >
-                            确定更新
-                          </button>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </>
-              )}
-            </div>
+              ].join(" ")}
+              style={{ fontFamily: "var(--font-sc), 'Cormorant SC', serif", letterSpacing: "0.12em" }}
+            >
+              <RefreshCw
+                size={12}
+                className={syncing ? "animate-spin" : ""}
+                aria-hidden="true"
+              />
+              <span>{syncing ? "更新中" : "更新"}</span>
+            </button>
             <Input
               className="w-32 lg:w-44 xl:w-56 h-7 bg-manor-void/60 border-manor-brass/30 text-manor-ink placeholder:text-manor-inkFaint text-xs focus-visible:ring-manor-brass focus-visible:border-manor-brass min-w-0"
               placeholder="搜索 URL / 关键词..."
@@ -938,6 +752,8 @@ export function IndexingClient({
               onFilterChange={setFilters}
               marketOptions={marketOptions}
               pageTypeOptions={pageTypeOptions}
+              activeWindow={activeWindow}
+              onWindowNavigate={handleWindowNavigate}
             />
           </div>
         </div>

@@ -22,6 +22,20 @@ import { loadLatestSnapshot, type LoadedSnapshot } from "./loader";
 import { loadRedirectMap } from "./redirect-map";
 import { isHardNonContent } from "./classify";
 import { loadSnapshot } from "./store";
+import { loadDailyAggregates, type DailyAggregate } from "./page-daily-store";
+
+// ── 桥排除名单（全新板块不继承旧流量）────────────────────────────────────────
+// 迁站后【全新建】的板块：它们不是任何旧页的继承者，旧址 308 兜底到这里属"清理式重定向"，
+// 不该把旧内容的流量/关键词算到这些新页头上（否则虚增）。桥遇到目标命中这些前缀时跳过归并。
+// 口径：newNorm 形如 "weslamic.com/islamic-gifts/..."；精确前缀匹配（不误伤同前缀的别的页）。
+// 增减板块只改这一处。
+const BRIDGE_EXCLUDE_PREFIXES = [
+  "weslamic.com/islamic-gifts", // 全新礼物板块（含子页）
+  "weslamic.com/guides",        // 全新指南板块（含子页）
+];
+function isBridgeExcluded(newNorm: string): boolean {
+  return BRIDGE_EXCLUDE_PREFIXES.some((p) => newNorm === p || newNorm.startsWith(p + "/"));
+}
 
 /** 旧址按重定向归并到新页的指标累加器（曝光加权 ctr/position）。 */
 interface MergedMetric {
@@ -32,10 +46,69 @@ interface MergedMetric {
 }
 
 /**
- * 取旧真实页 + 重定向映射，构建 Map<newNorm, MergedMetric>。
- * 旧快照缺失（PG/JSON 都没有）或映射文件缺失 → 返回空 Map（下游退化为全 0，不报错）。
+ * 取旧址流量 + 重定向映射，构建「纯归并」Map<newNorm, MergedMetric>（按窗口 windowDays 天）。
+ *
+ * T4：本函数只算**旧址按 308 归并继承来的流量（bridged）**——循环里跳过自映射
+ * （urlNorm === newNorm），因为自映射是新页**自身**的流量（own），由 loadCoveragePages 直接
+ * 从 dailyAgg 取，不该混入归并口径。
+ *
+ * 优先读 gsc_page_daily 的「按窗口求和」（loadDailyAggregates）。调用方可把已取的 dailyAgg 传进
+ * preloadedDaily 避免重复查。每日表为空 / 不可用（null）→ 回退 loadLatestSnapshot 批次路径，
+ * 批次路径**不做 own/bridged 拆分**（含自映射，返回的就是 total），故返回 splitAvailable=false，
+ * 让调用方退化为"只填 total、不带 trafficSplit"，**保证现状不被破坏**。
+ *
+ * 返回：{ merged, splitAvailable }
+ *   · splitAvailable=true（daily 路径）→ merged 是纯 bridged，调用方 own 另取、total=own+bridged。
+ *   · splitAvailable=false（批次回退）→ merged 是含自映射的 total，调用方直接当 total 用、不拆分。
  */
-async function buildMergedMetrics(): Promise<Map<string, MergedMetric>> {
+async function buildMergedMetrics(
+  windowDays = 60,
+  preloadedDaily?: Map<string, DailyAggregate> | null,
+): Promise<{ merged: Map<string, MergedMetric>; splitAvailable: boolean }> {
+  // ── 优先路径：每日明细按窗口求和（纯归并：排除自映射）──
+  try {
+    const daily =
+      preloadedDaily !== undefined ? preloadedDaily : await loadDailyAggregates(windowDays, 1);
+    if (daily && daily.size > 0) {
+      const redirectFile = await loadRedirectMap();
+      const byOldUrl = redirectFile.byOldUrl;
+      const merged = new Map<string, MergedMetric>();
+      for (const [urlNorm, agg] of daily) {
+        // 资产/系统页：本就该 noindex，其流量不算任何内容页的迁移流量（url_norm 即可判，
+        // SYSTEM_PAGE_RE / ASSET_URL_RE 都是路径级、大小写无关）。
+        if (isHardNonContent({ url: urlNorm })) continue;
+        const newNorm = byOldUrl[urlNorm]; // url_norm 即 byOldUrl 的 key 格式
+        if (!newNorm) continue; // null / 无映射 → 孤儿流量，丢弃
+        if (urlNorm === newNorm) continue; // 自映射 = 新页自身流量(own)，不算归并(bridged)
+        if (isBridgeExcluded(newNorm)) continue; // 全新板块：不继承旧址流量
+        let acc = merged.get(newNorm);
+        if (!acc) {
+          acc = { clicks: 0, impressions: 0, ctrSum: 0, posSum: 0 };
+          merged.set(newNorm, acc);
+        }
+        acc.clicks += agg.clicks;
+        acc.impressions += agg.impressions;
+        // 原口径 ctr=clicks/impr，故 Σ(ctr*impr) == Σclicks == clicks；每日表未存 ctr，
+        // 用 clicks 等价累加，最终 ctr=ctrSum/impr 与批次路径完全一致。
+        acc.ctrSum += agg.clicks;
+        // 每日表 sum_position 已是 Σ(position*impressions) 当天，跨天直接累加即窗口加权分子。
+        acc.posSum += agg.sumPos;
+      }
+      return { merged, splitAvailable: true };
+    }
+  } catch (e) {
+    console.warn("[coverage-loader] 每日聚合路径失败，回退批次:", (e as Error).message);
+  }
+
+  // ── 回退路径：原 loadLatestSnapshot 批次聚合（含自映射=total，不拆分，保持现状）──
+  return { merged: await buildMergedMetricsFromBatch(), splitAvailable: false };
+}
+
+/**
+ * 回退：从最新批次（loadLatestSnapshot 的 per-page 聚合）+ 重定向映射构建归并指标。
+ * 每日表空/不可用时走这里——即 T2 之前的原始逻辑，原样保留。
+ */
+async function buildMergedMetricsFromBatch(): Promise<Map<string, MergedMetric>> {
   const merged = new Map<string, MergedMetric>();
   try {
     const [oldSnapshot, redirectFile] = await Promise.all([
@@ -51,6 +124,7 @@ async function buildMergedMetrics(): Promise<Map<string, MergedMetric>> {
       if (isHardNonContent({ url: op.fullUrl })) continue;
       const newNorm = byOldUrl[normalizeForMatch(op.fullUrl)];
       if (!newNorm) continue; // null / 无映射 → 孤儿流量，丢弃
+      if (isBridgeExcluded(newNorm)) continue; // 全新板块：不继承旧址流量
       let acc = merged.get(newNorm);
       if (!acc) {
         acc = { clicks: 0, impressions: 0, ctrSum: 0, posSum: 0 };
@@ -101,6 +175,7 @@ async function buildMergedQueries(): Promise<Map<string, QueryRow[]>> {
       if (isHardNonContent({ url: op.fullUrl })) continue; // 与点击归并一致：资产/系统页不归并
       const newNorm = byOldUrl[normalizeForMatch(op.fullUrl)];
       if (!newNorm) continue; // 孤儿映射，跳过
+      if (isBridgeExcluded(newNorm)) continue; // 全新板块：不继承旧址关键词
       const qs = queriesByFullUrl ? queriesByFullUrl.get(op.fullUrl) ?? [] : op.queries ?? [];
       if (qs.length === 0) continue;
       let qmap = acc.get(newNorm);
@@ -180,7 +255,7 @@ function coverageLabelFromText(t?: string): string | undefined {
  * 从 sitemap + index-status 构建完整 PageRow[] + stats。
  * 返回与 LoadedSnapshot 同形（pages/stats/source/...），额外带 indexedCount。
  */
-export async function loadCoveragePages(): Promise<
+export async function loadCoveragePages(windowDays = 90): Promise<
   (LoadedSnapshot & { indexedCount: number }) | null
 > {
   // 并行加载 sitemap 和收录状态
@@ -195,9 +270,15 @@ export async function loadCoveragePages(): Promise<
   const indexStatus = await loadIndexStatus();
   const statusByNorm = indexStatus.byUrl; // key 已是 normalizeForMatch(url)
 
-  // 旧址真实流量 + 关键词按 301/308 重定向归并到新页（key = newNorm = normalizeForMatch(新 fullUrl)）
-  const [mergedMetrics, mergedQueries] = await Promise.all([
-    buildMergedMetrics(),
+  // 每页自身流量（own）：当窗口 gsc_page_daily 按 url_norm 求和（最权威）。先取一次，既用于
+  // own，也传给 buildMergedMetrics 复用，避免重复查（57 页量级其实无所谓，省一次是一次）。
+  const dailyAgg = await loadDailyAggregates(windowDays, 1);
+
+  // 旧址真实流量（bridged）+ 关键词按 301/308 重定向归并到新页（key = newNorm = normalizeForMatch(新 fullUrl)）
+  // mergedMetrics = 纯归并（排除自映射）；own 另从 dailyAgg 取；total = own + bridged。
+  // splitAvailable=false（daily 不可用、走批次回退）时 mergedMetrics 即 total，不做拆分。
+  const [{ merged: mergedMetrics, splitAvailable }, mergedQueries] = await Promise.all([
+    buildMergedMetrics(windowDays, dailyAgg),
     buildMergedQueries(),
   ]);
 
@@ -242,12 +323,53 @@ export async function loadCoveragePages(): Promise<
 
     const parentPath = parentByPath.get(sp.path);
 
-    // 归并旧址流量：按 normKey 查累加器；曝光加权还原 ctr/position；命不中保持 0
-    const acc = mergedMetrics.get(normKey);
-    const clicks = acc?.clicks ?? 0;
-    const impressions = acc?.impressions ?? 0;
-    const ctr = acc && acc.impressions > 0 ? acc.ctrSum / acc.impressions : 0;
-    const position = acc && acc.impressions > 0 ? acc.posSum / acc.impressions : 0;
+    // ── 流量：own（自身）+ bridged（归并）拆分；PageRow 的 clicks/… 仍填 total（聚合口径不变）──
+    let clicks: number;
+    let impressions: number;
+    let ctr: number;
+    let position: number;
+    let trafficSplit: PageRow["trafficSplit"] | undefined;
+
+    if (splitAvailable) {
+      // own = 本页自身 url_norm 当窗口流量（始终算，不受 isBridgeExcluded 影响——自身永远是自己的）
+      const own = dailyAgg?.get(normKey);
+      const ownClicks = own?.clicks ?? 0;
+      const ownImpr = own?.impressions ?? 0;
+      const ownPosSum = own?.sumPos ?? 0;
+      // bridged = 纯归并（buildMergedMetrics 已排除自映射）
+      const br = mergedMetrics.get(normKey);
+      const brClicks = br?.clicks ?? 0;
+      const brImpr = br?.impressions ?? 0;
+      const brPosSum = br?.posSum ?? 0;
+      // total = own + bridged
+      const totalClicks = ownClicks + brClicks;
+      const totalImpr = ownImpr + brImpr;
+      clicks = totalClicks;
+      impressions = totalImpr;
+      ctr = totalImpr > 0 ? totalClicks / totalImpr : 0;
+      position = totalImpr > 0 ? (ownPosSum + brPosSum) / totalImpr : 0;
+      trafficSplit = {
+        own: {
+          clicks: ownClicks,
+          impressions: ownImpr,
+          ctr: ownImpr > 0 ? ownClicks / ownImpr : 0,
+          position: ownImpr > 0 ? ownPosSum / ownImpr : 0,
+        },
+        bridged: {
+          clicks: brClicks,
+          impressions: brImpr,
+          ctr: brImpr > 0 ? brClicks / brImpr : 0,
+          position: brImpr > 0 ? brPosSum / brImpr : 0,
+        },
+      };
+    } else {
+      // 批次回退：mergedMetrics 即 total（含自映射），不做拆分（trafficSplit 留 undefined）
+      const acc = mergedMetrics.get(normKey);
+      clicks = acc?.clicks ?? 0;
+      impressions = acc?.impressions ?? 0;
+      ctr = acc && acc.impressions > 0 ? acc.ctrSum / acc.impressions : 0;
+      position = acc && acc.impressions > 0 ? acc.posSum / acc.impressions : 0;
+    }
 
     // 归并旧址关键词：按 normKey 查；topQuery = 点击最高词；命不中 → []/"—"
     const queries = mergedQueries.get(normKey) ?? [];
@@ -273,6 +395,7 @@ export async function loadCoveragePages(): Promise<
       indexState,
       coverageText,
       coverageLabel,
+      trafficSplit,
       trend12m: emptyTrend(),
       queries,
       lastSync,

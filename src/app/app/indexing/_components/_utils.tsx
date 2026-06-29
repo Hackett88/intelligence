@@ -193,6 +193,241 @@ export function HealthChip({ page }: { page: PageStatusInput }) {
 }
 
 // ───────────────────────────────────────────────────────────────────────────
+// 统一状态灯 —— 状态列的唯一产物。
+//   A. indexed 页 → 按健康度上色（HEALTH_META 4 色）
+//   B. 非 indexed 页 → 按收录态上色（覆盖信息派生 4-5 档，颜色与 A 明显区分）
+//   C. 合成目录节点 → 中性弱化
+// 返回值供 PageTable 状态列渲染"一个圆点 + title tooltip"，不输出汉字。
+// ───────────────────────────────────────────────────────────────────────────
+
+export interface StatusLight {
+  /** 圆点基色（用于 radial-gradient 基准 + box-shadow 辉光） */
+  color: string;
+  /** 中文状态名（tooltip 第一行） */
+  label: string;
+  /** tooltip 完整文案（label + GSC 原因，hover 时看） */
+  tooltip: string;
+  /** 空心圆点（待检查态，区别于"已查明未发现"） */
+  hollow?: boolean;
+  /** 状态分组键（用于图例排列和语义归类） */
+  group: "health" | "coverage" | "neutral";
+}
+
+/**
+ * 收录态颜色方案 —— 与健康灯 4 色（绿 #7BA67D / 黄 #EFD89A / 橙 #F59E0B / 灰 #8B8B7A）
+ * 在色相和明度上做了刻意区分，避免撞色：
+ *   · 已爬取未收录 → 暗血红 #A8453A（Google 看过不收，最紧急）
+ *   · 未爬取(已发现) → 深琥珀 #C87533（已发现但还没爬，过渡态，比健康"待激活"更暖更深）
+ *   · 未发现 → 冷石灰 #6B6B6B（Google 尚不知道这页，比健康"低优先"更冷更暗）
+ *   · 待检查 → 空心虚线点 #5A5A52（indexState=discovered 但未用 API 查过，中性）
+ *   · excluded/error 无细分 → 沿用暗红 #A8453A
+ */
+const COVERAGE_COLORS = {
+  crawledNotIndexed: "#A8453A",   // 暗血红
+  discoveredNotCrawled: "#C87533", // 深琥珀
+  unknownToGoogle: "#6B6B6B",     // 冷石灰
+  pending: "#5A5A52",             // 中性暗点（空心）
+  excludedFallback: "#A8453A",    // 默认红
+} as const;
+
+export function resolveStatusLight(page: PageStatusInput & {
+  coverageLabel?: string;
+  coverageText?: string;
+}): StatusLight {
+  // 1. 合成目录节点 → 中性不评
+  if (page.isSynthetic) {
+    return {
+      color: "#5C6B5E",
+      label: "目录",
+      tooltip: "合成的目录层级节点，本身不是真实页。",
+      group: "neutral",
+    };
+  }
+
+  // 2. 已收录页 → 按健康度上色（沿用 resolvePageStatus / HEALTH_META）
+  if (page.indexState === "indexed") {
+    const status = resolvePageStatus(page);
+    return {
+      color: status.color,
+      label: status.label,
+      tooltip: `${status.label}（${status.latin}） —— ${status.hint}`,
+      group: "health",
+    };
+  }
+
+  // 3. 非收录页 → 按 coverageLabel / coverageText 细分收录态
+  const cl = page.coverageLabel ?? "";
+  const ct = page.coverageText ?? "";
+
+  // 3a. 已爬取未收录（Google 看过但不收，最紧急）
+  if (cl.includes("已抓取") || ct.toLowerCase().includes("crawled - currently not indexed")) {
+    return {
+      color: COVERAGE_COLORS.crawledNotIndexed,
+      label: "已抓取·未收录",
+      tooltip: `已抓取·未收录 —— Google 已爬取但未收录，最需处理。${ct ? `\nGSC: ${ct}` : ""}`,
+      group: "coverage",
+    };
+  }
+
+  // 3b. 已发现未爬取（过渡态）
+  if (cl.includes("已发现") || ct.toLowerCase().includes("discovered - currently not indexed")) {
+    return {
+      color: COVERAGE_COLORS.discoveredNotCrawled,
+      label: "已发现·未爬取",
+      tooltip: `已发现·未爬取 —— Google 已发现但尚未爬取，等待排队。${ct ? `\nGSC: ${ct}` : ""}`,
+      group: "coverage",
+    };
+  }
+
+  // 3c. Google 未发现
+  if (cl.includes("未发现") || ct.toLowerCase().includes("unknown to google") || ct.toLowerCase().includes("url is not on google")) {
+    return {
+      color: COVERAGE_COLORS.unknownToGoogle,
+      label: "Google 未发现",
+      tooltip: `Google 未发现 —— Google 尚不知道这个页面存在。${ct ? `\nGSC: ${ct}` : ""}`,
+      group: "coverage",
+    };
+  }
+
+  // 3d. 待检查（indexState=discovered 但无 coverageText/coverageLabel → 还没用 API 查过）
+  if (page.indexState === "discovered" && !cl && !ct) {
+    return {
+      color: COVERAGE_COLORS.pending,
+      label: "待检查",
+      tooltip: "待检查 —— 尚未通过 API 查询收录状态。",
+      hollow: true,
+      group: "coverage",
+    };
+  }
+
+  // 3e. excluded / error 有 coverageLabel 但不属于上面分支 → 用其文本
+  if (page.indexState === "excluded" || page.indexState === "error") {
+    const fallbackLabel = cl || (page.indexState === "error" ? "异常" : "未收录");
+    return {
+      color: COVERAGE_COLORS.excludedFallback,
+      label: fallbackLabel,
+      tooltip: `${fallbackLabel}${ct ? ` —— GSC: ${ct}` : ""}`,
+      group: "coverage",
+    };
+  }
+
+  // 3f. 兜底（不应到达）
+  return {
+    color: COVERAGE_COLORS.pending,
+    label: "未知",
+    tooltip: "状态未知",
+    hollow: true,
+    group: "neutral",
+  };
+}
+
+/** 状态灯圆点 —— 纯颜色灯，不带文字。tooltip 通过 title 属性展示。
+ *  hollow=true 时画空心圆（区分"待检查"和"已查明"）。 */
+export function StatusLightDot({
+  light,
+  size = 9,
+}: {
+  light: StatusLight;
+  size?: number;
+}) {
+  const c = light.color;
+  if (light.hollow) {
+    return (
+      <span
+        aria-label={light.label}
+        title={light.tooltip}
+        style={{
+          display: "inline-block",
+          width: size,
+          height: size,
+          borderRadius: 9999,
+          border: `1.5px solid ${c}`,
+          background: "transparent",
+          opacity: 0.7,
+        }}
+      />
+    );
+  }
+  const hi = `color-mix(in srgb, ${c} 42%, #ffffff)`;
+  const lo = `color-mix(in srgb, ${c} 62%, #000000)`;
+  const muted = light.group === "neutral";
+  return (
+    <span
+      aria-label={light.label}
+      title={light.tooltip}
+      style={{
+        display: "inline-block",
+        width: size,
+        height: size,
+        borderRadius: 9999,
+        background: muted
+          ? c
+          : `radial-gradient(circle at 30% 30%, ${hi}, ${c} 55%, ${lo})`,
+        opacity: muted ? 0.5 : 1,
+        boxShadow: muted ? "none" : `0 0 6px ${c}b3`,
+      }}
+    />
+  );
+}
+
+/** 状态说明图例 —— 所有灯色含义的完整列表。
+ *  点击表头旁的「图例」按钮时弹出。 */
+export function StatusLegendContent() {
+  const items: { color: string; label: string; hint: string; hollow?: boolean; section: string }[] = [
+    // A. 已收录页 — 健康度
+    { section: "已收录（按健康度）", color: HEALTH_META.healthy.color, label: "健康", hint: "关键词丰富且排名进首页" },
+    { section: "已收录（按健康度）", color: HEALTH_META.improve.color, label: "可优化", hint: "有关键词但排名靠后" },
+    { section: "已收录（按健康度）", color: HEALTH_META.activate.color, label: "待激活", hint: "已收录但无关键词排名" },
+    { section: "已收录（按健康度）", color: HEALTH_META.lowpriority.color, label: "低优先", hint: "结构/政策页，无需投入" },
+    // B. 未收录页 — 收录态
+    { section: "未收录（按收录态）", color: COVERAGE_COLORS.crawledNotIndexed, label: "已抓取·未收录", hint: "Google 看过但不收，需处理" },
+    { section: "未收录（按收录态）", color: COVERAGE_COLORS.discoveredNotCrawled, label: "已发现·未爬取", hint: "等待 Google 排队爬取" },
+    { section: "未收录（按收录态）", color: COVERAGE_COLORS.unknownToGoogle, label: "Google 未发现", hint: "Google 尚不知道此页" },
+    { section: "未收录（按收录态）", color: COVERAGE_COLORS.pending, label: "待检查", hint: "尚未查询收录状态", hollow: true },
+  ];
+
+  let lastSection = "";
+  return (
+    <div className="flex flex-col gap-1 py-1.5 px-2 min-w-[200px]">
+      {items.map((item, i) => {
+        const showSection = item.section !== lastSection;
+        lastSection = item.section;
+        return (
+          <React.Fragment key={i}>
+            {showSection && (
+              <div
+                className="text-[9px] text-manor-brassHi/80 tracking-[0.2em] uppercase mt-1 first:mt-0"
+                style={{ fontFamily: "var(--font-sc), 'Cormorant SC', serif" }}
+              >
+                {item.section}
+              </div>
+            )}
+            <div className="flex items-center gap-2 py-0.5">
+              <span
+                style={{
+                  display: "inline-block",
+                  width: 8,
+                  height: 8,
+                  borderRadius: 9999,
+                  ...(item.hollow
+                    ? { border: `1.5px solid ${item.color}`, background: "transparent", opacity: 0.7 }
+                    : {
+                        background: `radial-gradient(circle at 30% 30%, color-mix(in srgb, ${item.color} 42%, #ffffff), ${item.color} 55%, color-mix(in srgb, ${item.color} 62%, #000000))`,
+                        boxShadow: `0 0 4px ${item.color}b3`,
+                      }),
+                }}
+              />
+              <span className="text-[11px] text-manor-ink/90 leading-tight">{item.label}</span>
+              <span className="text-[10px] text-manor-inkFaint leading-tight ml-auto">{item.hint}</span>
+            </div>
+          </React.Fragment>
+        );
+      })}
+    </div>
+  );
+}
+
+// ───────────────────────────────────────────────────────────────────────────
 // 页面类型 chip — 12 类（SEO 行业通行的 page template 分类）
 // 配色策略：4 tier 分层
 //   T1 金主突出  → 全站枢纽 / 头部商业（首页 / PDP）
