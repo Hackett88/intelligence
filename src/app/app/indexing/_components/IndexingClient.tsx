@@ -14,7 +14,7 @@ import {
 import { PageTable } from "./PageTable";
 import { PageTreeView, type Scope, scopeMatches } from "./PageTreeView";
 import { DetailDrawer } from "./DetailDrawer";
-import { Clock, Globe, List, Network, RefreshCw, X } from "lucide-react";
+import { Clock, Globe, List, Network, RefreshCw, Send, X } from "lucide-react";
 import { SchedulerSettingsDialog } from "./SchedulerSettingsDialog";
 import {
   type PageRow,
@@ -183,11 +183,21 @@ export function IndexingClient({
   const inspecting = inspectingMode !== null;
   const [rescanning, setRescanning] = useState(false);
   const [schedulerOpen, setSchedulerOpen] = useState(false);
+  // ── 批量请求索引：对当前范围内的未收录页逐个代驾 GSC「请求编入索引」──
+  const [batchRequesting, setBatchRequesting] = useState(false);
+  const [batchArmed, setBatchArmed] = useState(false); // 两步确认：首点武装、再点执行
+  const batchArmTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (batchArmTimer.current) clearTimeout(batchArmTimer.current);
+    },
+    []
+  );
 
   // ── 刷新收录状态：调 /api/indexing/inspect-coverage，按需分级查收录 ──
   // on-demand（默认）：按需分级——没查过的立即查、未收录24h复查、已收录7天兜底复查。
   const handleInspectCoverage = async () => {
-    if (inspecting) return;
+    if (inspecting || batchRequesting) return; // 与批量请求互斥：两者都代驾同一本地 Chrome
     setInspectingMode("on-demand");
     const toastId = toast.loading("正在检查收录状态…", {
       description: "按需分级查 GSC「网址检查」（每批上限 12 页，受 Google 限流，请勿关闭浏览器）",
@@ -437,6 +447,139 @@ export function IndexingClient({
     [scoped]
   );
 
+  // 当前范围（FilterBar + scope 过滤后）内的未收录页 —— 批量请求索引的作用对象。
+  // 口径与详情抽屉里「请求 Google 索引」按钮一致（indexState !== "indexed"）。
+  const notIndexedInScope = useMemo(
+    () => scopedReal.filter((p) => p.indexState !== "indexed"),
+    [scopedReal]
+  );
+
+  // 批量「请求编入索引」：对 notIndexedInScope 逐个串行代驾 GSC（复用单页 /request-index 接口）。
+  // 设计吸取实测教训：① 串行 + 每次间隔，绝不并发；② 撞配额/验证码立即停；③ 连续 2 次失败
+  // （多为 GSC 短时限流「糟糕！出了点问题·请稍后重试」）自动暂停，不无谓 hammering；
+  // ④ 全程进度 toast，末尾如实汇总（已请求 / 已收录 / 失败 / 未处理）。
+  const handleBatchRequestIndex = async () => {
+    if (batchRequesting || inspecting) return;
+    const targets = notIndexedInScope;
+    if (targets.length === 0) return;
+    setBatchRequesting(true);
+    const toastId = toast.loading("批量请求索引中…", {
+      description: `共 ${targets.length} 个未收录页 · 逐个提交（本地浏览器代驾 GSC，受 Google 限流，请勿关闭浏览器）`,
+    });
+    let requested = 0;
+    let already = 0;
+    let throttled = 0;
+    let failed = 0;
+    let done = 0;
+    let consecutiveFail = 0;
+    let stopped: { reason: string; desc: string } | null = null;
+    try {
+      for (let i = 0; i < targets.length; i++) {
+        const page = targets[i];
+        toast.loading("批量请求索引中…", {
+          id: toastId,
+          description: `${done}/${targets.length} 完成 · 正在提交：${page.url}`,
+        });
+        let status = "failed";
+        try {
+          const res = await fetch("/api/indexing/request-index", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ url: page.fullUrl }),
+          });
+          const data = (await res.json()) as { ok?: boolean; status?: string; message?: string };
+          status = res.ok ? data.status ?? "failed" : "failed";
+        } catch {
+          status = "failed";
+        }
+
+        // 撞配额 / 人机验证 → 继续也没用，立即停下等人工。
+        if (status === "quota_exceeded") {
+          stopped = { reason: "配额用尽", desc: "今日 Google「请求索引」配额已用尽，请明天再试剩余页。" };
+          break;
+        }
+        if (status === "captcha") {
+          stopped = { reason: "撞人机验证", desc: "请到浏览器 GSC 手动完成 reCAPTCHA 后，再续跑剩余页。" };
+          break;
+        }
+
+        done++;
+        if (status === "requested") {
+          requested++;
+          consecutiveFail = 0;
+        } else if (status === "already_indexed") {
+          already++;
+          consecutiveFail = 0;
+        } else if (status === "throttled") {
+          // 撞 GSC 短时限流「请稍后重试」→ 继续也是撞墙，立即暂停等冷却（比等 2 连败更早）。
+          throttled++;
+          stopped = {
+            reason: "GSC 限流",
+            desc: "GSC 暂时限流（弹出「请稍后重试」），已暂停，请过一会儿再试剩余页。",
+          };
+          break;
+        } else {
+          failed++;
+          consecutiveFail++;
+        }
+
+        // 连续 2 次失败多为 GSC 短时限流 → 暂停，避免继续 hammering 触发更长封锁 / reCAPTCHA。
+        if (consecutiveFail >= 2) {
+          stopped = { reason: "连续报错已暂停", desc: "GSC 连续返回错误（多为短时限流），已暂停，请稍后再试剩余页。" };
+          break;
+        }
+
+        // 节流：逐个之间留间隔，末个不等。
+        if (i < targets.length - 1) await new Promise((r) => setTimeout(r, 2500));
+      }
+
+      const remaining = targets.length - done;
+      const summary =
+        `已请求 ${requested}` +
+        (already ? ` · 已收录 ${already}` : "") +
+        (throttled ? ` · 限流 ${throttled}` : "") +
+        (failed ? ` · 失败 ${failed}` : "") +
+        (remaining > 0 ? ` · 未处理 ${remaining}` : "");
+
+      if (stopped) {
+        toast.warning(`批量请求已暂停：${stopped.reason}`, {
+          id: toastId,
+          description: `${summary}。${stopped.desc}`,
+          duration: 10000,
+        });
+      } else if (requested === 0 && already > 0 && failed === 0) {
+        toast.info("这些页都已收录，无需请求", { id: toastId, description: summary, duration: 6000 });
+      } else if (requested === 0 && failed > 0) {
+        toast.error("批量请求未成功", {
+          id: toastId,
+          description: `${summary}。可稍后重试，或到浏览器手动点单页按钮。`,
+          duration: 9000,
+        });
+      } else {
+        toast.success("批量请求索引完成", {
+          id: toastId,
+          description: `${summary}（已加入 Google 优先抓取队列）· 稍后可点「刷新收录」复查状态`,
+          duration: 8000,
+        });
+      }
+    } finally {
+      setBatchRequesting(false);
+    }
+  };
+
+  // 两步确认：首点"武装"（4s 内有效、按钮变红），再点才真正执行——防误触烧当日配额。
+  const armOrRunBatch = () => {
+    if (batchRequesting || inspecting || notIndexedInScope.length === 0) return;
+    if (batchArmTimer.current) clearTimeout(batchArmTimer.current);
+    if (!batchArmed) {
+      setBatchArmed(true);
+      batchArmTimer.current = setTimeout(() => setBatchArmed(false), 4000);
+      return;
+    }
+    setBatchArmed(false);
+    void handleBatchRequestIndex();
+  };
+
   // 顶部 SummaryBar 跟随当前"发亮卡片"(scope) 实时变动：
   //   · scope=all   → 用权威全站汇总（snapshot.summary 口径，与原行为一致）
   //   · scope=子树  → 按该子树的真实页 (scopedReal) 实时重算，口径与列表视图完全一致，
@@ -607,7 +750,7 @@ export function IndexingClient({
               <button
                 type="button"
                 onClick={handleInspectCoverage}
-                disabled={inspecting}
+                disabled={inspecting || batchRequesting}
                 title={inspecting ? "正在检查收录…" : "按需分级：没查过的立即查 · 未收录24h复查 · 已收录7天兜底"}
                 className={[
                   "h-full inline-flex items-center gap-1.5 px-2.5 text-[11px] whitespace-nowrap transition-all",
@@ -654,6 +797,44 @@ export function IndexingClient({
               <Clock size={12} aria-hidden="true" />
               <span>定时</span>
             </button>
+            {/* 批量请求索引 —— 对当前范围内未收录页逐个代驾 GSC「请求编入索引」。
+                仅本地（syncEnabled）显示：依赖本地浏览器 9222，与详情抽屉里的单页按钮同一引擎。
+                两步确认（首点武装 4s → 再点执行）防误触烧当日配额。 */}
+            {syncEnabled && (
+              <button
+                type="button"
+                onClick={armOrRunBatch}
+                disabled={batchRequesting || inspecting || notIndexedInScope.length === 0}
+                title={
+                  notIndexedInScope.length === 0
+                    ? "当前范围内没有未收录页"
+                    : batchRequesting
+                      ? "正在批量请求索引…"
+                      : `对当前范围内 ${notIndexedInScope.length} 个未收录页逐个请求 Google 抓取（本地浏览器代驾 GSC · 受每日配额限制）`
+                }
+                className={[
+                  "h-7 inline-flex items-center gap-1.5 px-2.5 rounded text-[11px] whitespace-nowrap shrink-0",
+                  "border transition-all",
+                  batchRequesting
+                    ? "border-manor-brass/25 text-manor-inkDim cursor-wait"
+                    : notIndexedInScope.length === 0
+                      ? "border-manor-brass/15 text-manor-inkGhost cursor-not-allowed"
+                      : batchArmed
+                        ? "border-manor-oxbloodHi/70 text-manor-oxbloodHi bg-manor-oxbloodHi/15 hover:bg-manor-oxbloodHi/25"
+                        : "border-manor-brass/45 text-manor-brassHi hover:border-manor-brassHi hover:shadow-[0_0_10px_-2px_rgba(239,216,154,.65)] hover:bg-manor-brassDim/10",
+                ].join(" ")}
+                style={{ fontFamily: "var(--font-sc), 'Cormorant SC', serif", letterSpacing: "0.1em" }}
+              >
+                <Send size={12} className={batchRequesting ? "animate-pulse" : ""} aria-hidden="true" />
+                <span>
+                  {batchRequesting
+                    ? "请求中"
+                    : batchArmed
+                      ? `确认请求 ${notIndexedInScope.length} 页？`
+                      : `请求索引${notIndexedInScope.length ? ` (${notIndexedInScope.length})` : ""}`}
+                </span>
+              </button>
+            )}
             {/* 更新流量 —— 官方 API，生产可跑 */}
             <button
               type="button"
