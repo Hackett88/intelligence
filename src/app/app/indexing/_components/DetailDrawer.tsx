@@ -183,6 +183,12 @@ function RequestIndexButton({ fullUrl }: { fullUrl: string }) {
             { duration: 6000 },
           );
           break;
+        case "throttled":
+          toast.warning(
+            "GSC 暂时限流（弹出「请稍后重试」），本页未提交成功，请过一会儿再试",
+            { duration: 6000 },
+          );
+          break;
         case "failed":
           toast.error(data.message || "请求索引失败", { duration: 6000 });
           break;

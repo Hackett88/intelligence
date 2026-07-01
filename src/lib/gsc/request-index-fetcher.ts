@@ -57,7 +57,13 @@ const REQUEST_PHRASES = ["请求编入索引", "request indexing"];
 
 export interface RequestIndexResult {
   url: string;
-  status: "requested" | "already_indexed" | "captcha" | "quota_exceeded" | "failed";
+  status:
+    | "requested"
+    | "already_indexed"
+    | "captcha"
+    | "quota_exceeded"
+    | "throttled"
+    | "failed";
   message: string;
 }
 
@@ -280,6 +286,7 @@ async function clickRequestButton(page: Page): Promise<boolean> {
 async function readRequestOutcome(page: Page): Promise<{
   success: boolean;
   quota: boolean;
+  error: boolean;
   dialog: boolean;
   challenge: boolean;
 }> {
@@ -319,6 +326,14 @@ async function readRequestOutcome(page: Page): Promise<{
           lower.includes("limit") ||
           lower.includes("run out")));
 
+    // GSC 提交失败弹窗（role=alertdialog）："糟糕！出了点问题 / 提交…时出现了问题。请稍后重试。"
+    // 实测多为短时限流：放一两个请求后就短路弹这个。识别到即秒退（判 throttled），不必干等满超时。
+    const error =
+      text.includes("出了点问题") ||
+      (text.includes("出现了问题") && text.includes("请稍后")) ||
+      lower.includes("something went wrong") ||
+      (lower.includes("problem") && lower.includes("try again"));
+
     // 实时测试 / 请求进行中对话框（中间态）：点击已生效、请求流程已启动。
     const dialog =
       text.includes("正在请求编入索引") ||
@@ -355,7 +370,7 @@ async function readRequestOutcome(page: Page): Promise<{
       }
     }
 
-    return { success, quota, dialog, challenge };
+    return { success, quota, error, dialog, challenge };
   });
 }
 
@@ -365,18 +380,32 @@ async function readRequestOutcome(page: Page): Promise<{
 async function waitRequestOutcome(
   page: Page,
   timeoutMs: number
-): Promise<{ success: boolean; quota: boolean; challenge: boolean; sawDialog: boolean }> {
+): Promise<{
+  success: boolean;
+  quota: boolean;
+  challenge: boolean;
+  error: boolean;
+  sawDialog: boolean;
+}> {
   const deadline = Date.now() + timeoutMs;
   let sawDialog = false;
   while (Date.now() < deadline) {
     const o = await readRequestOutcome(page);
     if (o.dialog) sawDialog = true;
-    if (o.success || o.quota || o.challenge) {
-      return { success: o.success, quota: o.quota, challenge: o.challenge, sawDialog };
+    // 成功 / 配额 / 挑战 / 提交失败弹窗（限流）任一命中即返回——尤其是 error，命中即秒退，
+    // 不必干等满 OUTCOME_TIMEOUT（限流页曾因此白等 ~2 分钟）。
+    if (o.success || o.quota || o.challenge || o.error) {
+      return {
+        success: o.success,
+        quota: o.quota,
+        challenge: o.challenge,
+        error: o.error,
+        sawDialog,
+      };
     }
     await sleep(1000);
   }
-  return { success: false, quota: false, challenge: false, sawDialog };
+  return { success: false, quota: false, challenge: false, error: false, sawDialog };
 }
 
 /**
@@ -533,6 +562,16 @@ export async function requestIndexing(
         url,
         status: "requested",
         message: "已成功请求编入索引（网址已加入 Google 优先抓取队列）。",
+      };
+    }
+    if (outcome.error) {
+      // GSC 弹「糟糕！出了点问题·请稍后重试」——本页未提交成功，多为短时限流。如实判 throttled，
+      // 让上层（批量/单页）以"稍后重试"对待，而不是笼统 failed 或误当 requested。
+      return {
+        url,
+        status: "throttled",
+        message:
+          "GSC 暂时无法处理该请求（弹出「请稍后重试」，多为短时限流），本页未提交成功，请稍后再试。",
       };
     }
     if (outcome.sawDialog) {
