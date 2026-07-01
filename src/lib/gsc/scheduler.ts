@@ -2,15 +2,15 @@
 //
 // 由 src/instrumentation.ts 在 Node 服务启动时调用 startScheduler() 一次。
 //
-// 触发口径（2026-06-30 改）：从「相对间隔（过 N 分钟就跑）」改为「固定洛杉矶墙钟点」——
-//   · 流量更新：每天 America/Los_Angeles 18:00 触发一次。
-//   · 收录检查：每天 America/Los_Angeles 06:00 触发一次（与流量错开 12h，不同时打 GSC API）。
-//   为什么选 LA 时区的 18:00：GSC 的数据日界按太平洋时间走，LA 18:00 时「前一两天」的数据
-//   已基本定稿，避开 GSC 最近 1-2 天 fresh 数据反复波动的时段，拉到的更稳、更全。
+// 触发口径（2026-06-30 起，2026-07-01 微调时刻）：固定洛杉矶墙钟点——
+//   · 流量更新：每天 America/Los_Angeles 22:30 触发一次。
+//   · 收录检查：每天 America/Los_Angeles 06:00 触发一次。
+//   为什么选 LA 22:30：GSC 数据按太平洋时间当天滚动放出，越晚「前两天(today-2)」的数据越全。
+//   22:30 比原先 18:00 再多留 4.5 小时，确保当天该给的 today-2 数据已放全，避免「点太早空抓、漏一天」。
 //
-//   到点判断 isDueAtLaHour：「最近一个已发生的 LA HH:00」之后、且上次运行在该点之前
+//   到点判断 isDueAtLaClock：「最近一个已发生的 LA HH:MM」之后、且上次运行在该点之前
 //   （= 今天这个点还没跑过）→ 跑。天然满足：
-//     ① 准点触发：到了 LA HH:00 后的第一个 60s 心跳就跑；
+//     ① 准点触发：到了 LA HH:MM 后的第一个 60s 心跳就跑；
 //     ② 关机/断网补跑：服务恢复时若已过当天触发点且当天没跑过，立刻补跑缺的那次；
 //     ③ 一天至多一次：跑完 lastRunAt 落在触发点之后，当天不再重复；
 //     ④ 抑制乱跑：比旧的「过 24h 就跑」对机器时钟漂移更鲁棒（当天已跑过就不会再跑）。
@@ -35,10 +35,12 @@ import { runTrafficUpdateCore } from "@/lib/gsc/run-traffic-update";
 
 const TICK_MS = 60_000; // 60s 心跳（仅控制检查频率，不等于执行节律）
 
-// 每天的固定触发墙钟点（America/Los_Angeles 当地时间，24h 制）。改这两个常量即可调整时刻。
+// 每天的固定触发墙钟点（America/Los_Angeles 当地时间，时:分）。改这几个常量即可调整时刻。
 const LA_TZ = "America/Los_Angeles";
-const TRAFFIC_LA_HOUR = 18;    // 流量更新：LA 18:00
-const INSPECTION_LA_HOUR = 6;  // 收录检查：LA 06:00（与流量错开 12h）
+const TRAFFIC_LA_HOUR = 22;    // 流量更新：LA 22:30
+const TRAFFIC_LA_MINUTE = 30;
+const INSPECTION_LA_HOUR = 6;  // 收录检查：LA 06:00
+const INSPECTION_LA_MINUTE = 0;
 
 // 防重入：各自独立，上一轮未完成则跳过后续触发（全量收录可能数分钟，远超心跳周期）。
 let inspectionRunning = false;
@@ -62,14 +64,14 @@ function laParts(d: Date): { y: number; mo: number; dd: number; h: number; mi: n
   return { y: g("year"), mo: g("month"), dd: g("day"), h: g("hour"), mi: g("minute"), s: g("second") };
 }
 
-// LA 墙上时间 (y,mo,dd,hour:00:00) → 对应 UTC 毫秒。猜测+校正法，正确处理 DST（PST/PDT 切换）。
-function laWallToUtcMs(y: number, mo: number, dd: number, hour: number): number {
-  let guess = Date.UTC(y, mo - 1, dd, hour, 0, 0);
+// LA 墙上时间 (y,mo,dd,hour:minute:00) → 对应 UTC 毫秒。猜测+校正法，正确处理 DST（PST/PDT 切换）。
+function laWallToUtcMs(y: number, mo: number, dd: number, hour: number, minute: number): number {
+  let guess = Date.UTC(y, mo - 1, dd, hour, minute, 0);
   // 迭代收敛：把 guess 在 LA 显示的墙上时间与目标墙上时间对齐（最多 3 次足够覆盖 DST 跳变）。
   for (let i = 0; i < 3; i++) {
     const p = laParts(new Date(guess));
     const shownAsUtc = Date.UTC(p.y, p.mo - 1, p.dd, p.h, p.mi, p.s);
-    const targetAsUtc = Date.UTC(y, mo - 1, dd, hour, 0, 0);
+    const targetAsUtc = Date.UTC(y, mo - 1, dd, hour, minute, 0);
     const diff = targetAsUtc - shownAsUtc;
     if (diff === 0) break;
     guess += diff;
@@ -77,22 +79,26 @@ function laWallToUtcMs(y: number, mo: number, dd: number, hour: number): number 
   return guess;
 }
 
-// 「最近一个已经发生的 LA hour:00」对应的 UTC 毫秒。
-function mostRecentLaHourMs(now: Date, hour: number): number {
+// 「最近一个已经发生的 LA hour:minute」对应的 UTC 毫秒。
+function mostRecentLaClockMs(now: Date, hour: number, minute: number): number {
   const p = laParts(now);
-  const todayMs = laWallToUtcMs(p.y, p.mo, p.dd, hour);
+  const todayMs = laWallToUtcMs(p.y, p.mo, p.dd, hour, minute);
   if (now.getTime() >= todayMs) return todayMs; // 今天这个点已过 → 就是它
   // 今天的点还没到 → 取「昨天 LA 日期」的该点
   const y = laParts(new Date(now.getTime() - 86_400_000));
-  return laWallToUtcMs(y.y, y.mo, y.dd, hour);
+  return laWallToUtcMs(y.y, y.mo, y.dd, hour, minute);
 }
 
 /**
- * 到点判断：最近的 LA hour:00 已过，且上次运行在该点之前（今天还没跑过）→ 该跑。
+ * 到点判断：最近的 LA hour:minute 已过，且上次运行在该点之前（今天还没跑过）→ 该跑。
  * lastRunAt 为空（从未跑过）→ 立即补跑。
  */
-function isDueAtLaHour(lastRunAt: Date | null | undefined, hour: number): boolean {
-  const triggerMs = mostRecentLaHourMs(new Date(), hour);
+function isDueAtLaClock(
+  lastRunAt: Date | null | undefined,
+  hour: number,
+  minute: number
+): boolean {
+  const triggerMs = mostRecentLaClockMs(new Date(), hour, minute);
   if (!lastRunAt) return true;
   return new Date(lastRunAt).getTime() < triggerMs;
 }
@@ -116,7 +122,7 @@ async function inspectionTick(): Promise<void> {
 
   // 2) 守卫：未启用 / 未到点（LA 06:00）/ API 未配。
   if (!cfg.enabled) return;
-  if (!isDueAtLaHour(cfg.lastRunAt, INSPECTION_LA_HOUR)) return;
+  if (!isDueAtLaClock(cfg.lastRunAt, INSPECTION_LA_HOUR, INSPECTION_LA_MINUTE)) return;
   if (!isGscApiConfigured()) {
     console.warn("[scheduler] GSC API 未配置，跳过本次定时收录");
     return;
@@ -171,9 +177,9 @@ async function trafficTick(): Promise<void> {
   }
   if (!cfg) return;
 
-  // 2) 守卫：未启用 / 未到点（LA 18:00）/ API 未配。
+  // 2) 守卫：未启用 / 未到点（LA 22:30）/ API 未配。
   if (!cfg.enabled) return;
-  if (!isDueAtLaHour(cfg.lastRunAt, TRAFFIC_LA_HOUR)) return;
+  if (!isDueAtLaClock(cfg.lastRunAt, TRAFFIC_LA_HOUR, TRAFFIC_LA_MINUTE)) return;
   if (!isGscApiConfigured()) {
     console.warn("[scheduler] GSC API 未配置，跳过本次定时流量更新");
     return;
