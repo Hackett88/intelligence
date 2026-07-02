@@ -19,11 +19,10 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { fetchSitemapPages } from "../src/lib/gsc/sitemap";
-import {
-  loadIndexStatus,
-  saveMergeIndexStatus,
-  type IndexStatusFile,
-} from "../src/lib/gsc/index-status-store";
+// index-status-store 间接 import @/db/client，而 db client 在【import 时】就固化
+// process.env.DATABASE_URL —— 必须等 loadEnvLocal() 注入后再动态 import，否则 PG 连不上、
+// 静默降级只写 JSON（面板读 PG，会造成 PG/JSON 分叉）。这里只保留 type-only import（运行时擦除）。
+import type { IndexStatusFile } from "../src/lib/gsc/index-status-store";
 import { normalizeForMatch } from "../src/lib/gsc/url-normalize";
 import { inspectUrlsViaApi } from "../src/lib/gsc/index-inspection-api-fetcher";
 
@@ -111,6 +110,11 @@ function fmtIndexed(v: boolean | null): string {
     );
     process.exit(1);
   }
+
+  // env 已注入 → 此刻才 import store（db client 在 import 时读 DATABASE_URL）
+  const { loadIndexStatus, saveMergeIndexStatus } = await import(
+    "../src/lib/gsc/index-status-store"
+  );
 
   // ── 1) sitemap + 现有状态 → 筛未检查 ──
   console.log("\n拉取新站 sitemap + 读现有收录状态 …");

@@ -130,7 +130,8 @@ async function inspectionTick(): Promise<void> {
   if (inspectionRunning) return;
   inspectionRunning = true;
   try {
-    // 定时收录【恒走按需】（没查过→立即；未收录→超 24h；已收录→超 7 天），绝不全量重查 ——
+    // 定时收录【恒走按需】（没查过→立即；未收录→超 20h；已收录→超 6d20h，阈值含相位余量，
+    // 见 run-inspection.ts 新鲜度阈值注释），绝不全量重查 ——
     // 这是用户「按需调用」的核心。cfg.mode 已废弃不读（前端定时面板也已移除"全部重查"开关）。
     const summary = await runInspectionCore({ mode: "on-demand", apiOnly: true });
 

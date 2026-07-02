@@ -14,11 +14,10 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { JWT } from "google-auth-library";
-import {
-  loadIndexStatus,
-  saveMergeIndexStatus,
-  type IndexStatusFile,
-} from "../src/lib/gsc/index-status-store";
+// index-status-store 间接 import @/db/client，而 db client 在【import 时】就固化
+// process.env.DATABASE_URL —— 必须等 loadEnvLocal() 注入后再动态 import，否则 PG 连不上、
+// 静默降级只写 JSON（面板读 PG，会造成 PG/JSON 分叉）。这里只保留 type-only import（运行时擦除）。
+import type { IndexStatusFile } from "../src/lib/gsc/index-status-store";
 import { mapIndexed } from "../src/lib/gsc/index-inspection-api-fetcher";
 
 const ENDPOINT =
@@ -112,6 +111,11 @@ function printCounts(status: IndexStatusFile): void {
     console.error("\n[停止] GSC_SA_KEY_FILE / GSC_SA_KEY_JSON 没加载到 process.env。");
     process.exit(1);
   }
+
+  // env 已注入 → 此刻才 import store（db client 在 import 时读 DATABASE_URL）
+  const { loadIndexStatus, saveMergeIndexStatus } = await import(
+    "../src/lib/gsc/index-status-store"
+  );
 
   // 取当前 indexed===false 的 URL
   const before = await loadIndexStatus();

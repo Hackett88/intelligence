@@ -40,15 +40,20 @@ export interface InspectionSummary {
 }
 
 // ── 新鲜度阈值 ──────────────────────────────────────────────────────────────────
-const STALE_NOT_INDEXED_MS = 24 * 60 * 60 * 1000; // 未收录 → 24h 后复查
-const STALE_INDEXED_MS = 7 * 24 * 60 * 60 * 1000; // 已收录 → 7d 后复查
+// 定时器每天固定 LA 钟点触发一次。阈值若取整 24h/7d，任何「上次检查发生在触发点之后」的页
+// （手动按钮下午点过、或上一轮批量跑到触发点之后几十秒才写完）到次日触发时都差一点不到期，
+// 被整体顺延一天：未收录页实际 48h 才复查——Google 翻成已收录后面板要多错一天（实案：
+// /smart-tasbih-ring 2026-07-01 15:26 手动查为未收录，07-02 上午 Google 收录，07-02 13:00
+// 定时跑时仅过 21.6h 被跳过）。各留 4h 相位余量，保证「昨天检查过的页，今天到点必复查」。
+const STALE_NOT_INDEXED_MS = 20 * 60 * 60 * 1000; // 未收录 → ≥20h 复查（名义节律仍是每日）
+const STALE_INDEXED_MS = (7 * 24 - 4) * 60 * 60 * 1000; // 已收录 → ≥6d20h 复查（名义节律仍是每周）
 
 /**
  * 判断该 entry 是否需要重新检查（新鲜度判定）。
  * - 无 entry（未查过）→ 需查
  * - indexed===null（失败/未知）→ 需查
- * - indexed===false（未收录）→ 距上次检查 ≥ 24h 才查
- * - indexed===true（已收录）→ 距上次检查 ≥ 7d 才查
+ * - indexed===false（未收录）→ 距上次检查 ≥ 20h 才查（每日节律，含相位余量）
+ * - indexed===true（已收录）→ 距上次检查 ≥ 6d20h 才查（每周节律，含相位余量）
  * - checkedAt 缺失/解析为 NaN → 当作 0（很旧）→ 需查
  */
 function needsInspection(entry: IndexStatusEntry | undefined, now: number): boolean {
