@@ -23,6 +23,8 @@ interface CoverageSchedulerConfig {
   ok: boolean;
   enabled: boolean;
   intervalMinutes: number;
+  runHour: number;
+  runMinute: number;
   mode: string;
   lastRunAt: string | null;
   lastRunSummary: CoverageLastRunSummary | null;
@@ -44,6 +46,8 @@ interface TrafficSchedulerConfig {
   ok: boolean;
   enabled: boolean;
   intervalMinutes: number;
+  runHour: number;
+  runMinute: number;
   lastRunAt: string | null;
   lastRunSummary: TrafficLastRunSummary | null;
 }
@@ -53,28 +57,7 @@ interface SchedulerSettingsDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-/* ── Presets & helpers ──────────────────────────────────────────────────── */
-
-const INTERVAL_PRESETS = [
-  { label: "每小时", value: 60 },
-  { label: "每6小时", value: 360 },
-  { label: "每12小时", value: 720 },
-  { label: "每天", value: 1440 },
-] as const;
-
-function humanInterval(min: number): string {
-  if (min < 60) return `每 ${min} 分钟`;
-  if (min < 1440) {
-    const h = min / 60;
-    return Number.isInteger(h)
-      ? h === 1 ? "每小时" : `每 ${h} 小时`
-      : `每 ${min} 分钟`;
-  }
-  const d = min / 1440;
-  return Number.isInteger(d)
-    ? d === 1 ? "每天" : `每 ${d} 天`
-    : `每 ${(min / 60).toFixed(1)} 小时`;
-}
+/* ── Helpers ──────────────────────────────────────────────────────────── */
 
 function formatRelative(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
@@ -98,20 +81,28 @@ function formatAbsolute(iso: string): string {
 }
 
 function nextRunText(
-  lastRunAt: string | null,
-  intervalMinutes: number,
+  runHour: number,
+  runMinute: number,
   enabled: boolean,
 ): string {
   if (!enabled) return "未启用";
-  if (!lastRunAt) return "即将执行";
-  const next = new Date(lastRunAt).getTime() + intervalMinutes * 60000;
-  const diff = next - Date.now();
-  if (diff <= 0) return "即将执行";
-  const min = Math.floor(diff / 60000);
-  if (min < 60) return `约 ${min} 分钟后`;
-  const h = Math.floor(min / 60);
-  if (h < 24) return `约 ${h} 小时后`;
-  return `约 ${Math.floor(h / 24)} 天后`;
+  const now = new Date();
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Los_Angeles",
+    hourCycle: "h23",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).formatToParts(now);
+  const laHour = parseInt(parts.find((p) => p.type === "hour")!.value, 10);
+  const laMinute = parseInt(parts.find((p) => p.type === "minute")!.value, 10);
+  const nowMin = laHour * 60 + laMinute;
+  const targetMin = runHour * 60 + runMinute;
+  let diffMin = targetMin - nowMin;
+  if (diffMin <= 0) diffMin += 1440; // next day
+  if (diffMin < 60) return `约 ${diffMin} 分钟后`;
+  const h = Math.floor(diffMin / 60);
+  const rem = diffMin % 60;
+  return rem > 0 ? `约 ${h} 小时 ${rem} 分钟后` : `约 ${h} 小时后`;
 }
 
 function coverageSummaryLine(s: CoverageLastRunSummary): string {
@@ -131,6 +122,10 @@ function trafficSummaryLine(s: TrafficLastRunSummary): string {
   return parts.length > 0 ? parts.join(" / ") : "--";
 }
 
+/* ── Minute options (step 5) ──────────────────────────────────────────── */
+
+const MINUTE_OPTIONS = Array.from({ length: 12 }, (_, i) => i * 5);
+
 /* ── Fonts (project convention) ────────────────────────────────────────── */
 
 const sc = "var(--font-sc), 'Cormorant SC', serif";
@@ -148,14 +143,14 @@ export function SchedulerSettingsDialog({
   // ── Coverage scheduler state ──
   const [covConfig, setCovConfig] = useState<CoverageSchedulerConfig | null>(null);
   const [covEnabled, setCovEnabled] = useState(false);
-  const [covInterval, setCovInterval] = useState(1440);
-  const [covIntervalInput, setCovIntervalInput] = useState("1440");
+  const [covRunHour, setCovRunHour] = useState(6);
+  const [covRunMinute, setCovRunMinute] = useState(0);
 
   // ── Traffic scheduler state ──
   const [trafConfig, setTrafConfig] = useState<TrafficSchedulerConfig | null>(null);
   const [trafEnabled, setTrafEnabled] = useState(false);
-  const [trafInterval, setTrafInterval] = useState(1440);
-  const [trafIntervalInput, setTrafIntervalInput] = useState("1440");
+  const [trafRunHour, setTrafRunHour] = useState(0);
+  const [trafRunMinute, setTrafRunMinute] = useState(30);
 
   /* ── Fetch both configs on open ──────────────────────────────────── */
 
@@ -172,14 +167,14 @@ export function SchedulerSettingsDialog({
       if (covData.ok) {
         setCovConfig(covData);
         setCovEnabled(covData.enabled);
-        setCovInterval(covData.intervalMinutes);
-        setCovIntervalInput(String(covData.intervalMinutes));
+        if (typeof covData.runHour === "number") setCovRunHour(covData.runHour);
+        if (typeof covData.runMinute === "number") setCovRunMinute(covData.runMinute);
       }
       if (trafData.ok) {
         setTrafConfig(trafData);
         setTrafEnabled(trafData.enabled);
-        setTrafInterval(trafData.intervalMinutes);
-        setTrafIntervalInput(String(trafData.intervalMinutes));
+        if (typeof trafData.runHour === "number") setTrafRunHour(trafData.runHour);
+        if (typeof trafData.runMinute === "number") setTrafRunMinute(trafData.runMinute);
       }
       if (!covData.ok && !trafData.ok) {
         toast.error("无法加载定时配置");
@@ -195,40 +190,22 @@ export function SchedulerSettingsDialog({
     if (open) fetchConfigs();
   }, [open, fetchConfigs]);
 
-  /* ── Interval input handlers ───────────────────────────────────────── */
-
-  const MAX_INTERVAL = 1440;
-
-  const handleCovIntervalBlur = () => {
-    const clamped = Math.max(5, Math.min(MAX_INTERVAL, covInterval));
-    setCovInterval(clamped);
-    setCovIntervalInput(String(clamped));
-  };
-
-  const handleTrafIntervalBlur = () => {
-    const clamped = Math.max(5, Math.min(MAX_INTERVAL, trafInterval));
-    setTrafInterval(clamped);
-    setTrafIntervalInput(String(clamped));
-  };
-
   /* ── Save both ─────────────────────────────────────────────────────── */
 
   const handleSave = async () => {
     if (saving) return;
-    const covClamped = Math.max(5, Math.min(MAX_INTERVAL, covInterval));
-    const trafClamped = Math.max(5, Math.min(MAX_INTERVAL, trafInterval));
     setSaving(true);
     try {
       const [covRes, trafRes] = await Promise.all([
         fetch("/api/indexing/scheduler-config", {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ enabled: covEnabled, intervalMinutes: covClamped }),
+          body: JSON.stringify({ enabled: covEnabled, runHour: covRunHour, runMinute: covRunMinute }),
         }),
         fetch("/api/indexing/traffic-scheduler-config", {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ enabled: trafEnabled, intervalMinutes: trafClamped }),
+          body: JSON.stringify({ enabled: trafEnabled, runHour: trafRunHour, runMinute: trafRunMinute }),
         }),
       ]);
       const covData = (await covRes.json()) as CoverageSchedulerConfig & { message?: string };
@@ -243,16 +220,16 @@ export function SchedulerSettingsDialog({
       } else {
         setCovConfig(covData);
         setCovEnabled(covData.enabled);
-        setCovInterval(covData.intervalMinutes);
-        setCovIntervalInput(String(covData.intervalMinutes));
+        if (typeof covData.runHour === "number") setCovRunHour(covData.runHour);
+        if (typeof covData.runMinute === "number") setCovRunMinute(covData.runMinute);
       }
       if (!trafRes.ok || !trafData.ok) {
         toast.error(trafData.message || "流量定时保存失败");
       } else {
         setTrafConfig(trafData);
         setTrafEnabled(trafData.enabled);
-        setTrafInterval(trafData.intervalMinutes);
-        setTrafIntervalInput(String(trafData.intervalMinutes));
+        if (typeof trafData.runHour === "number") setTrafRunHour(trafData.runHour);
+        if (typeof trafData.runMinute === "number") setTrafRunMinute(trafData.runMinute);
       }
       if ((covRes.ok && covData.ok) && (trafRes.ok && trafData.ok)) {
         toast.success("定时设置已保存");
@@ -279,11 +256,7 @@ export function SchedulerSettingsDialog({
       ? null
       : coverageSummaryLine(covConfig.lastRunSummary)
     : "--";
-  const covNextDisplay = nextRunText(
-    covConfig?.lastRunAt ?? null,
-    covInterval,
-    covEnabled,
-  );
+  const covNextDisplay = nextRunText(covRunHour, covRunMinute, covEnabled);
 
   /* ── Derived display values (Traffic) ──────────────────────────────── */
 
@@ -300,69 +273,73 @@ export function SchedulerSettingsDialog({
       ? null
       : trafficSummaryLine(trafConfig.lastRunSummary)
     : "--";
-  const trafNextDisplay = nextRunText(
-    trafConfig?.lastRunAt ?? null,
-    trafInterval,
-    trafEnabled,
-  );
+  const trafNextDisplay = nextRunText(trafRunHour, trafRunMinute, trafEnabled);
 
   /* ── Shared sub-components ─────────────────────────────────────────── */
 
-  const renderIntervalInput = (
-    value: string,
-    parsed: number,
-    onChange: (raw: string) => void,
-    onBlur: () => void,
+  const selectCls =
+    "bg-manor-void/60 border border-manor-brass/30 px-2 py-2 text-sm text-manor-ink focus:outline-none focus:border-manor-brass focus:ring-1 focus:ring-manor-brass/30 tabnum cursor-pointer";
+
+  const renderTimePicker = (
+    hour: number,
+    minute: number,
+    onHourChange: (h: number) => void,
+    onMinuteChange: (m: number) => void,
+    tip?: string,
   ) => (
     <div className="flex flex-col gap-2">
       <label
         className="font-sc tracking-[0.22em] text-manor-brass leading-none"
         style={{ fontFamily: sc, fontSize: 10 }}
       >
-        INTERVALLUM
+        HORA QUOTIDIANA
       </label>
       <div className="flex items-center gap-2">
-        <input
-          type="number"
-          min={5}
-          max={MAX_INTERVAL}
-          step={1}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          onBlur={onBlur}
-          className="w-24 bg-manor-void/60 border border-manor-brass/30 px-3 py-2 text-sm text-manor-ink placeholder:text-manor-inkFaint focus:outline-none focus:border-manor-brass focus:ring-1 focus:ring-manor-brass/30 tabnum"
+        <select
+          value={hour}
+          onChange={(e) => onHourChange(Number(e.target.value))}
+          className={`w-[4.5rem] ${selectCls}`}
           style={{ borderRadius: 3, fontFamily: serif }}
-        />
-        <span className="text-xs text-manor-inkDim" style={{ fontFamily: serif }}>
-          分钟
+        >
+          {Array.from({ length: 24 }, (_, i) => (
+            <option key={i} value={i}>
+              {String(i).padStart(2, "0")}
+            </option>
+          ))}
+        </select>
+        <span
+          className="text-manor-brassHi text-sm select-none"
+          style={{ fontFamily: serif }}
+        >
+          :
         </span>
-        <span className="text-manor-inkFaint text-xs mx-1">=</span>
-        <span className="text-xs text-manor-brassHi" style={{ fontFamily: serif }}>
-          {humanInterval(parsed)}
+        <select
+          value={minute}
+          onChange={(e) => onMinuteChange(Number(e.target.value))}
+          className={`w-[4.5rem] ${selectCls}`}
+          style={{ borderRadius: 3, fontFamily: serif }}
+        >
+          {MINUTE_OPTIONS.map((m) => (
+            <option key={m} value={m}>
+              {String(m).padStart(2, "0")}
+            </option>
+          ))}
+        </select>
+        <span
+          className="text-xs text-manor-inkDim ml-1"
+          style={{ fontFamily: serif }}
+        >
+          洛杉矶时间
         </span>
       </div>
-      <div className="flex items-center gap-1.5 flex-wrap">
-        {INTERVAL_PRESETS.map((p) => (
-          <button
-            key={p.value}
-            type="button"
-            onClick={() => {
-              onChange(String(p.value));
-              // Also update parsed value directly since onChange only parses
-              // but the parent may need the clamped value
-            }}
-            className={[
-              "px-2.5 py-1 text-[11px] rounded border transition-colors whitespace-nowrap",
-              parsed === p.value
-                ? "border-manor-brassHi/60 text-manor-brassHi bg-manor-brassDim/15"
-                : "border-manor-brass/30 text-manor-inkDim hover:text-manor-brassHi hover:border-manor-brass/55",
-            ].join(" ")}
-            style={{ fontFamily: sc, letterSpacing: "0.06em" }}
-          >
-            {p.label}
-          </button>
-        ))}
-      </div>
+      {tip && (
+        <p
+          className="text-[10px] text-manor-inkDim leading-snug"
+          style={{ fontFamily: serif }}
+        >
+          {tip}
+        </p>
+      )}
     </div>
   );
 
@@ -469,7 +446,7 @@ export function SchedulerSettingsDialog({
                     style={{ fontFamily: sc, fontSize: 10 }}
                   >
                     <Dialog.Description className="sr-only">
-                      配置定时收录检查和定时流量更新的启用状态与检查频率
+                      配置定时收录检查和定时流量更新的启用状态与每日运行时刻
                     </Dialog.Description>
                   </div>
                   <Dialog.Title
@@ -500,7 +477,7 @@ export function SchedulerSettingsDialog({
                 className="text-[10.5px] text-manor-inkDim leading-snug -mt-1"
                 style={{ fontFamily: serif }}
               >
-                两个定时都保证：服务器在线时，数据最多 24 小时就会自动刷新一次（间隔上限 24h）
+                每个定时按洛杉矶时间的设定时刻，每天自动运行一次（服务器在线时）
               </p>
 
               {loading ? (
@@ -538,16 +515,12 @@ export function SchedulerSettingsDialog({
                       </span>
                     </div>
 
-                    {/* 频率 */}
-                    {renderIntervalInput(
-                      covIntervalInput,
-                      covInterval,
-                      (raw) => {
-                        setCovIntervalInput(raw);
-                        const n = parseInt(raw, 10);
-                        if (!Number.isNaN(n) && n >= 1) setCovInterval(n);
-                      },
-                      handleCovIntervalBlur,
+                    {/* 每日运行时刻 */}
+                    {renderTimePicker(
+                      covRunHour,
+                      covRunMinute,
+                      setCovRunHour,
+                      setCovRunMinute,
                     )}
 
                     {/* 按需分级说明（替换原 MODUS 切换） */}
@@ -603,16 +576,13 @@ export function SchedulerSettingsDialog({
                       </span>
                     </div>
 
-                    {/* 频率 */}
-                    {renderIntervalInput(
-                      trafIntervalInput,
-                      trafInterval,
-                      (raw) => {
-                        setTrafIntervalInput(raw);
-                        const n = parseInt(raw, 10);
-                        if (!Number.isNaN(n) && n >= 1) setTrafInterval(n);
-                      },
-                      handleTrafIntervalBlur,
+                    {/* 每日运行时刻 */}
+                    {renderTimePicker(
+                      trafRunHour,
+                      trafRunMinute,
+                      setTrafRunHour,
+                      setTrafRunMinute,
+                      "建议设在洛杉矶 00:00–06:00（美国凌晨，Google 刚放出最新数据）",
                     )}
 
                     {/* 运行状态 */}

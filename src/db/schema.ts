@@ -302,6 +302,8 @@ export const appSchedulerConfig = pgTable("app_scheduler_config", {
   id:              integer("id").primaryKey().default(1),
   enabled:         boolean("enabled").notNull().default(false),
   intervalMinutes: integer("interval_minutes").notNull().default(1440),
+  runHour:         integer("run_hour").notNull().default(6),    // LA 每日触发小时 0-23（收录默认 06:00）
+  runMinute:       integer("run_minute").notNull().default(0),  // LA 每日触发分钟 0-59
   mode:            text("mode").notNull().default("all"),
   lastRunAt:       timestamp("last_run_at", { withTimezone: true }),
   lastRunSummary:  jsonb("last_run_summary"),
@@ -317,6 +319,8 @@ export const appTrafficSchedulerConfig = pgTable("app_traffic_scheduler_config",
   id:              integer("id").primaryKey().default(1),
   enabled:         boolean("enabled").notNull().default(false),
   intervalMinutes: integer("interval_minutes").notNull().default(1440),
+  runHour:         integer("run_hour").notNull().default(0),    // LA 每日触发小时 0-23（流量默认 00:30）
+  runMinute:       integer("run_minute").notNull().default(30), // LA 每日触发分钟 0-59
   lastRunAt:       timestamp("last_run_at", { withTimezone: true }),
   lastRunSummary:  jsonb("last_run_summary"),
   updatedAt:       timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),

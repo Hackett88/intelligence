@@ -20,6 +20,8 @@ export const dynamic = "force-dynamic";
 const PutSchema = z.object({
   enabled: z.boolean().optional(),
   intervalMinutes: z.number().int().min(5).max(1440).optional(),
+  runHour: z.number().int().min(0).max(23).optional(),   // LA 每日触发小时
+  runMinute: z.number().int().min(0).max(59).optional(), // LA 每日触发分钟
   mode: z.enum(["incremental", "all"]).optional(),
 });
 
@@ -28,6 +30,8 @@ function toWire(row: AppSchedulerConfig) {
     ok: true as const,
     enabled: row.enabled,
     intervalMinutes: row.intervalMinutes,
+    runHour: row.runHour,
+    runMinute: row.runMinute,
     mode: row.mode,
     lastRunAt: row.lastRunAt ? row.lastRunAt.toISOString() : null,
     lastRunSummary: row.lastRunSummary ?? null,
@@ -100,6 +104,8 @@ export async function PUT(req: NextRequest) {
   const patch: Partial<typeof appSchedulerConfig.$inferInsert> = { updatedAt: new Date() };
   if (data.enabled !== undefined) patch.enabled = data.enabled;
   if (data.intervalMinutes !== undefined) patch.intervalMinutes = data.intervalMinutes;
+  if (data.runHour !== undefined) patch.runHour = data.runHour;
+  if (data.runMinute !== undefined) patch.runMinute = data.runMinute;
   if (data.mode !== undefined) patch.mode = data.mode;
 
   try {

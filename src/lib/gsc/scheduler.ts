@@ -2,11 +2,12 @@
 //
 // 由 src/instrumentation.ts 在 Node 服务启动时调用 startScheduler() 一次。
 //
-// 触发口径（2026-06-30 起，2026-07-01 微调时刻）：固定洛杉矶墙钟点——
-//   · 流量更新：每天 America/Los_Angeles 22:30 触发一次。
-//   · 收录检查：每天 America/Los_Angeles 06:00 触发一次。
-//   为什么选 LA 22:30：GSC 数据按太平洋时间当天滚动放出，越晚「前两天(today-2)」的数据越全。
-//   22:30 比原先 18:00 再多留 4.5 小时，确保当天该给的 today-2 数据已放全，避免「点太早空抓、漏一天」。
+// 触发口径（2026-07-02 起）：每天固定洛杉矶墙钟点触发，具体时刻由用户在定时面板设置，
+//   存于 app_*_scheduler_config.run_hour / run_minute（LA 时间），调度器运行时读取。
+//   · 流量更新：默认 LA 00:30（面板可改）。
+//   · 收录检查：默认 LA 06:00（面板可改）。
+//   选 LA 凌晨的原因：GSC 数据按太平洋时间当天滚动放出，过了 LA 午夜、进入新的一天后，
+//   「前两天(today-2)」才更新到最新那天；LA 凌晨触发即可抓到最新（实测午夜后约 1 小时放全）。
 //
 //   到点判断 isDueAtLaClock：「最近一个已发生的 LA HH:MM」之后、且上次运行在该点之前
 //   （= 今天这个点还没跑过）→ 跑。天然满足：
@@ -35,12 +36,9 @@ import { runTrafficUpdateCore } from "@/lib/gsc/run-traffic-update";
 
 const TICK_MS = 60_000; // 60s 心跳（仅控制检查频率，不等于执行节律）
 
-// 每天的固定触发墙钟点（America/Los_Angeles 当地时间，时:分）。改这几个常量即可调整时刻。
+// 触发时刻改为从数据库配置读取（app_*_scheduler_config.run_hour / run_minute，LA 时间），
+// 用户在定时面板自行设置。这里只保留判定用的时区常量。
 const LA_TZ = "America/Los_Angeles";
-const TRAFFIC_LA_HOUR = 22;    // 流量更新：LA 22:30
-const TRAFFIC_LA_MINUTE = 30;
-const INSPECTION_LA_HOUR = 6;  // 收录检查：LA 06:00
-const INSPECTION_LA_MINUTE = 0;
 
 // 防重入：各自独立，上一轮未完成则跳过后续触发（全量收录可能数分钟，远超心跳周期）。
 let inspectionRunning = false;
@@ -120,9 +118,9 @@ async function inspectionTick(): Promise<void> {
   }
   if (!cfg) return;
 
-  // 2) 守卫：未启用 / 未到点（LA 06:00）/ API 未配。
+  // 2) 守卫：未启用 / 未到点（LA cfg.runHour:cfg.runMinute，面板可设）/ API 未配。
   if (!cfg.enabled) return;
-  if (!isDueAtLaClock(cfg.lastRunAt, INSPECTION_LA_HOUR, INSPECTION_LA_MINUTE)) return;
+  if (!isDueAtLaClock(cfg.lastRunAt, cfg.runHour, cfg.runMinute)) return;
   if (!isGscApiConfigured()) {
     console.warn("[scheduler] GSC API 未配置，跳过本次定时收录");
     return;
@@ -177,9 +175,9 @@ async function trafficTick(): Promise<void> {
   }
   if (!cfg) return;
 
-  // 2) 守卫：未启用 / 未到点（LA 22:30）/ API 未配。
+  // 2) 守卫：未启用 / 未到点（LA cfg.runHour:cfg.runMinute，面板可设）/ API 未配。
   if (!cfg.enabled) return;
-  if (!isDueAtLaClock(cfg.lastRunAt, TRAFFIC_LA_HOUR, TRAFFIC_LA_MINUTE)) return;
+  if (!isDueAtLaClock(cfg.lastRunAt, cfg.runHour, cfg.runMinute)) return;
   if (!isGscApiConfigured()) {
     console.warn("[scheduler] GSC API 未配置，跳过本次定时流量更新");
     return;
