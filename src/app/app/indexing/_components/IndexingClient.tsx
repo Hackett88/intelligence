@@ -1634,7 +1634,7 @@ export function IndexingClient({
                         <span className="text-manor-ink text-xs truncate" title={p.fullUrl}>
                           {p.url}
                         </span>
-                        <span className="text-[9.5px] text-manor-inkFaint truncate">
+                        <span className="text-[10.5px] text-manor-inkFaint truncate">
                           {p.coverageLabel ?? "未检查"}
                           {cnt > 0 && ` · 已查 ${cnt} 次`}
                           {p.inspectLastAt && ` · 上次 ${formatRelative(p.inspectLastAt)}`}
@@ -1655,7 +1655,7 @@ export function IndexingClient({
                         </span>
                       ) : (
                         <span
-                          className="shrink-0 text-[10px] text-manor-inkGhost"
+                          className="shrink-0 text-[10px] text-manor-inkDim"
                           title={p.inspectDueAt ? `下次到期：${new Date(p.inspectDueAt).toLocaleString()}` : undefined}
                         >
                           {p.inspectDueAt
@@ -1963,7 +1963,7 @@ export function IndexingClient({
                         {p.url}
                       </span>
                       {p.coverageLabel && (
-                        <span className="text-[9.5px] text-manor-inkFaint truncate">{p.coverageLabel}</span>
+                        <span className="text-[10.5px] text-manor-inkFaint truncate">{p.coverageLabel}</span>
                       )}
                     </span>
                     {/* 历史请求次数 —— 请求过的亮琥珀提醒，没请求过的弱灰 */}
@@ -1983,7 +1983,7 @@ export function IndexingClient({
                         )}
                       </span>
                     ) : (
-                      <span className="shrink-0 text-[10px] text-manor-inkGhost">未请求过</span>
+                      <span className="shrink-0 text-[10px] text-manor-inkDim">未请求过</span>
                     )}
                   </label>
                 );

@@ -35,8 +35,11 @@
   /* Ink — parchment cream typography */
   --color-manor-ink:      #E8E2D5;
   --color-manor-inkDim:   #9B9384;
-  --color-manor-inkFaint: #5D5A4F;
-  --color-manor-inkGhost: #3D3A33;
+  /* 2026-07-04 可读性修复：原 inkFaint #5D5A4F / inkGhost #3D3A33 在 bg2(#08130D) 上
+     对比度仅 ≈2.6:1 / 1.6:1，信息文字几乎不可见（Sean 实测反馈）。提亮至 ≈4.4:1 / 3.3:1，
+     层级保持 ink(≈14:1) > inkDim(≈5.9:1) > inkFaint > inkGhost 不变。 */
+  --color-manor-inkFaint: #837D6D;
+  --color-manor-inkGhost: #6E695C;
   /* Amber legacy */
   --color-manor-amber:    #D4A574;
   --color-manor-amberDim: #8A6E4D;
