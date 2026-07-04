@@ -186,7 +186,19 @@ function calcNiceMax(maxVal: number): number {
 
 // ── 合并图组件 ──────────────────────────────────────────────────────────────
 
-function UnifiedTrendChart({ data }: { data: CumulativeDay[] }) {
+function UnifiedTrendChart({
+  data,
+  width = CHART_W,
+  height = CHART_H,
+  fontScale = 1,
+}: {
+  data: CumulativeDay[];
+  width?: number;   // 尺寸可配（默认与抽屉一致）；「批量增量趋势」弹窗传大图尺寸
+  height?: number;
+  fontScale?: number; // 轴字号/线宽随图放大的系数
+}) {
+  const innerW = width - PAD.left - PAD.right;
+  const innerH = height - PAD.top - PAD.bottom;
   const [hoverIdx, setHoverIdx] = React.useState<number | null>(null);
   const svgRef = React.useRef<SVGSVGElement>(null);
 
@@ -199,12 +211,12 @@ function UnifiedTrendChart({ data }: { data: CumulativeDay[] }) {
 
   // 坐标映射
   const xPos = (i: number) =>
-    PAD.left + (n > 1 ? (i / (n - 1)) * INNER_W : INNER_W / 2);
+    PAD.left + (n > 1 ? (i / (n - 1)) * innerW : innerW / 2);
   const yImpr = (v: number) =>
-    PAD.top + INNER_H - (v / imprCeil) * INNER_H;
+    PAD.top + innerH - (v / imprCeil) * innerH;
   const yClick = (v: number) =>
-    PAD.top + INNER_H - (v / clickCeil) * INNER_H;
-  const baseline = PAD.top + INNER_H;
+    PAD.top + innerH - (v / clickCeil) * innerH;
+  const baseline = PAD.top + innerH;
 
   // 折线 / 面积 path（n >= 2 才画线）
   let imprLinePath = "";
@@ -251,7 +263,7 @@ function UnifiedTrendChart({ data }: { data: CumulativeDay[] }) {
       setHoverIdx(0);
       return;
     }
-    const idx = Math.round((x / INNER_W) * (n - 1));
+    const idx = Math.round((x / innerW) * (n - 1));
     setHoverIdx(idx >= 0 && idx < n ? idx : null);
   };
 
@@ -261,8 +273,8 @@ function UnifiedTrendChart({ data }: { data: CumulativeDay[] }) {
     <div className="relative">
       <svg
         ref={svgRef}
-        width={CHART_W}
-        height={CHART_H}
+        width={width}
+        height={height}
         className="block"
         aria-label="流量趋势图 -- 曝光与点击"
         role="img"
@@ -272,13 +284,13 @@ function UnifiedTrendChart({ data }: { data: CumulativeDay[] }) {
       >
         {/* 水平网格线 */}
         {[0.25, 0.5, 0.75].map((frac) => {
-          const y = PAD.top + INNER_H * (1 - frac);
+          const y = PAD.top + innerH * (1 - frac);
           return (
             <line
               key={frac}
               x1={PAD.left}
               y1={y}
-              x2={PAD.left + INNER_W}
+              x2={PAD.left + innerW}
               y2={y}
               stroke={COLORS.gridLine}
               strokeWidth={0.5}
@@ -290,7 +302,7 @@ function UnifiedTrendChart({ data }: { data: CumulativeDay[] }) {
         <line
           x1={PAD.left}
           y1={baseline}
-          x2={PAD.left + INNER_W}
+          x2={PAD.left + innerW}
           y2={baseline}
           stroke={COLORS.axis}
           strokeWidth={0.5}
@@ -305,7 +317,7 @@ function UnifiedTrendChart({ data }: { data: CumulativeDay[] }) {
             textAnchor="end"
             dominantBaseline="middle"
             fill={COLORS.imprLine}
-            fontSize={7.5}
+            fontSize={7.5 * fontScale}
             opacity={0.75}
             fontFamily="var(--font-sc), 'Cormorant SC', serif"
           >
@@ -317,12 +329,12 @@ function UnifiedTrendChart({ data }: { data: CumulativeDay[] }) {
         {clickYTicks.map((v) => (
           <text
             key={`rc${v}`}
-            x={PAD.left + INNER_W + 4}
+            x={PAD.left + innerW + 4}
             y={yClick(v) + (v === 0 ? -3 : 0)}
             textAnchor="start"
             dominantBaseline="middle"
             fill={COLORS.clickLine}
-            fontSize={7.5}
+            fontSize={7.5 * fontScale}
             opacity={0.75}
             fontFamily="var(--font-sc), 'Cormorant SC', serif"
           >
@@ -339,7 +351,7 @@ function UnifiedTrendChart({ data }: { data: CumulativeDay[] }) {
               d={imprLinePath}
               fill="none"
               stroke={COLORS.imprLine}
-              strokeWidth={1.5}
+              strokeWidth={1.5 * fontScale}
               strokeLinejoin="round"
               strokeLinecap="round"
               opacity={0.9}
@@ -350,7 +362,7 @@ function UnifiedTrendChart({ data }: { data: CumulativeDay[] }) {
               d={clickLinePath}
               fill="none"
               stroke={COLORS.clickLine}
-              strokeWidth={1.5}
+              strokeWidth={1.5 * fontScale}
               strokeLinejoin="round"
               strokeLinecap="round"
               opacity={0.9}
@@ -413,10 +425,10 @@ function UnifiedTrendChart({ data }: { data: CumulativeDay[] }) {
           <text
             key={idx}
             x={xPos(idx)}
-            y={CHART_H - 3}
+            y={height - 3}
             textAnchor="middle"
             fill={COLORS.axisLabel}
-            fontSize={8}
+            fontSize={8 * fontScale}
             fontFamily="var(--font-sc), 'Cormorant SC', serif"
           >
             {fmtDateShort(data[idx].date)}
@@ -439,7 +451,7 @@ function UnifiedTrendChart({ data }: { data: CumulativeDay[] }) {
           );
           const left = Math.max(
             2,
-            Math.min(CHART_W - CARD_W - 2, xPos(hoverIdx) - CARD_W / 2)
+            Math.min(width - CARD_W - 2, xPos(hoverIdx) - CARD_W / 2)
           );
           const top = Math.max(2, markerTopY - GAP - CARD_H);
           return (
@@ -495,10 +507,16 @@ export function PageTrendSection({
   data,
   loading,
   error,
+  large = false,
+  chartWidth,
 }: {
   data: TrendData | null;
   loading: boolean;
   error: string | null;
+  /** 大图模式（「批量增量趋势」弹窗）：图更高、轴字号/线宽放大、SUMMA/图例文字放大 */
+  large?: boolean;
+  /** 图表宽度（px）；不传用默认 370（抽屉尺寸） */
+  chartWidth?: number;
 }) {
   // loading 态
   if (loading) {
@@ -579,18 +597,18 @@ export function PageTrendSection({
           className="text-manor-brassHi/80 tracking-[0.18em] shrink-0"
           style={{
             fontFamily: "var(--font-sc), 'Cormorant SC', serif",
-            fontSize: 9,
+            fontSize: large ? 11 : 9,
           }}
         >
           SUMMA
         </span>
         {data.startDate && (
-          <span className="text-manor-inkFaint text-[10px]">
+          <span className={large ? "text-manor-inkFaint text-xs" : "text-manor-inkFaint text-[10px]"}>
             起 {data.startDate}
           </span>
         )}
         <span className="text-manor-inkGhost mx-0.5">|</span>
-        <span className="text-manor-ink tabular-nums">
+        <span className={large ? "text-manor-ink tabular-nums text-sm" : "text-manor-ink tabular-nums"}>
           累计{" "}
           <span className="text-manor-brassHi font-medium">
             {formatLargeNumber(totalImpr)}
@@ -598,7 +616,7 @@ export function PageTrendSection({
           曝光
         </span>
         <span className="text-manor-inkGhost">-</span>
-        <span className="text-manor-ink tabular-nums">
+        <span className={large ? "text-manor-ink tabular-nums text-sm" : "text-manor-ink tabular-nums"}>
           <span className="text-manor-brassHi font-medium">
             {formatLargeNumber(totalClicks)}
           </span>{" "}
@@ -622,16 +640,16 @@ export function PageTrendSection({
           className="tracking-[0.22em]"
           style={{
             fontFamily: "var(--font-sc), 'Cormorant SC', serif",
-            fontSize: 8.5,
+            fontSize: large ? 10.5 : 8.5,
             color: COLORS.imprLine,
             opacity: 0.85,
           }}
         >
           CONSPECTUS
         </span>
-        <span className="text-manor-inkDim text-[10px]">流量趋势</span>
+        <span className={large ? "text-manor-inkDim text-xs" : "text-manor-inkDim text-[10px]"}>流量趋势</span>
         {/* 图例 */}
-        <span className="ml-auto flex items-center gap-2.5 text-[9px] text-manor-inkFaint">
+        <span className={large ? "ml-auto flex items-center gap-2.5 text-[11px] text-manor-inkFaint" : "ml-auto flex items-center gap-2.5 text-[9px] text-manor-inkFaint"}>
           <span className="inline-flex items-center gap-1">
             <span
               style={{
@@ -661,8 +679,13 @@ export function PageTrendSection({
         </span>
       </div>
 
-      {/* 合并双轴图 */}
-      <UnifiedTrendChart data={cum} />
+      {/* 合并双轴图 —— large：图更高 + 轴字/线宽 1.5x（宽度由调用方按容器传入） */}
+      <UnifiedTrendChart
+        data={cum}
+        width={chartWidth}
+        height={large ? 340 : undefined}
+        fontScale={large ? 1.5 : 1}
+      />
     </div>
   );
 }

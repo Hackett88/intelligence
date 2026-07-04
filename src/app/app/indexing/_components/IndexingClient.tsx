@@ -804,6 +804,10 @@ export function IndexingClient({
     return getMockPageDetail(selectedId);
   }, [selectedId, selectedRow, isRealData]);
 
+  // 增量趋势弹窗尺寸：宽 ≈ 94vw(上限 1240)，图宽 = 弹窗内宽（ssr:false 组件，window 恒可用，仍留兜底）
+  const trendModalW = Math.min(1240, (typeof window !== "undefined" ? window.innerWidth : 1280) * 0.94);
+  const trendChartW = Math.max(370, Math.floor(trendModalW) - 56);
+
   const btnCls = (disabled: boolean) =>
     [
       "h-6 w-6 flex items-center justify-center rounded border text-xs transition-all",
@@ -1449,8 +1453,9 @@ export function IndexingClient({
           onClick={() => setTrendOpen(false)}
         >
           <div
-            className="rounded border border-manor-brass/40 w-[480px] max-w-[92vw] max-h-[86vh] overflow-y-auto"
+            className="rounded border border-manor-brass/40 max-h-[92vh] overflow-y-auto"
             style={{
+              width: trendModalW,
               background:
                 "linear-gradient(180deg, rgba(18,38,26,.99) 0%, rgba(8,20,13,1) 100%)",
               boxShadow:
@@ -1459,12 +1464,12 @@ export function IndexingClient({
             onClick={(e) => e.stopPropagation()}
           >
             {/* 标题行 */}
-            <div className="px-4 py-2.5 border-b border-manor-brass/25 flex items-center gap-2">
+            <div className="px-5 py-3 border-b border-manor-brass/25 flex items-center gap-2.5">
               <span
                 aria-hidden="true"
                 style={{
-                  width: 4,
-                  height: 4,
+                  width: 5,
+                  height: 5,
                   transform: "rotate(45deg)",
                   background: "linear-gradient(135deg, #EFD89A 0%, #A08850 100%)",
                   boxShadow: "0 0 5px rgba(239,216,154,.6)",
@@ -1472,33 +1477,35 @@ export function IndexingClient({
               />
               <span
                 className="text-manor-brassHi/85 tracking-[0.22em]"
-                style={{ fontFamily: "var(--font-sc), 'Cormorant SC', serif", fontSize: 9.5 }}
+                style={{ fontFamily: "var(--font-sc), 'Cormorant SC', serif", fontSize: 11 }}
               >
                 INCREMENTUM
               </span>
-              <span className="text-manor-ink/90 text-sm">
+              <span className="text-manor-ink/90 text-base">
                 增量趋势 · {batchTrend.pages} 页合并
               </span>
               <button
                 type="button"
                 onClick={() => setTrendOpen(false)}
                 title="关闭（Esc）"
-                className="ml-auto h-6 w-6 inline-flex items-center justify-center border border-manor-brass/40 rounded text-manor-inkDim hover:text-manor-brassHi hover:border-manor-brassHi transition-colors"
+                className="ml-auto h-7 w-7 inline-flex items-center justify-center border border-manor-brass/40 rounded text-manor-inkDim hover:text-manor-brassHi hover:border-manor-brassHi transition-colors"
               >
-                <X size={11} />
+                <X size={13} />
               </button>
             </div>
-            {/* 图区 —— 复用抽屉同款 PageTrendSection（每日增量双轴 + 累计 SUMMA + hover 明细） */}
-            <div className="px-4 py-3">
+            {/* 图区 —— 复用抽屉同款 PageTrendSection，large 大图模式，宽度吃满弹窗 */}
+            <div className="px-6 py-4">
               <PageTrendSection
                 data={batchTrend.data}
                 loading={batchTrend.loading}
                 error={batchTrend.error}
+                large
+                chartWidth={trendChartW}
               />
             </div>
             {/* 口径说明 */}
-            <div className="px-4 pb-3">
-              <p className="text-[10px] text-manor-inkFaint leading-relaxed">
+            <div className="px-6 pb-4">
+              <p className="text-[11px] text-manor-inkFaint leading-relaxed">
                 口径：每日增量 = 所选页（含旧址 308 归并来源）当日曝光 / 点击之和；与单页抽屉
                 「流量趋势」同源同口径。GSC 数据固有约 2 天延迟。
               </p>
