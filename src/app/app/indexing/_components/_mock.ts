@@ -48,6 +48,10 @@ export type PageRow = {
   // 该页的关键词排名（top N）。同步时批量抓取一并落库，抽屉/列表直接读，不再懒加载。
   // 合成节点 / 无数据页为空数组。
   queries?: QueryRow[];
+  // 「请求编入索引」历史（来自 gsc_index_requests，coverage-loader 写入）：
+  // count=历史成功提交次数，lastAt=上次提交时刻 ISO。从未请求过 → 两者 undefined。
+  indexRequestCount?: number;
+  indexRequestLastAt?: string;
   // GA4 单 URL 指标（进站后行为/转化）。同步时按 landing_page 口径写入；
   // 近 28 天无 GA4 着陆流量的页为 undefined，抽屉走"无数据"诚实空态。
   ga4?: Ga4Metrics;

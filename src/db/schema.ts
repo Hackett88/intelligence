@@ -309,6 +309,23 @@ export type GscPageTypeOverride    = typeof gscPageTypeOverrides.$inferSelect;
 export type NewGscPageTypeOverride = typeof gscPageTypeOverrides.$inferInsert;
 
 // ────────────────────────────────────────────────────────────────────────────
+// 「请求编入索引」历史计数（2026-07-04）
+// 每 URL 一行：成功提交次数 + 上次提交时刻。请求索引清单弹窗按此显示历史，防重复烧配额。
+// 手写幂等 DDL 见 scripts/ddl-index-requests.ts，此定义仅供 ORM 查询，禁 drizzle-kit。
+// ────────────────────────────────────────────────────────────────────────────
+
+export const gscIndexRequests = pgTable("gsc_index_requests", {
+  urlNorm:         text("url_norm").primaryKey(),   // normalizeForMatch(fullUrl)
+  fullUrl:         text("full_url").notNull(),
+  requestCount:    integer("request_count").notNull().default(0),
+  lastRequestedAt: timestamp("last_requested_at", { withTimezone: true }),
+  updatedAt:       timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export type GscIndexRequest    = typeof gscIndexRequests.$inferSelect;
+export type NewGscIndexRequest = typeof gscIndexRequests.$inferInsert;
+
+// ────────────────────────────────────────────────────────────────────────────
 // 应用内定时器全局配置（2026-06-28）
 // 单行表：CHECK (id = 1) 约束在 DDL 层保证，Drizzle 定义仅供 ORM 查询。
 // 不走 drizzle-kit generate/push/migrate。

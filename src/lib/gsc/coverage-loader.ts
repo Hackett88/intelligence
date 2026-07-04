@@ -18,6 +18,7 @@ import {
   synthesizeDirNodes,
   buildParentMap,
 } from "./transform";
+import { loadIndexRequestMap } from "./index-request-store";
 import { loadLatestSnapshot, type LoadedSnapshot } from "./loader";
 import { loadPageTypeOverrides } from "./overrides";
 import { loadRedirectMap } from "./redirect-map";
@@ -437,6 +438,9 @@ export async function loadCoveragePages(windowDays = 90): Promise<
     if (t) overrideByNorm.set(normalizeForMatch(u), t);
   }
 
+  // 「请求编入索引」历史计数（url_norm → {count, lastAt}），请求索引清单弹窗按行显示。
+  const indexRequestMap = await loadIndexRequestMap();
+
   // 每页自身流量（own）：当窗口 gsc_page_daily 按 url_norm 求和（最权威）。先取一次，既用于
   // own，也传给 buildMergedMetrics 复用，避免重复查（57 页量级其实无所谓，省一次是一次）。
   const dailyAgg = await loadDailyAggregates(windowDays, 1);
@@ -609,6 +613,8 @@ export async function loadCoveragePages(windowDays = 90): Promise<
       weekTrend: { last: lastClicks, prev: prevClicks },
       trend12m: emptyTrend(),
       queries,
+      indexRequestCount: indexRequestMap.get(normKey)?.count,
+      indexRequestLastAt: indexRequestMap.get(normKey)?.lastAt ?? undefined,
       lastSync,
       parentId: parentPath ? idByPath.get(parentPath) : undefined,
       isPillar: inferIsPillar(sp.path) || undefined,

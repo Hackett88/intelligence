@@ -185,15 +185,11 @@ export function IndexingClient({
   const [rescanning, setRescanning] = useState(false);
   const [schedulerOpen, setSchedulerOpen] = useState(false);
   // ── 批量请求索引：对当前范围内的未收录页逐个代驾 GSC「请求编入索引」──
+  // 2026-07-04 R4：由「两步武装直发全量」改为「清单弹窗勾选确认」——点按钮先弹清单
+  //（逐页显示历史请求次数/上次时间），勾选后点确定才逐个提交，绝不一次性盲发。
   const [batchRequesting, setBatchRequesting] = useState(false);
-  const [batchArmed, setBatchArmed] = useState(false); // 两步确认：首点武装、再点执行
-  const batchArmTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(
-    () => () => {
-      if (batchArmTimer.current) clearTimeout(batchArmTimer.current);
-    },
-    []
-  );
+  const [requestDlgOpen, setRequestDlgOpen] = useState(false);
+  const [requestSelected, setRequestSelected] = useState<Set<string>>(new Set()); // key=fullUrl
 
   // ── 刷新收录状态：调 /api/indexing/inspect-coverage，按需分级查收录 ──
   // on-demand（默认）：按需分级——没查过的立即查、未收录24h复查、已收录7天兜底复查。
@@ -613,9 +609,8 @@ export function IndexingClient({
   // 设计吸取实测教训：① 串行 + 每次间隔，绝不并发；② 撞配额/验证码立即停；③ 连续 2 次失败
   // （多为 GSC 短时限流「糟糕！出了点问题·请稍后重试」）自动暂停，不无谓 hammering；
   // ④ 全程进度 toast，末尾如实汇总（已请求 / 已收录 / 失败 / 未处理）。
-  const handleBatchRequestIndex = async () => {
+  const handleBatchRequestIndex = async (targets: PageRow[]) => {
     if (batchRequesting || inspecting) return;
-    const targets = notIndexedInScope;
     if (targets.length === 0) return;
     setBatchRequesting(true);
     const toastId = toast.loading("批量请求索引中…", {
@@ -719,21 +714,27 @@ export function IndexingClient({
       }
     } finally {
       setBatchRequesting(false);
+      // 刷新 RSC → 清单里的「历史请求次数 / 上次时间」立即反映本轮提交（计数在 PG）。
+      router.refresh();
     }
   };
 
-  // 两步确认：首点"武装"（4s 内有效、按钮变红），再点才真正执行——防误触烧当日配额。
-  const armOrRunBatch = () => {
+  // 打开「请求索引」清单弹窗：默认全选当前范围内的未收录页，用户可逐行取舍。
+  const openRequestDialog = () => {
     if (batchRequesting || inspecting || notIndexedInScope.length === 0) return;
-    if (batchArmTimer.current) clearTimeout(batchArmTimer.current);
-    if (!batchArmed) {
-      setBatchArmed(true);
-      batchArmTimer.current = setTimeout(() => setBatchArmed(false), 4000);
-      return;
-    }
-    setBatchArmed(false);
-    void handleBatchRequestIndex();
+    setRequestSelected(new Set(notIndexedInScope.map((p) => p.fullUrl)));
+    setRequestDlgOpen(true);
   };
+
+  // 清单弹窗按 Esc 关闭
+  useEffect(() => {
+    if (!requestDlgOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setRequestDlgOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [requestDlgOpen]);
 
   // 顶部 SummaryBar 跟随当前"发亮卡片"(scope) 实时变动：
   //   · scope=all   → 用权威全站汇总（snapshot.summary 口径，与原行为一致）
@@ -962,14 +963,14 @@ export function IndexingClient({
             {syncEnabled && (
               <button
                 type="button"
-                onClick={armOrRunBatch}
+                onClick={openRequestDialog}
                 disabled={batchRequesting || inspecting || notIndexedInScope.length === 0}
                 title={
                   notIndexedInScope.length === 0
                     ? "当前范围内没有未收录页"
                     : batchRequesting
                       ? "正在批量请求索引…"
-                      : `对当前范围内 ${notIndexedInScope.length} 个未收录页逐个请求 Google 抓取（本地浏览器代驾 GSC · 受每日配额限制）`
+                      : `打开清单：勾选后确认，才逐个请求 Google 抓取（本地浏览器代驾 GSC · 受每日配额限制）`
                 }
                 className={[
                   "h-7 inline-flex items-center gap-1.5 px-2.5 rounded text-[11px] whitespace-nowrap shrink-0",
@@ -978,9 +979,7 @@ export function IndexingClient({
                     ? "border-manor-brass/25 text-manor-inkDim cursor-wait"
                     : notIndexedInScope.length === 0
                       ? "border-manor-brass/15 text-manor-inkGhost cursor-not-allowed"
-                      : batchArmed
-                        ? "border-manor-oxbloodHi/70 text-manor-oxbloodHi bg-manor-oxbloodHi/15 hover:bg-manor-oxbloodHi/25"
-                        : "border-manor-brass/45 text-manor-brassHi hover:border-manor-brassHi hover:shadow-[0_0_10px_-2px_rgba(239,216,154,.65)] hover:bg-manor-brassDim/10",
+                      : "border-manor-brass/45 text-manor-brassHi hover:border-manor-brassHi hover:shadow-[0_0_10px_-2px_rgba(239,216,154,.65)] hover:bg-manor-brassDim/10",
                 ].join(" ")}
                 style={{ fontFamily: "var(--font-sc), 'Cormorant SC', serif", letterSpacing: "0.1em" }}
               >
@@ -988,9 +987,7 @@ export function IndexingClient({
                 <span>
                   {batchRequesting
                     ? "请求中"
-                    : batchArmed
-                      ? `确认请求 ${notIndexedInScope.length} 页？`
-                      : `请求索引${notIndexedInScope.length ? ` (${notIndexedInScope.length})` : ""}`}
+                    : `请求索引${notIndexedInScope.length ? ` (${notIndexedInScope.length})` : ""}`}
                 </span>
               </button>
             )}
@@ -1444,6 +1441,167 @@ export function IndexingClient({
         open={schedulerOpen}
         onOpenChange={setSchedulerOpen}
       />
+
+      {/* 请求索引清单弹窗 —— 勾选确认后才逐个提交（每行显示历史请求次数/上次时间，防重复烧配额） */}
+      {requestDlgOpen && (
+        <div
+          className="fixed inset-0 z-[120] flex items-center justify-center"
+          style={{ background: "rgba(0,0,0,.62)" }}
+          onClick={() => setRequestDlgOpen(false)}
+        >
+          <div
+            className="rounded border border-manor-brass/40 w-[640px] max-w-[94vw] max-h-[86vh] flex flex-col"
+            style={{
+              background:
+                "linear-gradient(180deg, rgba(18,38,26,.99) 0%, rgba(8,20,13,1) 100%)",
+              boxShadow:
+                "0 12px 40px rgba(0,0,0,.6), inset 0 1px 0 rgba(224,197,122,.18)",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* 标题行 */}
+            <div className="px-5 py-3 border-b border-manor-brass/25 flex items-center gap-2.5 shrink-0">
+              <Send size={13} className="text-manor-brassHi/85" aria-hidden="true" />
+              <span
+                className="text-manor-brassHi/85 tracking-[0.22em]"
+                style={{ fontFamily: "var(--font-sc), 'Cormorant SC', serif", fontSize: 10.5 }}
+              >
+                PETITIO · INDEX
+              </span>
+              <span className="text-manor-ink/90 text-sm">
+                请求编入索引 · 未收录 {notIndexedInScope.length} 页
+              </span>
+              <button
+                type="button"
+                onClick={() => setRequestDlgOpen(false)}
+                title="关闭（Esc）"
+                className="ml-auto h-6 w-6 inline-flex items-center justify-center border border-manor-brass/40 rounded text-manor-inkDim hover:text-manor-brassHi hover:border-manor-brassHi transition-colors"
+              >
+                <X size={11} />
+              </button>
+            </div>
+
+            {/* 提示行 */}
+            <div className="px-5 py-2 border-b border-manor-brass/15 shrink-0">
+              <p className="text-[10.5px] text-manor-inkFaint leading-relaxed">
+                勾选要提交的页面，点「确定」后逐个提交（本地浏览器代驾 GSC，间隔 2.5s，撞限流/配额自动暂停）。
+                <span className="text-manor-amber/90">已请求过的页会显示历史次数</span>
+                —— 短期内重复请求同一页不会加速收录，只烧每日配额。
+              </p>
+            </div>
+
+            {/* 页面清单（滚动区） */}
+            <div className="flex-1 overflow-y-auto px-2 py-1.5 min-h-0">
+              {notIndexedInScope.map((p) => {
+                const checked = requestSelected.has(p.fullUrl);
+                const cnt = p.indexRequestCount ?? 0;
+                return (
+                  <label
+                    key={p.fullUrl}
+                    className={[
+                      "flex items-center gap-2.5 px-3 py-1.5 rounded cursor-pointer transition-colors",
+                      checked ? "bg-manor-brassDim/10" : "hover:bg-manor-brassDim/5",
+                    ].join(" ")}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={(e) => {
+                        const on = e.target.checked;
+                        setRequestSelected((prev) => {
+                          const next = new Set(prev);
+                          if (on) next.add(p.fullUrl);
+                          else next.delete(p.fullUrl);
+                          return next;
+                        });
+                      }}
+                      style={{ accentColor: "#C9A961", width: 13, height: 13, cursor: "pointer" }}
+                    />
+                    <span className="flex flex-col leading-tight min-w-0 flex-1">
+                      <span className="text-manor-ink text-xs truncate" title={p.fullUrl}>
+                        {p.url}
+                      </span>
+                      {p.coverageLabel && (
+                        <span className="text-[9.5px] text-manor-inkFaint truncate">{p.coverageLabel}</span>
+                      )}
+                    </span>
+                    {/* 历史请求次数 —— 请求过的亮琥珀提醒，没请求过的弱灰 */}
+                    {cnt > 0 ? (
+                      <span
+                        className="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded border text-[10px] tabular-nums"
+                        style={{
+                          color: "#E8C176",
+                          borderColor: "rgba(232,193,118,.4)",
+                          background: "rgba(232,193,118,.08)",
+                        }}
+                        title={p.indexRequestLastAt ? `上次请求：${new Date(p.indexRequestLastAt).toLocaleString()}` : undefined}
+                      >
+                        已请求 {cnt} 次
+                        {p.indexRequestLastAt && (
+                          <span className="text-manor-inkDim">· {formatRelative(p.indexRequestLastAt)}</span>
+                        )}
+                      </span>
+                    ) : (
+                      <span className="shrink-0 text-[10px] text-manor-inkGhost">未请求过</span>
+                    )}
+                  </label>
+                );
+              })}
+            </div>
+
+            {/* 底部操作行 */}
+            <div className="px-5 py-3 border-t border-manor-brass/25 flex items-center gap-2.5 shrink-0">
+              <button
+                type="button"
+                onClick={() => setRequestSelected(new Set(notIndexedInScope.map((p) => p.fullUrl)))}
+                className="h-6 px-2 border border-manor-brass/40 rounded text-xs text-manor-inkDim hover:text-manor-brassHi hover:border-manor-brassHi transition-colors"
+              >
+                全选
+              </button>
+              <button
+                type="button"
+                onClick={() => setRequestSelected(new Set())}
+                className="h-6 px-2 border border-manor-brass/40 rounded text-xs text-manor-inkDim hover:text-manor-brassHi hover:border-manor-brassHi transition-colors"
+              >
+                清空
+              </button>
+              {/* 只选没请求过的 —— 常用捷径 */}
+              <button
+                type="button"
+                onClick={() =>
+                  setRequestSelected(
+                    new Set(notIndexedInScope.filter((p) => !(p.indexRequestCount ?? 0)).map((p) => p.fullUrl))
+                  )
+                }
+                className="h-6 px-2 border border-manor-brass/40 rounded text-xs text-manor-inkDim hover:text-manor-brassHi hover:border-manor-brassHi transition-colors"
+              >
+                只选未请求过的
+              </button>
+              <span className="flex-1" />
+              <span className="text-xs text-manor-inkDim tabular-nums">已选 {requestSelected.size} 页</span>
+              <button
+                type="button"
+                onClick={() => setRequestDlgOpen(false)}
+                className="h-7 px-2.5 border border-manor-brass/40 rounded text-xs text-manor-inkDim hover:text-manor-brassHi hover:border-manor-brassHi transition-colors"
+              >
+                取消
+              </button>
+              <button
+                type="button"
+                disabled={requestSelected.size === 0 || batchRequesting}
+                onClick={() => {
+                  const targets = notIndexedInScope.filter((p) => requestSelected.has(p.fullUrl));
+                  setRequestDlgOpen(false);
+                  void handleBatchRequestIndex(targets);
+                }}
+                className="h-7 px-3 border border-manor-brassHi/60 rounded text-xs text-manor-brassHi bg-manor-brassDim/15 hover:bg-manor-brassDim/25 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                确定请求 ({requestSelected.size})
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 批量增量趋势弹窗 —— 已选页合并的每日曝光/点击增量曲线（与抽屉同款图，Esc/点遮罩关闭） */}
       {trendOpen && (

@@ -13,6 +13,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { auth } from "@/lib/auth";
 import { requestIndexing } from "@/lib/gsc/request-index-fetcher";
+import { recordIndexRequested } from "@/lib/gsc/index-request-store";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -63,6 +64,11 @@ export async function POST(req: NextRequest) {
 
   try {
     const result = await requestIndexing(url);
+    // 历史计数:仅真正提交成功才 +1(already_indexed / throttled / captcha 都不是提交)。
+    // best-effort:计数落库失败不影响本次提交结果(store 内部已吞错)。
+    if (result.status === "requested") {
+      await recordIndexRequested(url);
+    }
     return NextResponse.json({ ok: true, ...result });
   } catch (err) {
     const message = err instanceof Error ? err.message : "未知错误";
