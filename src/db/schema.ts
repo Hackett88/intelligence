@@ -293,6 +293,22 @@ export type GscIndexStatus    = typeof gscIndexStatus.$inferSelect;
 export type NewGscIndexStatus = typeof gscIndexStatus.$inferInsert;
 
 // ────────────────────────────────────────────────────────────────────────────
+// 页面类型「人工修正」（JSON → PG 迁移，2026-07-04）
+// 生产容器文件系统随部署重置，JSON 修正撑不过发版 —— PG 为唯一权威源，JSON 降级镜像兜底。
+// 手写幂等 DDL 见 scripts/ddl-page-type-overrides.ts，此定义仅供 ORM 查询，禁 drizzle-kit。
+// ────────────────────────────────────────────────────────────────────────────
+
+export const gscPageTypeOverrides = pgTable("gsc_page_type_overrides", {
+  urlNorm:   text("url_norm").primaryKey(),   // normalizeForMatch(fullUrl)
+  fullUrl:   text("full_url").notNull(),
+  pageType:  text("page_type").notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export type GscPageTypeOverride    = typeof gscPageTypeOverrides.$inferSelect;
+export type NewGscPageTypeOverride = typeof gscPageTypeOverrides.$inferInsert;
+
+// ────────────────────────────────────────────────────────────────────────────
 // 应用内定时器全局配置（2026-06-28）
 // 单行表：CHECK (id = 1) 约束在 DDL 层保证，Drizzle 定义仅供 ORM 查询。
 // 不走 drizzle-kit generate/push/migrate。

@@ -19,6 +19,7 @@ import {
   buildParentMap,
 } from "./transform";
 import { loadLatestSnapshot, type LoadedSnapshot } from "./loader";
+import { loadPageTypeOverrides } from "./overrides";
 import { loadRedirectMap } from "./redirect-map";
 import { isHardNonContent, classifyPageStatus } from "./classify";
 import { loadSnapshot } from "./store";
@@ -371,6 +372,14 @@ export async function loadCoveragePages(windowDays = 90): Promise<
   const indexStatus = await loadIndexStatus();
   const statusByNorm = indexStatus.byUrl; // key 已是 normalizeForMatch(url)
 
+  // 页面类型人工修正：按 normalizeForMatch(fullUrl) 匹配（容 www/协议/尾斜杠差异），
+  // 命中则覆盖 inferPageType 推断。此前套用逻辑只在旧 loader 路径（applyPageTypeOverrides），
+  // coverage 路径漏了 —— 抽屉"确认"保存成功但页面永远显示推断值（2026-07-04 修复）。
+  const overrideByNorm = new Map<string, string>();
+  for (const [u, t] of Object.entries(await loadPageTypeOverrides())) {
+    if (t) overrideByNorm.set(normalizeForMatch(u), t);
+  }
+
   // 每页自身流量（own）：当窗口 gsc_page_daily 按 url_norm 求和（最权威）。先取一次，既用于
   // own，也传给 buildMergedMetrics 复用，避免重复查（57 页量级其实无所谓，省一次是一次）。
   const dailyAgg = await loadDailyAggregates(windowDays, 1);
@@ -528,7 +537,7 @@ export async function loadCoveragePages(windowDays = 90): Promise<
       url: sp.path,
       fullUrl: sp.fullUrl,
       market: inferMarket(sp.path),
-      pageType: inferPageType(sp.path),
+      pageType: overrideByNorm.get(normKey) ?? inferPageType(sp.path),
       cluster: inferCluster(sp.path),
       topQuery,
       clicks,
