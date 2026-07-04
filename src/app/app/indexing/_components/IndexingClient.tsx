@@ -14,7 +14,7 @@ import {
 import { PageTable } from "./PageTable";
 import { PageTreeView, type Scope, scopeMatches } from "./PageTreeView";
 import { DetailDrawer } from "./DetailDrawer";
-import { Clock, Globe, List, Network, RefreshCw, Send, X } from "lucide-react";
+import { Clock, Globe, List, Maximize2, Minimize2, Network, RefreshCw, Send, Wrench, X } from "lucide-react";
 import { SchedulerSettingsDialog } from "./SchedulerSettingsDialog";
 import {
   type PageRow,
@@ -346,6 +346,14 @@ export function IndexingClient({
   const [selectedUrls, setSelectedUrls] = useState<Set<string>>(new Set());
   const [batchTypeValue, setBatchTypeValue] = useState("");   // 操作条下拉当前选的类型，"" = 未选
   const [batchTypeBusy, setBatchTypeBusy] = useState(false);
+  // ─── 功能菜单 / 批量模式 / 全屏（2026-07-04 R2：勾选列平时不显示）───
+  // batchMode=false 时 PageTable 不传勾选 props → 勾选列整列不渲染；
+  // 经筛选行右侧「功能 → 批量页面修改」开启，再点一次关闭（并清空已选）。
+  const [batchMode, setBatchMode] = useState(false);
+  const [funcMenuOpen, setFuncMenuOpen] = useState(false);
+  const funcMenuRef = useRef<HTMLDivElement>(null);
+  // 全屏：隐藏标题栏 + 统计卡，纵向空间全部让给表格；同一位置按钮变「返回」，Esc 亦可退出。
+  const [fullscreen, setFullscreen] = useState(false);
   // 抽屉里的时间窗与 FilterBar 的时间窗解耦：FilterBar 控的是整张表格的全局
   // 口径，抽屉里控的是单个 URL 的性能切片，两者语义不同、用户预期独立。
   const [drawerTimeWindow, setDrawerTimeWindow] = useState<TimeWindow>("90d");
@@ -386,6 +394,27 @@ export function IndexingClient({
       prevFingerprint.current = stats.lastSync;
     }
   }, [stats.lastSync]);
+
+  // 功能菜单：点击外部关闭
+  useEffect(() => {
+    if (!funcMenuOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (funcMenuRef.current?.contains(e.target as Node)) return;
+      setFuncMenuOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [funcMenuOpen]);
+
+  // 全屏时按 Esc 退出（与「返回」按钮等效）
+  useEffect(() => {
+    if (!fullscreen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setFullscreen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [fullscreen]);
 
   // 当前选中的真实页行（synthetic / 找不到 → null）
   const selectedRow = useMemo(
@@ -734,7 +763,7 @@ export function IndexingClient({
         {/* R106 抽屉打开后顶栏被压窄 → 中文按钮 / 标签竖排成"更\n新"。
             统一加 whitespace-nowrap 防字符堆叠；右侧工具区 shrink-0 不被挤压；
             标题区里只有"GSC · 性能数据 · weslamic.com"这条 italic 副标题允许在最窄时截断隐藏。 */}
-        <div className="px-5 py-3 border-b border-manor-brass/25 bg-manor-bg2 flex items-center justify-between gap-4 shrink-0">
+        <div className={fullscreen ? "hidden" : "px-5 py-3 border-b border-manor-brass/25 bg-manor-bg2 flex items-center justify-between gap-4 shrink-0"}>
           <div className="flex items-baseline gap-3 min-w-0">
             <span
               className="font-sc tracking-[0.32em] text-manor-brassHi/80 whitespace-nowrap shrink-0"
@@ -943,8 +972,8 @@ export function IndexingClient({
           </div>
         </div>
 
-        {/* 统计指标 */}
-        <div className="px-5 py-3 border-b border-manor-brass/15 bg-manor-bg2 shrink-0">
+        {/* 统计指标 —— 全屏时隐藏，纵向空间让给表格 */}
+        <div className={fullscreen ? "hidden" : "px-5 py-3 border-b border-manor-brass/15 bg-manor-bg2 shrink-0"}>
           <SummaryBar
             stats={scopedStats}
             onCardClick={(key) => {
@@ -1012,6 +1041,81 @@ export function IndexingClient({
               onWindowNavigate={handleWindowNavigate}
             />
           </div>
+
+          {/* 功能菜单 —— 批量操作等入口收拢在此，平时不占表格空间（仅列表视图） */}
+          {viewMode === "list" && (
+            <div ref={funcMenuRef} className="relative shrink-0">
+              <button
+                type="button"
+                onClick={() => setFuncMenuOpen((v) => !v)}
+                title="功能：批量操作等"
+                className={[
+                  "h-8 px-2.5 inline-flex items-center gap-1.5 text-[11px] border rounded-md transition-colors",
+                  batchMode
+                    ? "border-manor-brassHi/60 text-manor-brassHi bg-manor-brassDim/15"
+                    : "border-manor-brass/30 text-manor-inkDim hover:text-manor-brassHi hover:bg-manor-brassDim/10",
+                ].join(" ")}
+                style={{ fontFamily: "var(--font-sc), 'Cormorant SC', serif" }}
+              >
+                <Wrench size={12} aria-hidden="true" />
+                <span className="tracking-wide">功能</span>
+              </button>
+              {funcMenuOpen && (
+                <div
+                  className="absolute right-0 top-full mt-1 z-50 rounded border border-manor-brass/40 py-1 min-w-[168px]"
+                  style={{
+                    background:
+                      "linear-gradient(180deg, rgba(18,38,26,.98) 0%, rgba(8,20,13,.99) 100%)",
+                    boxShadow: "0 8px 24px rgba(0,0,0,.5), inset 0 1px 0 rgba(224,197,122,.15)",
+                  }}
+                >
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBatchMode((v) => {
+                        const next = !v;
+                        if (!next) setSelectedUrls(new Set()); // 关闭批量模式时清空已选
+                        return next;
+                      });
+                      setFuncMenuOpen(false);
+                    }}
+                    className="w-full px-3 py-1.5 flex items-center gap-2 text-xs text-left text-manor-ink/90 hover:bg-manor-brassDim/15 transition-colors"
+                  >
+                    <span
+                      aria-hidden="true"
+                      style={{
+                        width: 5,
+                        height: 5,
+                        borderRadius: 9999,
+                        background: batchMode ? "#C9A961" : "transparent",
+                        border: "1px solid rgba(201,169,97,.6)",
+                        boxShadow: batchMode ? "0 0 5px rgba(201,169,97,.7)" : "none",
+                      }}
+                    />
+                    <span>批量页面修改</span>
+                    {batchMode && <span className="ml-auto text-manor-brassHi text-[10px]">已开启</span>}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 全屏 / 返回 —— 隐藏标题栏+统计卡，纵向空间让给数据区（Esc 亦可退出） */}
+          <button
+            type="button"
+            onClick={() => setFullscreen((v) => !v)}
+            title={fullscreen ? "退出全屏（Esc）" : "全屏：隐藏上方标题与统计卡，显示更多数据行"}
+            className={[
+              "h-8 px-2.5 shrink-0 inline-flex items-center gap-1.5 text-[11px] border rounded-md transition-colors",
+              fullscreen
+                ? "border-manor-brassHi/60 text-manor-brassHi bg-manor-brassDim/15"
+                : "border-manor-brass/30 text-manor-inkDim hover:text-manor-brassHi hover:bg-manor-brassDim/10",
+            ].join(" ")}
+            style={{ fontFamily: "var(--font-sc), 'Cormorant SC', serif" }}
+          >
+            {fullscreen ? <Minimize2 size={12} aria-hidden="true" /> : <Maximize2 size={12} aria-hidden="true" />}
+            <span className="tracking-wide">{fullscreen ? "返回" : "全屏"}</span>
+          </button>
         </div>
 
         {/* 主体：树（导航） / 列表（按 scope 显示） */}
@@ -1019,8 +1123,8 @@ export function IndexingClient({
           {viewMode === "list" && (
             <ScopeBreadcrumb scope={scope} onChange={setScope} byId={allById} />
           )}
-          {/* 批量修改页面类型操作条 —— 勾选数 > 0 时浮出（仅列表视图） */}
-          {viewMode === "list" && selectedUrls.size > 0 && (
+          {/* 批量修改页面类型操作条 —— 批量模式且勾选数 > 0 时浮出（仅列表视图） */}
+          {viewMode === "list" && batchMode && selectedUrls.size > 0 && (
             <div
               className="px-4 py-2 border-b border-manor-brass/25 shrink-0 flex items-center gap-2.5 text-xs"
               style={{
@@ -1092,9 +1196,14 @@ export function IndexingClient({
               <PageTable
                 data={paginated}
                 onRowClick={handleRowClick}
-                selectedUrls={selectedUrls}
-                onToggleRow={toggleSelectRow}
-                onTogglePage={toggleSelectPage}
+                // 批量模式才传勾选三件套 → 平时勾选列整列不渲染，不占表格空间
+                {...(batchMode
+                  ? {
+                      selectedUrls,
+                      onToggleRow: toggleSelectRow,
+                      onTogglePage: toggleSelectPage,
+                    }
+                  : {})}
               />
             ) : (
               <PageTreeView
