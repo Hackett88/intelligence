@@ -52,6 +52,13 @@ export type PageRow = {
   // count=历史成功提交次数，lastAt=上次提交时刻 ISO。从未请求过 → 两者 undefined。
   indexRequestCount?: number;
   indexRequestLastAt?: string;
+  // 收录检查退避信息（coverage-loader 按 tuning 计算，刷新收录清单弹窗用）：
+  // checkCount=累计检查次数；lastAt=上次检查 ISO；dueAt=下次到期 ISO（undefined=从未查过，立即到期）；
+  // due=当前是否已到期（服务端按退避参数算好，前端直接用）。
+  inspectCheckCount?: number;
+  inspectLastAt?: string;
+  inspectDueAt?: string;
+  inspectDue?: boolean;
   // GA4 单 URL 指标（进站后行为/转化）。同步时按 landing_page 口径写入；
   // 近 28 天无 GA4 着陆流量的页为 undefined，抽屉走"无数据"诚实空态。
   ga4?: Ga4Metrics;

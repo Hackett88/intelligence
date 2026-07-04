@@ -13,7 +13,6 @@ import { fetchSitemapPages } from "@/lib/gsc/sitemap";
 import {
   loadIndexStatus,
   saveMergeIndexStatus,
-  type IndexStatusEntry,
 } from "@/lib/gsc/index-status-store";
 import { normalizeForMatch } from "@/lib/gsc/url-normalize";
 import { inspectUrls, type IndexInspectionResult } from "@/lib/gsc/index-inspection-fetcher";
@@ -21,6 +20,12 @@ import {
   inspectUrlsViaApi,
   isGscApiConfigured,
 } from "@/lib/gsc/index-inspection-api-fetcher";
+import {
+  loadInspectTuning,
+  needsInspection,
+  compareInspection,
+} from "@/lib/gsc/inspect-freshness";
+import { bumpApiUsage } from "@/lib/gsc/api-usage-store";
 
 // 路由现在返回的统计体。code/error 仅在「已配 key 但授权失败」错误态出现，
 // 由路由据此转成 400（前端 toast 指引去 GSC 加 Full User）；成功态二者恒为 undefined（JSON 自动省略）。
@@ -39,44 +44,11 @@ export interface InspectionSummary {
   error?: string;
 }
 
-// ── 新鲜度阈值 ──────────────────────────────────────────────────────────────────
-// 定时器每天固定 LA 钟点触发一次。阈值若取整 24h/7d，任何「上次检查发生在触发点之后」的页
-// （手动按钮下午点过、或上一轮批量跑到触发点之后几十秒才写完）到次日触发时都差一点不到期，
-// 被整体顺延一天：未收录页实际 48h 才复查——Google 翻成已收录后面板要多错一天（实案：
-// /smart-tasbih-ring 2026-07-01 15:26 手动查为未收录，07-02 上午 Google 收录，07-02 13:00
-// 定时跑时仅过 21.6h 被跳过）。各留 4h 相位余量，保证「昨天检查过的页，今天到点必复查」。
-const STALE_NOT_INDEXED_MS = 20 * 60 * 60 * 1000; // 未收录 → ≥20h 复查（名义节律仍是每日）
-const STALE_INDEXED_MS = (7 * 24 - 4) * 60 * 60 * 1000; // 已收录 → ≥6d20h 复查（名义节律仍是每周）
-
-/**
- * 判断该 entry 是否需要重新检查（新鲜度判定）。
- * - 无 entry（未查过）→ 需查
- * - indexed===null（失败/未知）→ 需查
- * - indexed===false（未收录）→ 距上次检查 ≥ 20h 才查（每日节律，含相位余量）
- * - indexed===true（已收录）→ 距上次检查 ≥ 6d20h 才查（每周节律，含相位余量）
- * - checkedAt 缺失/解析为 NaN → 当作 0（很旧）→ 需查
- */
-function needsInspection(entry: IndexStatusEntry | undefined, now: number): boolean {
-  if (!entry) return true;
-  if (entry.indexed === null) return true;
-  const checkedTime = entry.checkedAt ? new Date(entry.checkedAt).getTime() : 0;
-  if (entry.indexed === false) return now - checkedTime >= STALE_NOT_INDEXED_MS;
-  return now - checkedTime >= STALE_INDEXED_MS; // indexed === true
-}
-
-/**
- * 优先级得分（升序，越小越优先，limit 截断时先查最紧要的页）。
- * 0 = 无记录（从未检查）
- * 1 = indexed===null（上次失败/未知）
- * 2 = indexed===false（未收录，24h 到期）
- * 3 = indexed===true（已收录，7d 到期）
- */
-function inspectionPriority(entry: IndexStatusEntry | undefined): number {
-  if (!entry) return 0;
-  if (entry.indexed === null) return 1;
-  if (entry.indexed === false) return 2;
-  return 3; // indexed === true
-}
+// ── 新鲜度 / 退避 / 排序 ─────────────────────────────────────────────────────────
+// 2026-07-04 起抽到 inspect-freshness.ts 与前端/面板共享：
+//   · 退避节律：没查过→立即；未收录 1 次→隔 1 天、2 次→隔 3 天、3 次起→每周；已收录→每周。
+//     参数存 app_scheduler_config.tuning（用量面板可调），全部含 4h 相位余量（沿革见该模块注释）。
+//   · 排序：从未查过 → 上次失败 → 未收录 → 已收录；同级按 check_count 升序（查得少优先）。
 
 /**
  * 收录检查核心（鉴权与生产守卫之外的全部逻辑）。
@@ -84,9 +56,11 @@ function inspectionPriority(entry: IndexStatusEntry | undefined): number {
  * @param opts.mode    on-demand（按新鲜度选候选集）| all（仅 API 法，强制重查全部）。
  * @param opts.apiOnly 默认 false。true 时若未配官方 API → 直接返回空 summary（不碰会话法），给定时器用。
  * @param opts.limit   截断候选数上限；缺省（undefined）= 不截断，查全部到期页，给定时器用。
+ * @param opts.urls    显式 URL 列表（清单弹窗勾选确认后传入）：只查这些页、跳过新鲜度过滤
+ *                     （用户明确点名就查），仍按退避排序 + limit 截断 + 正常计数落库。
  */
 export async function runInspectionCore(
-  opts: { mode: "on-demand" | "all"; apiOnly?: boolean; limit?: number }
+  opts: { mode: "on-demand" | "all"; apiOnly?: boolean; limit?: number; urls?: string[] }
 ): Promise<InspectionSummary> {
   const { mode } = opts;
   const apiOnly = opts.apiOnly ?? false;
@@ -117,35 +91,44 @@ export async function runInspectionCore(
     };
   }
 
-  // 取 sitemap 全量页 + 当前已检查状态
-  const [sitemapPages, status] = await Promise.all([
+  // 取 sitemap 全量页 + 当前已检查状态 + 退避参数（面板可调）
+  const [sitemapPages, status, tuning] = await Promise.all([
     fetchSitemapPages(),
     loadIndexStatus(),
+    loadInspectTuning(),
   ]);
 
   // ── 候选集选取 ───────────────────────────────────────────────────────────────
+  // 显式 urls（清单弹窗勾选）= 只取点名页、跳过新鲜度（用户明确要查），仍按退避排序；
   // "all"（仅 API 法）= 全部 sitemap 页（强制重查，忽略新鲜度）；
-  // "on-demand" = 仅"需查"页（新鲜度判定），按优先级升序排序后再截断。
+  // "on-demand" = 仅"到期"页（退避判定），按优先级+次数升序排序后再截断。
   let candidates: typeof sitemapPages;
 
-  if (effectiveAll) {
+  if (opts.urls && opts.urls.length > 0) {
+    const wanted = new Set(opts.urls.map((u) => normalizeForMatch(u)));
+    candidates = sitemapPages.filter((sp) => wanted.has(normalizeForMatch(sp.fullUrl)));
+    candidates.sort((a, b) =>
+      compareInspection(
+        status.byUrl[normalizeForMatch(a.fullUrl)],
+        status.byUrl[normalizeForMatch(b.fullUrl)]
+      )
+    );
+  } else if (effectiveAll) {
     // 强制全量，不过滤、不排序（顺序与 sitemap 一致）
     candidates = sitemapPages;
   } else {
-    // 新鲜度过滤
+    // 退避到期过滤
     candidates = sitemapPages.filter((sp) => {
       const key = normalizeForMatch(sp.fullUrl);
-      return needsInspection(status.byUrl[key], now);
+      return needsInspection(status.byUrl[key], now, tuning);
     });
-    // 优先级排序（升序：越小越优先）——排在 limit 截断之前，确保截断后留下最紧要的页
-    candidates.sort((a, b) => {
-      const keyA = normalizeForMatch(a.fullUrl);
-      const keyB = normalizeForMatch(b.fullUrl);
-      return (
-        inspectionPriority(status.byUrl[keyA]) -
-        inspectionPriority(status.byUrl[keyB])
-      );
-    });
+    // 排序：优先级 → check_count 升序 → 最久没查优先——截断前排好，留最紧要的页
+    candidates.sort((a, b) =>
+      compareInspection(
+        status.byUrl[normalizeForMatch(a.fullUrl)],
+        status.byUrl[normalizeForMatch(b.fullUrl)]
+      )
+    );
   }
 
   // limit 截断：按钮传 12 防网关超时；定时器缺省不截断，查全部到期页
@@ -204,6 +187,11 @@ export async function runInspectionCore(
     results = session.results;
     captchaBlocked = session.captchaBlocked;
     via = "session";
+  }
+
+  // ── API 用量计数（仅官方 API 法吃 2000/天配额；会话法走浏览器不计）──
+  if (via === "api" && results.length > 0) {
+    await bumpApiUsage("url_inspection", results.length);
   }
 
   // ── 合并写入 PG ─────────────────────────────────────────────────────────────

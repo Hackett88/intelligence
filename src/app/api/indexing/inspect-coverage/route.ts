@@ -43,12 +43,19 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // 解析 body：mode（刷新模式，默认 on-demand）。
-  // limit 固定为 12 传给核心，防止按钮触发的同步请求超过网关 ~11s 超时。
+  // 解析 body：mode（刷新模式，默认 on-demand）；urls（清单弹窗勾选确认后显式点名，
+  // 前端按 12 页/批分批调用本路由 —— 网关 ~11s 超时约束不变）。
   let mode: "on-demand" | "all" = "on-demand";
+  let urls: string[] | undefined;
   try {
-    const body = (await req.json()) as { mode?: "on-demand" | "all" };
+    const body = (await req.json()) as { mode?: "on-demand" | "all"; urls?: unknown };
     if (body?.mode === "all") mode = "all";
+    if (Array.isArray(body?.urls)) {
+      const list = body.urls
+        .filter((u): u is string => typeof u === "string" && u.trim().length > 0)
+        .map((u) => u.trim());
+      if (list.length > 0) urls = list.slice(0, 100); // 单批硬上限，防误传超大数组
+    }
   } catch {
     // 没 body 也行，用默认 mode
   }
@@ -56,7 +63,11 @@ export async function POST(req: NextRequest) {
   const startedAt = Date.now();
 
   try {
-    const summary = await runInspectionCore({ mode, limit: 12, apiOnly: false });
+    const summary = await runInspectionCore(
+      urls
+        ? { mode: "on-demand", urls, apiOnly: false } // 点名模式：只查这些，limit 由前端分批控制
+        : { mode, limit: 12, apiOnly: false }
+    );
 
     // 配了 key 但鉴权/授权失败 → 维持原 400 + 同 message（让前端 toast 指引去 GSC 加 Full User）。
     if (!summary.ok && summary.code === "GSC_API_NOT_AUTHORIZED") {

@@ -8,6 +8,7 @@
 
 import { promises as fs } from "node:fs";
 import path from "node:path";
+import { sql } from "drizzle-orm";
 import { db } from "@/db/client";
 import { gscIndexStatus } from "@/db/schema";
 import { normalizeForMatch } from "./url-normalize";
@@ -19,6 +20,9 @@ export interface IndexStatusEntry {
   pageIndexingText?: string;  // 可选，来自 URL Inspection API（page_indexing_text 列）
   lastCrawled: string | null;
   checkedAt: string;
+  // 退避机制（2026-07-04）：累计检查次数 / 连续未收录次数。旧 JSON 兜底数据可能缺失。
+  checkCount?: number;
+  notIndexedStreak?: number;
 }
 
 export interface IndexStatusFile {
@@ -73,6 +77,8 @@ async function _loadPg(): Promise<IndexStatusFile> {
       coverageText: row.coverageText ?? "",
       lastCrawled:  row.lastCrawled ?? null,
       checkedAt:    row.checkedAt?.toISOString() ?? updatedAtStr,
+      checkCount:       row.checkCount,
+      notIndexedStreak: row.notIndexedStreak,
     };
     if (row.pageIndexingText != null) {
       entry.pageIndexingText = row.pageIndexingText;
@@ -111,6 +117,8 @@ export async function saveMergeIndexStatus(
   let pgSuccess = false;
 
   // ── 1. PG UPSERT（主路径）────────────────────────────────────────────────────
+  // 退避计数语义：check_count 每次检查 +1；not_indexed_streak——
+  //   本次未收录(false) → +1；已收录(true) → 清零；失败(null) → 保持不动（失败不该改变退避节律）。
   try {
     for (const r of results) {
       const key = normalizeForMatch(r.url);
@@ -124,6 +132,8 @@ export async function saveMergeIndexStatus(
           lastCrawled:  r.lastCrawled,
           checkedAt:    now,
           updatedAt:    now,
+          checkCount:   1,
+          notIndexedStreak: r.indexed === false ? 1 : 0,
         })
         .onConflictDoUpdate({
           target: gscIndexStatus.urlNorm,
@@ -134,6 +144,13 @@ export async function saveMergeIndexStatus(
             lastCrawled:  r.lastCrawled,
             checkedAt:    now,
             updatedAt:    now,
+            checkCount:   sql`${gscIndexStatus.checkCount} + 1`,
+            notIndexedStreak:
+              r.indexed === false
+                ? sql`${gscIndexStatus.notIndexedStreak} + 1`
+                : r.indexed === true
+                  ? 0
+                  : sql`${gscIndexStatus.notIndexedStreak}`,
             // pageIndexingText 不在此参数中，不覆盖（保留已有值）
           },
         });

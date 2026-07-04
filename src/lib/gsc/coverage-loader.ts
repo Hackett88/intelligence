@@ -19,6 +19,7 @@ import {
   buildParentMap,
 } from "./transform";
 import { loadIndexRequestMap } from "./index-request-store";
+import { loadInspectTuning, inspectDueAtMs } from "./inspect-freshness";
 import { loadLatestSnapshot, type LoadedSnapshot } from "./loader";
 import { loadPageTypeOverrides } from "./overrides";
 import { loadRedirectMap } from "./redirect-map";
@@ -441,6 +442,10 @@ export async function loadCoveragePages(windowDays = 90): Promise<
   // 「请求编入索引」历史计数（url_norm → {count, lastAt}），请求索引清单弹窗按行显示。
   const indexRequestMap = await loadIndexRequestMap();
 
+  // 收录检查退避参数（用量面板可调）——为每页算 dueAt/due，刷新收录清单弹窗按行显示。
+  const inspectTuning = await loadInspectTuning();
+  const nowMs = Date.now();
+
   // 每页自身流量（own）：当窗口 gsc_page_daily 按 url_norm 求和（最权威）。先取一次，既用于
   // own，也传给 buildMergedMetrics 复用，避免重复查（57 页量级其实无所谓，省一次是一次）。
   const dailyAgg = await loadDailyAggregates(windowDays, 1);
@@ -615,6 +620,14 @@ export async function loadCoveragePages(windowDays = 90): Promise<
       queries,
       indexRequestCount: indexRequestMap.get(normKey)?.count,
       indexRequestLastAt: indexRequestMap.get(normKey)?.lastAt ?? undefined,
+      // 收录检查退避信息（清单弹窗用）：dueMs=0 表示从未查过/上次失败 → 立即到期
+      inspectCheckCount: status?.checkCount ?? 0,
+      inspectLastAt: status?.checkedAt || undefined,
+      inspectDueAt: (() => {
+        const dueMs = inspectDueAtMs(status, inspectTuning);
+        return dueMs > 0 ? new Date(dueMs).toISOString() : undefined;
+      })(),
+      inspectDue: inspectDueAtMs(status, inspectTuning) <= nowMs,
       lastSync,
       parentId: parentPath ? idByPath.get(parentPath) : undefined,
       isPillar: inferIsPillar(sp.path) || undefined,

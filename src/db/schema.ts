@@ -287,6 +287,11 @@ export const gscIndexStatus = pgTable("gsc_index_status", {
   lastCrawled:      text("last_crawled"),
   checkedAt:        timestamp("checked_at", { withTimezone: true }),
   updatedAt:        timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  // 退避机制（2026-07-04，ddl-inspect-backoff）：
+  // check_count = 累计检查次数（排序：查得少的优先）；
+  // not_indexed_streak = 连续未收录次数（退避节律：1→隔1天,2→隔3天,>=3→每周；查到已收录清零）。
+  checkCount:       integer("check_count").notNull().default(0),
+  notIndexedStreak: integer("not_indexed_streak").notNull().default(0),
 });
 
 export type GscIndexStatus    = typeof gscIndexStatus.$inferSelect;
@@ -326,6 +331,29 @@ export type GscIndexRequest    = typeof gscIndexRequests.$inferSelect;
 export type NewGscIndexRequest = typeof gscIndexRequests.$inferInsert;
 
 // ────────────────────────────────────────────────────────────────────────────
+// API 用量按天计数（2026-07-04）
+// kind: "url_inspection"（精确计数，对照 2000/天配额）| "traffic_rounds"（流量更新轮数）。
+// day 取洛杉矶日期（Google 配额窗口按太平洋时间滚动）。
+// 手写幂等 DDL 见 scripts/ddl-inspect-backoff.ts，此定义仅供 ORM 查询，禁 drizzle-kit。
+// ────────────────────────────────────────────────────────────────────────────
+
+export const gscApiUsage = pgTable(
+  "gsc_api_usage",
+  {
+    day:       date("day", { mode: "string" }).notNull(),
+    kind:      text("kind").notNull(),
+    count:     integer("count").notNull().default(0),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.day, t.kind] }),
+  })
+);
+
+export type GscApiUsage    = typeof gscApiUsage.$inferSelect;
+export type NewGscApiUsage = typeof gscApiUsage.$inferInsert;
+
+// ────────────────────────────────────────────────────────────────────────────
 // 应用内定时器全局配置（2026-06-28）
 // 单行表：CHECK (id = 1) 约束在 DDL 层保证，Drizzle 定义仅供 ORM 查询。
 // 不走 drizzle-kit generate/push/migrate。
@@ -340,6 +368,8 @@ export const appSchedulerConfig = pgTable("app_scheduler_config", {
   mode:            text("mode").notNull().default("all"),
   lastRunAt:       timestamp("last_run_at", { withTimezone: true }),
   lastRunSummary:  jsonb("last_run_summary"),
+  // 收录检查退避参数（用量面板可调；NULL = 代码默认 1/3/7/7 天）。见 inspect-freshness.ts。
+  tuning:          jsonb("tuning"),
   updatedAt:       timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

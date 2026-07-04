@@ -16,7 +16,7 @@ import { PageTable } from "./PageTable";
 import { PageTreeView, type Scope, scopeMatches } from "./PageTreeView";
 import { DetailDrawer } from "./DetailDrawer";
 import { PageTrendSection, type TrendData } from "./PageTrendChart";
-import { Clock, Globe, List, Maximize2, Minimize2, Network, RefreshCw, Send, Wrench, X } from "lucide-react";
+import { Clock, Gauge, Globe, List, Maximize2, Minimize2, Network, RefreshCw, Send, Wrench, X } from "lucide-react";
 import { SchedulerSettingsDialog } from "./SchedulerSettingsDialog";
 import {
   type PageRow,
@@ -56,6 +56,18 @@ function formatRelative(iso: string | undefined): string {
 const PAGE_SIZE_OPTIONS = [20, 50, 100];
 
 type ViewMode = "tree" | "list";
+
+// 「用量」面板数据（GET /api/indexing/api-usage 响应体）
+interface UsageData {
+  today: { day: string; urlInspection: number; trafficRounds: number; quota: number };
+  days: { day: string; urlInspection: number; trafficRounds: number }[];
+  tuning: {
+    notIndexed1Days: number;
+    notIndexed2Days: number;
+    notIndexed3Days: number;
+    indexedDays: number;
+  };
+}
 
 // ─── 列表视图顶部面包屑 — 显示 scope 的祖先链 + 一键回到任意上层 ───
 function ScopeBreadcrumb({
@@ -192,55 +204,73 @@ export function IndexingClient({
   const [requestDlgOpen, setRequestDlgOpen] = useState(false);
   const [requestSelected, setRequestSelected] = useState<Set<string>>(new Set()); // key=fullUrl
 
+  // ── 刷新收录清单弹窗（R5）：点按钮先弹清单（默认勾选「已到期」页），确定后分批检查 ──
+  const [inspectDlgOpen, setInspectDlgOpen] = useState(false);
+  const [inspectSelected, setInspectSelected] = useState<Set<string>>(new Set()); // key=fullUrl
+
+  // ── API 用量面板（独立「用量」按钮）：今日/近7天用量 + 收录退避参数编辑 ──
+  const [usageOpen, setUsageOpen] = useState(false);
+  const [usageLoading, setUsageLoading] = useState(false);
+  const [usageData, setUsageData] = useState<UsageData | null>(null);
+  const [tuningDraft, setTuningDraft] = useState<UsageData["tuning"] | null>(null);
+  const [tuningSaving, setTuningSaving] = useState(false);
+
   // ── 刷新收录状态：调 /api/indexing/inspect-coverage，按需分级查收录 ──
-  // on-demand（默认）：按需分级——没查过的立即查、未收录24h复查、已收录7天兜底复查。
-  const handleInspectCoverage = async () => {
-    if (inspecting || batchRequesting) return; // 与批量请求互斥：两者都代驾同一本地 Chrome
+  // 打开「刷新收录」清单弹窗：默认勾选「已到期」页（退避判定由服务端算好带在 PageRow 上）。
+  const openInspectDialog = () => {
+    if (inspecting || batchRequesting) return; // 与批量请求互斥：两者都可能代驾同一本地 Chrome
+    const real = initialData.filter((p) => !p.isSynthetic);
+    setInspectSelected(new Set(real.filter((p) => p.inspectDue).map((p) => p.fullUrl)));
+    setInspectDlgOpen(true);
+  };
+
+  // 清单确认后执行：分批（12 页/批，网关超时约束）串行调 /inspect-coverage {urls}，聚合汇总。
+  const runInspectSelected = async (urls: string[]) => {
+    if (inspecting || batchRequesting || urls.length === 0) return;
     setInspectingMode("on-demand");
     const toastId = toast.loading("正在检查收录状态…", {
-      description: "按需分级查 GSC「网址检查」（每批上限 12 页，受 Google 限流，请勿关闭浏览器）",
+      description: `共 ${urls.length} 页 · 分批提交（每批 12 页）`,
     });
+    let inspected = 0;
+    let indexedN = 0;
+    let notIndexedN = 0;
+    let failedN = 0;
+    let stopped: string | null = null;
     try {
-      const res = await fetch("/api/indexing/inspect-coverage", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mode: "on-demand" }),
-      });
-      const body = (await res.json()) as {
-        ok: boolean; code?: string; message?: string; hint?: string;
-        inspected?: number; indexed?: number; notIndexed?: number; failed?: number;
-        captchaBlocked?: boolean; remainingUnchecked?: number; durationMs?: number;
-        mode?: string;
-      };
-      if (!res.ok || !body.ok) {
-        toast.error(body.message || "收录检查失败", {
+      for (let i = 0; i < urls.length; i += 12) {
+        const chunk = urls.slice(i, i + 12);
+        toast.loading("正在检查收录状态…", {
           id: toastId,
-          description: body.hint || body.code,
-          duration: 8000,
+          description: `${i}/${urls.length} 完成 · 正在检查第 ${Math.floor(i / 12) + 1} 批（${chunk.length} 页）`,
         });
-        return;
+        const res = await fetch("/api/indexing/inspect-coverage", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ urls: chunk }),
+        });
+        const body = (await res.json()) as {
+          ok: boolean; code?: string; message?: string; hint?: string;
+          inspected?: number; indexed?: number; notIndexed?: number; failed?: number;
+          captchaBlocked?: boolean;
+        };
+        if (!res.ok || !body.ok) {
+          stopped = body.message || body.hint || body.code || `HTTP ${res.status}`;
+          break;
+        }
+        inspected += body.inspected ?? 0;
+        indexedN += body.indexed ?? 0;
+        notIndexedN += body.notIndexed ?? 0;
+        failedN += body.failed ?? 0;
+        if (body.captchaBlocked) {
+          stopped = "被 Google 限流（reCAPTCHA）——请在浏览器 GSC 手动过验证码后再续查剩余页。";
+          break;
+        }
       }
-      const remain = body.remainingUnchecked ?? 0;
-      if (body.captchaBlocked) {
-        toast.warning("被 Google 限流（reCAPTCHA）", {
-          id: toastId,
-          description: `本次已查 ${body.inspected ?? 0} 页（已收录 ${body.indexed ?? 0}）。请在浏览器的 GSC 手动检查任意一个网址、通过 reCAPTCHA 后，再点"刷新收录"续跑。还剩 ${remain} 页待检查。`,
-          duration: 12000,
-        });
-      } else if ((body.inspected ?? 0) === 0) {
-        // 所有页面都在新鲜期内 → 给明确反馈
-        toast.success("收录状态已是最新", {
-          id: toastId,
-          description:
-            "所有页面都在新鲜期内（已收录 7 天内、未收录 24 小时内都已检查过），无需重复调用 API。到期页会由「定时」自动按需复查。",
-          duration: 7000,
-        });
+      const summary = `已检查 ${inspected} 页 · 已收录 ${indexedN}${notIndexedN ? ` · 未收录 ${notIndexedN}` : ""}${failedN ? ` · 未取到 ${failedN}` : ""}`;
+      if (stopped) {
+        toast.warning("收录检查已中止", { id: toastId, description: `${summary}。${stopped}`, duration: 10000 });
       } else {
-        toast.success("收录刷新完成", {
-          id: toastId,
-          description: `本次检查 ${body.inspected ?? 0} 页 · 已收录 ${body.indexed ?? 0}${body.notIndexed ? ` · 未收录 ${body.notIndexed}` : ""}${body.failed ? ` · 未取到 ${body.failed}` : ""}${remain > 0 ? ` · 还剩 ${remain} 页待检查` : ""} · 用时 ${Math.round((body.durationMs ?? 0) / 1000)}s`,
-          duration: 8000,
-        });
+        toast.success("收录检查完成", { id: toastId, description: summary, duration: 8000 });
       }
       router.refresh();
     } catch (err) {
@@ -251,6 +281,50 @@ export function IndexingClient({
       });
     } finally {
       setInspectingMode(null);
+    }
+  };
+
+  // ── 用量面板：打开时拉取，保存退避参数 ──
+  const openUsagePanel = async () => {
+    setUsageOpen(true);
+    setUsageLoading(true);
+    try {
+      const res = await fetch("/api/indexing/api-usage");
+      const body = (await res.json()) as ({ ok: boolean } & UsageData) | { ok: false; message?: string };
+      if (!res.ok || !body.ok) throw new Error(("message" in body && body.message) || `HTTP ${res.status}`);
+      const data = body as unknown as UsageData;
+      setUsageData(data);
+      setTuningDraft({ ...data.tuning });
+    } catch (err) {
+      toast.error("用量加载失败", { description: err instanceof Error ? err.message : "网络错误" });
+      setUsageData(null);
+    } finally {
+      setUsageLoading(false);
+    }
+  };
+
+  const saveTuning = async () => {
+    if (!tuningDraft || tuningSaving) return;
+    setTuningSaving(true);
+    try {
+      const res = await fetch("/api/indexing/api-usage", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tuning: tuningDraft }),
+      });
+      const body = (await res.json()) as { ok?: boolean; tuning?: UsageData["tuning"]; message?: string };
+      if (!res.ok || !body.ok) throw new Error(body.message || `HTTP ${res.status}`);
+      setTuningDraft(body.tuning ?? tuningDraft);
+      setUsageData((prev) => (prev ? { ...prev, tuning: body.tuning ?? prev.tuning } : prev));
+      toast.success("退避参数已保存", {
+        description: "定时与手动刷新立即按新节律判定到期。",
+        duration: 5000,
+      });
+      router.refresh(); // 列表里的到期标记按新参数重算
+    } catch (err) {
+      toast.error("参数保存失败", { description: err instanceof Error ? err.message : "网络错误" });
+    } finally {
+      setTuningSaving(false);
     }
   };
 
@@ -737,6 +811,26 @@ export function IndexingClient({
     return () => document.removeEventListener("keydown", onKey);
   }, [requestDlgOpen]);
 
+  // 刷新收录清单弹窗按 Esc 关闭
+  useEffect(() => {
+    if (!inspectDlgOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setInspectDlgOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [inspectDlgOpen]);
+
+  // 用量面板按 Esc 关闭
+  useEffect(() => {
+    if (!usageOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setUsageOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [usageOpen]);
+
   // 顶部 SummaryBar 跟随当前"发亮卡片"(scope) 实时变动：
   //   · scope=all   → 用权威全站汇总（snapshot.summary 口径，与原行为一致）
   //   · scope=子树  → 按该子树的真实页 (scopedReal) 实时重算，口径与列表视图完全一致，
@@ -910,9 +1004,9 @@ export function IndexingClient({
             >
               <button
                 type="button"
-                onClick={handleInspectCoverage}
+                onClick={openInspectDialog}
                 disabled={inspecting || batchRequesting}
-                title={inspecting ? "正在检查收录…" : "按需分级：没查过的立即查 · 未收录24h复查 · 已收录7天兜底"}
+                title={inspecting ? "正在检查收录…" : "打开清单：默认勾选到期页(退避:未收录1天/3天/每周,已收录每周),确认后分批检查"}
                 className={[
                   "h-full inline-flex items-center gap-1.5 px-2.5 text-[11px] whitespace-nowrap transition-all",
                   inspecting
@@ -957,6 +1051,21 @@ export function IndexingClient({
             >
               <Clock size={12} aria-hidden="true" />
               <span>定时</span>
+            </button>
+            {/* API 用量与退避参数（独立面板） */}
+            <button
+              type="button"
+              onClick={() => void openUsagePanel()}
+              title="API 用量（URL Inspection 今日/近7天）与收录退避参数管理"
+              className={[
+                "h-7 inline-flex items-center gap-1.5 px-2.5 rounded text-[11px] whitespace-nowrap shrink-0",
+                "border transition-all",
+                "border-manor-brass/35 text-manor-brassDim hover:text-manor-brassHi hover:border-manor-brass/55 hover:bg-manor-brassDim/10",
+              ].join(" ")}
+              style={{ fontFamily: "var(--font-sc), 'Cormorant SC', serif", letterSpacing: "0.1em" }}
+            >
+              <Gauge size={12} aria-hidden="true" />
+              <span>用量</span>
             </button>
             {/* 批量请求索引 —— 对当前范围内未收录页逐个代驾 GSC「请求编入索引」。
                 仅本地（syncEnabled）显示：依赖本地浏览器 9222，与详情抽屉里的单页按钮同一引擎。
@@ -1442,6 +1551,336 @@ export function IndexingClient({
         open={schedulerOpen}
         onOpenChange={setSchedulerOpen}
       />
+
+      {/* 刷新收录清单弹窗 —— 默认勾选到期页（退避判定），确认后分批检查。portal 到 body。 */}
+      {inspectDlgOpen && createPortal(
+        <div
+          className="fixed inset-0 z-[120] flex items-center justify-center"
+          style={{ background: "rgba(0,0,0,.62)" }}
+          onClick={() => setInspectDlgOpen(false)}
+        >
+          <div
+            className="rounded border border-manor-brass/40 w-[680px] max-w-[94vw] max-h-[86vh] flex flex-col"
+            style={{
+              background: "linear-gradient(180deg, rgba(18,38,26,.99) 0%, rgba(8,20,13,1) 100%)",
+              boxShadow: "0 12px 40px rgba(0,0,0,.6), inset 0 1px 0 rgba(224,197,122,.18)",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* 标题行 */}
+            <div className="px-5 py-3 border-b border-manor-brass/25 flex items-center gap-2.5 shrink-0">
+              <RefreshCw size={13} className="text-manor-brassHi/85" aria-hidden="true" />
+              <span
+                className="text-manor-brassHi/85 tracking-[0.22em]"
+                style={{ fontFamily: "var(--font-sc), 'Cormorant SC', serif", fontSize: 10.5 }}
+              >
+                INSPECTIO · INDEX
+              </span>
+              <span className="text-manor-ink/90 text-sm">
+                刷新收录状态 · 共 {initialData.filter((p) => !p.isSynthetic).length} 页
+              </span>
+              <button
+                type="button"
+                onClick={() => setInspectDlgOpen(false)}
+                title="关闭（Esc）"
+                className="ml-auto h-6 w-6 inline-flex items-center justify-center border border-manor-brass/40 rounded text-manor-inkDim hover:text-manor-brassHi hover:border-manor-brassHi transition-colors"
+              >
+                <X size={11} />
+              </button>
+            </div>
+            {/* 提示行 */}
+            <div className="px-5 py-2 border-b border-manor-brass/15 shrink-0">
+              <p className="text-[10.5px] text-manor-inkFaint leading-relaxed">
+                默认勾选<span className="text-manor-amber/90">已到期</span>页（退避节律：没查过→立即 ·
+                未收录 1 次→隔 1 天 · 2 次→隔 3 天 · 3 次起→每周 · 已收录→每周，参数在「用量」面板可调）。
+                每次检查消耗 URL Inspection 配额（2000 次/天）。
+              </p>
+            </div>
+            {/* 清单（滚动区）：到期在前 → 查得少在前 */}
+            <div className="flex-1 overflow-y-auto px-2 py-1.5 min-h-0">
+              {initialData
+                .filter((p) => !p.isSynthetic)
+                .slice()
+                .sort((a, b) =>
+                  (b.inspectDue ? 1 : 0) - (a.inspectDue ? 1 : 0) ||
+                  (a.inspectCheckCount ?? 0) - (b.inspectCheckCount ?? 0)
+                )
+                .map((p) => {
+                  const checked = inspectSelected.has(p.fullUrl);
+                  const cnt = p.inspectCheckCount ?? 0;
+                  return (
+                    <label
+                      key={p.fullUrl}
+                      className={[
+                        "flex items-center gap-2.5 px-3 py-1.5 rounded cursor-pointer transition-colors",
+                        checked ? "bg-manor-brassDim/10" : "hover:bg-manor-brassDim/5",
+                      ].join(" ")}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={(e) => {
+                          const on = e.target.checked;
+                          setInspectSelected((prev) => {
+                            const next = new Set(prev);
+                            if (on) next.add(p.fullUrl);
+                            else next.delete(p.fullUrl);
+                            return next;
+                          });
+                        }}
+                        style={{ accentColor: "#C9A961", width: 13, height: 13, cursor: "pointer" }}
+                      />
+                      <span className="flex flex-col leading-tight min-w-0 flex-1">
+                        <span className="text-manor-ink text-xs truncate" title={p.fullUrl}>
+                          {p.url}
+                        </span>
+                        <span className="text-[9.5px] text-manor-inkFaint truncate">
+                          {p.coverageLabel ?? "未检查"}
+                          {cnt > 0 && ` · 已查 ${cnt} 次`}
+                          {p.inspectLastAt && ` · 上次 ${formatRelative(p.inspectLastAt)}`}
+                        </span>
+                      </span>
+                      {/* 到期状态 */}
+                      {p.inspectDue ? (
+                        <span
+                          className="shrink-0 inline-flex items-center px-1.5 py-0.5 rounded border text-[10px]"
+                          style={{
+                            color: "#E8C176",
+                            borderColor: "rgba(232,193,118,.4)",
+                            background: "rgba(232,193,118,.08)",
+                          }}
+                        >
+                          {/* 计数列 2026-07-04 才上线:老数据 cnt=0 但有上次时间 → 按"已到期"显示 */}
+                          {cnt === 0 && !p.inspectLastAt ? "从未查过" : "已到期"}
+                        </span>
+                      ) : (
+                        <span
+                          className="shrink-0 text-[10px] text-manor-inkGhost"
+                          title={p.inspectDueAt ? `下次到期：${new Date(p.inspectDueAt).toLocaleString()}` : undefined}
+                        >
+                          {p.inspectDueAt
+                            ? `${new Date(p.inspectDueAt).getMonth() + 1}/${new Date(p.inspectDueAt).getDate()} 到期`
+                            : "—"}
+                        </span>
+                      )}
+                    </label>
+                  );
+                })}
+            </div>
+            {/* 底部操作行 */}
+            <div className="px-5 py-3 border-t border-manor-brass/25 flex items-center gap-2.5 shrink-0">
+              <button
+                type="button"
+                onClick={() =>
+                  setInspectSelected(
+                    new Set(initialData.filter((p) => !p.isSynthetic && p.inspectDue).map((p) => p.fullUrl))
+                  )
+                }
+                className="h-6 px-2 border border-manor-brass/40 rounded text-xs text-manor-inkDim hover:text-manor-brassHi hover:border-manor-brassHi transition-colors"
+              >
+                只选到期
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  setInspectSelected(new Set(initialData.filter((p) => !p.isSynthetic).map((p) => p.fullUrl)))
+                }
+                className="h-6 px-2 border border-manor-brass/40 rounded text-xs text-manor-inkDim hover:text-manor-brassHi hover:border-manor-brassHi transition-colors"
+              >
+                全选
+              </button>
+              <button
+                type="button"
+                onClick={() => setInspectSelected(new Set())}
+                className="h-6 px-2 border border-manor-brass/40 rounded text-xs text-manor-inkDim hover:text-manor-brassHi hover:border-manor-brassHi transition-colors"
+              >
+                清空
+              </button>
+              <span className="flex-1" />
+              <span className="text-xs text-manor-inkDim tabular-nums">已选 {inspectSelected.size} 页</span>
+              <button
+                type="button"
+                onClick={() => setInspectDlgOpen(false)}
+                className="h-7 px-2.5 border border-manor-brass/40 rounded text-xs text-manor-inkDim hover:text-manor-brassHi hover:border-manor-brassHi transition-colors"
+              >
+                取消
+              </button>
+              <button
+                type="button"
+                disabled={inspectSelected.size === 0 || inspecting}
+                onClick={() => {
+                  const urls = initialData
+                    .filter((p) => !p.isSynthetic && inspectSelected.has(p.fullUrl))
+                    .map((p) => p.fullUrl);
+                  setInspectDlgOpen(false);
+                  void runInspectSelected(urls);
+                }}
+                className="h-7 px-3 border border-manor-brassHi/60 rounded text-xs text-manor-brassHi bg-manor-brassDim/15 hover:bg-manor-brassDim/25 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                确定检查 ({inspectSelected.size})
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* 用量面板 —— API 用量(今日/近7天) + 收录退避参数编辑。portal 到 body。 */}
+      {usageOpen && createPortal(
+        <div
+          className="fixed inset-0 z-[120] flex items-center justify-center"
+          style={{ background: "rgba(0,0,0,.62)" }}
+          onClick={() => setUsageOpen(false)}
+        >
+          <div
+            className="rounded border border-manor-brass/40 w-[560px] max-w-[94vw] max-h-[88vh] overflow-y-auto"
+            style={{
+              background: "linear-gradient(180deg, rgba(18,38,26,.99) 0%, rgba(8,20,13,1) 100%)",
+              boxShadow: "0 12px 40px rgba(0,0,0,.6), inset 0 1px 0 rgba(224,197,122,.18)",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* 标题 */}
+            <div className="px-5 py-3 border-b border-manor-brass/25 flex items-center gap-2.5">
+              <Gauge size={13} className="text-manor-brassHi/85" aria-hidden="true" />
+              <span
+                className="text-manor-brassHi/85 tracking-[0.22em]"
+                style={{ fontFamily: "var(--font-sc), 'Cormorant SC', serif", fontSize: 10.5 }}
+              >
+                MENSURA · API
+              </span>
+              <span className="text-manor-ink/90 text-sm">API 用量与配额策略</span>
+              <button
+                type="button"
+                onClick={() => setUsageOpen(false)}
+                title="关闭（Esc）"
+                className="ml-auto h-6 w-6 inline-flex items-center justify-center border border-manor-brass/40 rounded text-manor-inkDim hover:text-manor-brassHi hover:border-manor-brassHi transition-colors"
+              >
+                <X size={11} />
+              </button>
+            </div>
+
+            {usageLoading ? (
+              <div className="px-5 py-8 text-center text-manor-inkDim text-xs">加载中…</div>
+            ) : !usageData ? (
+              <div className="px-5 py-8 text-center text-manor-inkFaint text-xs">加载失败，关闭后重试</div>
+            ) : (
+              <>
+                {/* 今日用量 */}
+                <div className="px-5 py-3 border-b border-manor-brass/15">
+                  <div className="flex items-baseline gap-2 mb-1.5">
+                    <span className="text-manor-inkDim text-xs">今日 URL Inspection（收录检查）</span>
+                    <span className="text-manor-brassHi tabular-nums text-sm font-medium">
+                      {usageData.today.urlInspection}
+                    </span>
+                    <span className="text-manor-inkFaint text-xs">/ {usageData.today.quota}</span>
+                    <span className="ml-auto text-[10px] text-manor-inkGhost">{usageData.today.day}（洛杉矶日）</span>
+                  </div>
+                  {/* 进度条 */}
+                  <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(201,169,97,.12)" }}>
+                    <div
+                      className="h-full rounded-full transition-all"
+                      style={{
+                        width: `${Math.min(100, (usageData.today.urlInspection / usageData.today.quota) * 100)}%`,
+                        background:
+                          usageData.today.urlInspection / usageData.today.quota > 0.8
+                            ? "linear-gradient(90deg, #C46B5A, #E8907A)"
+                            : "linear-gradient(90deg, #A08850, #EFD89A)",
+                      }}
+                    />
+                  </div>
+                  <p className="mt-1.5 text-[10px] text-manor-inkFaint">
+                    今日流量更新 {usageData.today.trafficRounds} 轮（每轮 ≈2-3 次 Search Analytics 批量请求，配额宽裕，无需管控）。
+                  </p>
+                </div>
+
+                {/* 近 7 天 */}
+                <div className="px-5 py-3 border-b border-manor-brass/15">
+                  <p
+                    className="text-manor-brassHi/80 tracking-[0.2em] mb-1.5"
+                    style={{ fontFamily: "var(--font-sc), 'Cormorant SC', serif", fontSize: 9 }}
+                  >
+                    最近 7 天
+                  </p>
+                  {usageData.days.length === 0 ? (
+                    <p className="text-[11px] text-manor-inkFaint">暂无记录（从本次上线起开始计数）。</p>
+                  ) : (
+                    <table className="w-full text-[11px] tabular-nums">
+                      <thead>
+                        <tr className="text-manor-inkFaint text-left">
+                          <th className="py-0.5 font-normal">日期</th>
+                          <th className="py-0.5 font-normal text-right">收录检查</th>
+                          <th className="py-0.5 font-normal text-right">流量更新轮数</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {usageData.days.map((d) => (
+                          <tr key={d.day} className="text-manor-ink/85">
+                            <td className="py-0.5">{d.day}</td>
+                            <td className="py-0.5 text-right">{d.urlInspection}</td>
+                            <td className="py-0.5 text-right">{d.trafficRounds}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+
+                {/* 退避参数 */}
+                {tuningDraft && (
+                  <div className="px-5 py-3">
+                    <p
+                      className="text-manor-brassHi/80 tracking-[0.2em] mb-2"
+                      style={{ fontFamily: "var(--font-sc), 'Cormorant SC', serif", fontSize: 9 }}
+                    >
+                      收录检查退避参数（天）
+                    </p>
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                      {(
+                        [
+                          ["notIndexed1Days", "未收录 1 次后，隔几天复查"],
+                          ["notIndexed2Days", "未收录 2 次后，隔几天复查"],
+                          ["notIndexed3Days", "未收录 3 次起，每几天复查"],
+                          ["indexedDays", "已收录，每几天兜底复查"],
+                        ] as const
+                      ).map(([key, label]) => (
+                        <label key={key} className="flex items-center justify-between gap-2 text-[11px] text-manor-inkDim">
+                          <span>{label}</span>
+                          <input
+                            type="number"
+                            min={1}
+                            max={60}
+                            value={tuningDraft[key]}
+                            onChange={(e) => {
+                              const v = parseInt(e.target.value, 10);
+                              setTuningDraft((prev) => (prev ? { ...prev, [key]: Number.isNaN(v) ? 1 : v } : prev));
+                            }}
+                            className="w-14 h-6 border border-manor-brass/40 rounded px-1.5 text-xs text-manor-brassHi bg-manor-bg2 text-right focus:outline-none focus:border-manor-brassHi"
+                          />
+                        </label>
+                      ))}
+                    </div>
+                    <div className="mt-3 flex items-center gap-2">
+                      <p className="text-[10px] text-manor-inkFaint flex-1">
+                        没查过的页永远最优先、立即检查；改完立即对定时与手动生效。
+                      </p>
+                      <button
+                        type="button"
+                        disabled={tuningSaving}
+                        onClick={() => void saveTuning()}
+                        className="h-7 px-3 border border-manor-brassHi/60 rounded text-xs text-manor-brassHi bg-manor-brassDim/15 hover:bg-manor-brassDim/25 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                      >
+                        {tuningSaving ? "保存中…" : "保存参数"}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </div>,
+        document.body
+      )}
 
       {/* 请求索引清单弹窗 —— 勾选确认后才逐个提交（每行显示历史请求次数/上次时间，防重复烧配额）。
           portal 到 body：主区容器带 overflow-hidden/层叠上下文，fixed 遮罩若留在树内会被上下裁剪。 */}

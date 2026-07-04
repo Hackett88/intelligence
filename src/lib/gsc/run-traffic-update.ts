@@ -14,6 +14,7 @@
 // 生产临时文件系统重置也每轮自愈。
 
 import { fetchSearchAnalytics, fetchPageDaily, isGscApiConfigured, type SAQueryRow } from "./search-analytics-api-fetcher";
+import { bumpApiUsage } from "./api-usage-store";
 import { saveBatch, type RealPageRecord } from "./repository";
 import { invalidateSnapshotCache } from "./loader";
 import { inferMarket, inferPageType, inferCluster, inferIsPillar } from "./transform";
@@ -330,6 +331,9 @@ export async function runTrafficUpdateCore(
     realRows
   );
   invalidateSnapshotCache();
+
+  // 用量面板参考计数：流量更新轮数（每轮 ≈2-3 次 Search Analytics 批量请求，配额宽裕）。
+  await bumpApiUsage("traffic_rounds", 1);
 
   // ── 旧址 60 天退休 ──────────────────────────────────────────────────────────
   // retiredTotal = 当前 map 里值为 null 的条目数（含历史孤儿 404 + 历史/本轮退休），简化口径。
