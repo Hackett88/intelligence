@@ -195,42 +195,90 @@ export async function loadPageDailyTrend(fullUrl: string): Promise<{
 }
 
 /**
- * 取旧真实页的关键词（queries），按 301/308 重定向归并到新页，构建 Map<newNorm, QueryRow[]>。
- * 与 buildMergedMetrics 同源同口径（跳过 isSynthetic / isHardNonContent / null 映射）。
- * query 按字符串聚合（同词的多旧址流量相加），曝光加权还原 ctr/position，按 clicks 降序取 Top 50。
+ * 合并两组关键词：同词流量相加、曝光加权还原 ctr/position，clicks 降序取 Top 50。
+ * own/bridged 各自已是 Top 50，合并后再截一次 —— 与流量 total=own+bridged 同构。
+ */
+function mergeQueryRows(a: QueryRow[], b: QueryRow[]): QueryRow[] {
+  if (a.length === 0) return b;
+  if (b.length === 0) return a;
+  const m = new Map<string, { clicks: number; impressions: number; posSum: number }>();
+  for (const q of [...a, ...b]) {
+    if (!q?.query) continue;
+    let e = m.get(q.query);
+    if (!e) {
+      e = { clicks: 0, impressions: 0, posSum: 0 };
+      m.set(q.query, e);
+    }
+    e.clicks += q.clicks;
+    e.impressions += q.impressions;
+    e.posSum += q.position * q.impressions; // 曝光加权
+  }
+  const rows: QueryRow[] = Array.from(m.entries()).map(([query, e]) => ({
+    query,
+    clicks: e.clicks,
+    impressions: e.impressions,
+    ctr: e.impressions > 0 ? e.clicks / e.impressions : 0,
+    position: e.impressions > 0 ? e.posSum / e.impressions : 0,
+  }));
+  rows.sort((x, y) => y.clicks - x.clicks);
+  return rows.slice(0, 50);
+}
+
+/**
+ * 从最新批次构建两张关键词表（own / bridged）—— 与流量的 own/bridged 拆分同构：
+ *
+ *   · own：新页【自身】的词。批次行按 normalizeForMatch(fullUrl) 直挂，不经重定向图、
+ *     不受 isBridgeExcluded 影响（自己的词永远是自己的）。此前词只有 bridged 一条路：
+ *     没有旧站前身的新页（islamic-gifts / guides 等）词在 gsc_pages.queries 里躺着却
+ *     显示不出来（孤儿映射被跳过 / 全新板块被排除）—— own 即补此洞。
+ *   · bridged：旧址的词按 301/308 重定向归并到新页。口径与 buildMergedMetrics 完全一致：
+ *     跳过 isSynthetic / isHardNonContent / 孤儿映射 / 自映射（那是 own）/ 全新板块
+ *     （isBridgeExcluded，不继承旧站词）。同词多旧址流量相加、曝光加权、clicks 降序 Top 50。
  *
  * queries 源：优先用快照自带（loadLatestSnapshot 的 PG/JSON 路径都带 queries）；
  * 若整体取不到（防御：某天 PG 路径丢了 queries），从 JSON 快照按 fullUrl 兜底取。
  */
-async function buildMergedQueries(): Promise<Map<string, QueryRow[]>> {
-  const out = new Map<string, QueryRow[]>();
+async function buildQueryMaps(): Promise<{
+  own: Map<string, QueryRow[]>;
+  bridged: Map<string, QueryRow[]>;
+}> {
+  const own = new Map<string, QueryRow[]>();
+  const bridged = new Map<string, QueryRow[]>();
   try {
-    const [oldSnapshot, redirectFile] = await Promise.all([
+    const [snapshot, redirectFile] = await Promise.all([
       loadLatestSnapshot(),
       loadRedirectMap(),
     ]);
-    if (!oldSnapshot) return out; // 旧快照不可用 → 空（下游每页 queries:[]）
+    if (!snapshot) return { own, bridged }; // 快照不可用 → 两表皆空（下游每页 queries:[]）
     const byOldUrl = redirectFile.byOldUrl;
-    const oldReal = oldSnapshot.pages.filter((p) => !p.isSynthetic);
+    const real = snapshot.pages.filter((p) => !p.isSynthetic);
 
     // 防御：快照若整体不带 queries，回退 JSON 快照按 fullUrl 取（JSON pages[].queries 必有）
     let queriesByFullUrl: Map<string, QueryRow[]> | null = null;
-    if (!oldReal.some((p) => (p.queries?.length ?? 0) > 0)) {
+    if (!real.some((p) => (p.queries?.length ?? 0) > 0)) {
       const jsonSnap = await loadSnapshot();
       if (jsonSnap) {
         queriesByFullUrl = new Map(jsonSnap.pages.map((p) => [p.fullUrl, p.queries ?? []]));
       }
     }
 
-    // newNorm → (queryString → 聚合)
+    // bridged 聚合器：newNorm → (queryString → 聚合)
     const acc = new Map<string, Map<string, { clicks: number; impressions: number; posSum: number }>>();
-    for (const op of oldReal) {
-      if (isHardNonContent({ url: op.fullUrl })) continue; // 与点击归并一致：资产/系统页不归并
-      const newNorm = byOldUrl[normalizeForMatch(op.fullUrl)];
-      if (!newNorm) continue; // 孤儿映射，跳过
-      if (isBridgeExcluded(newNorm)) continue; // 全新板块：不继承旧址关键词
+    for (const op of real) {
       const qs = queriesByFullUrl ? queriesByFullUrl.get(op.fullUrl) ?? [] : op.queries ?? [];
       if (qs.length === 0) continue;
+      const opNorm = normalizeForMatch(op.fullUrl);
+
+      // ── own：按自身 norm 直挂（同 norm 多行时合并，如尾斜杠/协议变体塌缩）──
+      const prev = own.get(opNorm);
+      own.set(opNorm, prev ? mergeQueryRows(prev, qs) : qs);
+
+      // ── bridged：走重定向图（与点击归并同口径）──
+      if (isHardNonContent({ url: op.fullUrl })) continue; // 资产/系统页不归并
+      const newNorm = byOldUrl[opNorm];
+      if (!newNorm) continue; // 孤儿映射，跳过
+      if (opNorm === newNorm) continue; // 自映射 = own，上面已挂，不算归并
+      if (isBridgeExcluded(newNorm)) continue; // 全新板块：不继承旧址关键词
       let qmap = acc.get(newNorm);
       if (!qmap) {
         qmap = new Map();
@@ -249,7 +297,7 @@ async function buildMergedQueries(): Promise<Map<string, QueryRow[]>> {
       }
     }
 
-    // 收口：每 newNorm → QueryRow[]，曝光加权 ctr/position，clicks 降序，Top 50
+    // 收口 bridged：每 newNorm → QueryRow[]，曝光加权 ctr/position，clicks 降序，Top 50
     for (const [newNorm, qmap] of acc) {
       const rows: QueryRow[] = Array.from(qmap.entries()).map(([query, e]) => ({
         query,
@@ -259,12 +307,12 @@ async function buildMergedQueries(): Promise<Map<string, QueryRow[]>> {
         position: e.impressions > 0 ? e.posSum / e.impressions : 0,
       }));
       rows.sort((a, b) => b.clicks - a.clicks);
-      out.set(newNorm, rows.slice(0, 50));
+      bridged.set(newNorm, rows.slice(0, 50));
     }
   } catch (e) {
     console.warn("[coverage-loader] 关键词归并跳过:", (e as Error).message);
   }
-  return out;
+  return { own, bridged };
 }
 
 function emptyTrend(): number[] {
@@ -330,10 +378,12 @@ export async function loadCoveragePages(windowDays = 90): Promise<
   // 旧址真实流量（bridged）+ 关键词按 301/308 重定向归并到新页（key = newNorm = normalizeForMatch(新 fullUrl)）
   // mergedMetrics = 纯归并（排除自映射）；own 另从 dailyAgg 取；total = own + bridged。
   // splitAvailable=false（daily 不可用、走批次回退）时 mergedMetrics 即 total，不做拆分。
-  const [{ merged: mergedMetrics, splitAvailable }, mergedQueries] = await Promise.all([
-    buildMergedMetrics(windowDays, 1, dailyAgg),
-    buildMergedQueries(),
-  ]);
+  // 关键词同构拆分：ownQueries（自身词，按 url_norm 直取）+ bridgedQueries（旧址词归并）。
+  const [{ merged: mergedMetrics, splitAvailable }, { own: ownQueries, bridged: bridgedQueries }] =
+    await Promise.all([
+      buildMergedMetrics(windowDays, 1, dailyAgg),
+      buildQueryMaps(),
+    ]);
 
   // ── 周环比（状态灯 declining 判据）──────────────────────────────────────────
   // 两个 7 天窗口的「每页总点击」(own + bridged)，口径与上方主流量一致：
@@ -446,8 +496,12 @@ export async function loadCoveragePages(windowDays = 90): Promise<
       position = acc && acc.impressions > 0 ? acc.posSum / acc.impressions : 0;
     }
 
-    // 归并旧址关键词：按 normKey 查；topQuery = 点击最高词；命不中 → []/"—"
-    const queries = mergedQueries.get(normKey) ?? [];
+    // 关键词 = own（本页自身词，最新批次按 url_norm 直取）+ bridged（旧址词按重定向归并），
+    // 同词合并、曝光加权、clicks 降序 Top 50；两边皆空 → []/"—"
+    const queries = mergeQueryRows(
+      ownQueries.get(normKey) ?? [],
+      bridgedQueries.get(normKey) ?? []
+    );
     const topQuery = queries[0]?.query ?? "—";
 
     // 收录覆盖详情：coverageText 直传 Google 原话；coverageLabel 派生中文短标。
