@@ -519,8 +519,8 @@ export function LoomGrid({ pages, boundByPage, indexedMatches, selectedPageId, o
                     {sp.url && <span className="text-[9px] font-mono text-manor-brassDim/60 block">{sp.url}</span>}
                     <div className="flex items-center gap-2 mt-0.5">
                       {spSv > 0 && <span className="text-[9px] text-manor-brassDim tabular-nums">{formatSv(spSv)} SV</span>}
-                      <span className="text-[9px] text-manor-inkFaint">{spKws.length} kw</span>
-                      <span className="text-[9px] text-manor-inkFaint">{children.length} pages</span>
+                      <span className="text-[10.5px] text-manor-inkFaint">{spKws.length} kw</span>
+                      <span className="text-[10.5px] text-manor-inkFaint">{children.length} pages</span>
                     </div>
                   </div>
                   {/* Children list */}

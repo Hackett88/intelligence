@@ -404,7 +404,7 @@ export function SeedKeywordsTab() {
                 >
                   〔 SEMINA · VACUA 〕
                   <br />
-                  <span className="text-manor-inkGhost text-xs">
+                  <span className="text-manor-inkDim text-xs">
                     种子词库暂无符合条件的记录，点击「ADSCRIBO · 新增」开始添加
                   </span>
                 </td>

@@ -1774,7 +1774,7 @@ export function IndexingClient({
                       {usageData.today.urlInspection}
                     </span>
                     <span className="text-manor-inkFaint text-xs">/ {usageData.today.quota}</span>
-                    <span className="ml-auto text-[10px] text-manor-inkGhost">{usageData.today.day}（洛杉矶日）</span>
+                    <span className="ml-auto text-[10px] text-manor-inkFaint">{usageData.today.day}（洛杉矶日）</span>
                   </div>
                   {/* 进度条 */}
                   <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(201,169,97,.12)" }}>
@@ -1807,7 +1807,7 @@ export function IndexingClient({
                   ) : (
                     <table className="w-full text-[11px] tabular-nums">
                       <thead>
-                        <tr className="text-manor-inkFaint text-left">
+                        <tr className="text-manor-inkDim text-left">
                           <th className="py-0.5 font-normal">日期</th>
                           <th className="py-0.5 font-normal text-right">收录检查</th>
                           <th className="py-0.5 font-normal text-right">流量更新轮数</th>

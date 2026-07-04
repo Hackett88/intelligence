@@ -229,7 +229,7 @@ export function KeywordTable({ data, onRowClick }: KeywordTableProps) {
                 style={{ fontFamily: "var(--font-serif), 'EB Garamond', serif", fontSize: 13 }}
               >
                 〔 ARCHIVUM · VACUUM 〕<br />
-                <span className="text-manor-inkGhost text-xs">候选词池暂无记录</span>
+                <span className="text-manor-inkDim text-xs">候选词池暂无记录</span>
               </td>
             </tr>
           ) : (

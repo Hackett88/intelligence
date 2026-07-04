@@ -641,7 +641,7 @@ function QueryRankTable({ rows }: { rows: QueryRow[] }) {
         style={{ fontFamily: "var(--font-serif), 'EB Garamond', serif", fontSize: 12 }}
       >
         〔 QUAERELAE · VACUUM 〕<br />
-        <span className="text-manor-inkGhost text-[11px]">本页面暂无关键词曝光</span>
+        <span className="text-manor-inkFaint text-[11px]">本页面暂无关键词曝光</span>
       </div>
     );
   }
@@ -979,7 +979,7 @@ export function DetailDrawer({
                     </span>
                     {page.coverageText && (
                       <span
-                        className="text-[10px] text-manor-inkFaint leading-snug"
+                        className="text-[11px] text-manor-inkDim leading-snug"
                         title={`Google 原话：${page.coverageText}`}
                       >
                         {page.coverageText}
@@ -1184,7 +1184,7 @@ export function DetailDrawer({
               <span className="text-[10px] text-manor-inkFaint">点击查询以联动词库视图（即将上线）</span>
             </div>
           ) : (
-            <span className="text-manor-inkGhost text-xs">该页面尚未与词库关联</span>
+            <span className="text-manor-inkFaint text-xs">该页面尚未与词库关联</span>
           )}
         </Section>
       </div>

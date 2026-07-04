@@ -450,7 +450,7 @@ export function PageTable({ data, onRowClick, selectedUrls, onToggleRow, onToggl
               style={{ fontFamily: "var(--font-serif), 'EB Garamond', serif", fontSize: 13 }}
             >
               〔 INDEX · VACUUM 〕<br />
-              <span className="text-manor-inkGhost text-xs">暂无收录页面记录</span>
+              <span className="text-manor-inkFaint text-xs">暂无收录页面记录</span>
             </td>
           </tr>
         ) : (
