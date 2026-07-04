@@ -412,6 +412,48 @@ function MetricTile({
   );
 }
 
+// ── 周环比增量（2026-07-04）：本周 vs 上周（各 7 个已结算日，lag 2/9 避开 GSC 未结算数据）──
+// kind 决定格式与好坏方向：position 越小越好（下降=绿），其余越大越好。
+// last/prev 为 null/undefined（该周无曝光不可比 / 旧数据缺字段）→ 显示"环比暂不可比"。
+function WowDelta({
+  last,
+  prev,
+  kind,
+}: {
+  last: number | null | undefined;
+  prev: number | null | undefined;
+  kind: "clicks" | "impressions" | "ctr" | "position";
+}) {
+  if (last == null || prev == null) {
+    return <span className="text-manor-inkFaint">周环比 · 本周或上周无曝光，暂不可比</span>;
+  }
+  const fmt = (v: number): string =>
+    kind === "ctr" ? `${(v * 100).toFixed(1)}%` : kind === "position" ? v.toFixed(1) : v.toLocaleString();
+  const delta = last - prev;
+  const better = kind === "position" ? delta < 0 : delta > 0;
+  const flat =
+    kind === "ctr" ? Math.abs(delta) < 0.0005 : kind === "position" ? Math.abs(delta) < 0.05 : delta === 0;
+  const deltaText =
+    kind === "ctr"
+      ? `${delta > 0 ? "+" : ""}${(delta * 100).toFixed(1)}pp`
+      : kind === "position"
+        ? `${delta > 0 ? "+" : ""}${delta.toFixed(1)}`
+        : `${delta > 0 ? "+" : ""}${delta.toLocaleString()}`;
+  const color = flat ? "#9B9384" : better ? "#7BA67D" : "#D88876";
+  const arrow = flat ? "◆" : better ? "▲" : "▼";
+  return (
+    <span
+      title={`周环比：本周 ${fmt(last)} / 上周 ${fmt(prev)}（各 7 个已结算日，已避开 GSC 约 2 天延迟）${kind === "position" ? "；排名数字越小越好" : ""}`}
+      className="tabular-nums"
+    >
+      周环比 {fmt(prev)} → {fmt(last)}{" "}
+      <span style={{ color }} className="font-medium">
+        {arrow} {flat ? "持平" : deltaText}
+      </span>
+    </span>
+  );
+}
+
 function MiniSegmented({
   value,
   onChange,
@@ -1028,32 +1070,65 @@ export function DetailDrawer({
               page.indexState === "indexed" || page.indexState === "discovered";
             return (
           <div className="grid grid-cols-2 gap-2">
+            {/* 周环比（2026-07-04）：每块指标卡下加"上周→本周 + 增量箭头",一眼判断变好/变坏。
+                wt 缺新字段（mock/旧数据）→ 不显示环比行,不破坏现状。 */}
             <MetricTile
               label="总点击次数"
               latin="CLICKS"
               value={hasData ? page.clicks.toLocaleString() : "—"}
+              subline={
+                hasData && page.weekTrend ? (
+                  <WowDelta last={page.weekTrend.last} prev={page.weekTrend.prev} kind="clicks" />
+                ) : undefined
+              }
             />
             <MetricTile
               label="总曝光次数"
               latin="VISUS"
               value={hasData ? formatLargeNumber(page.impressions) : "—"}
+              subline={
+                hasData && page.weekTrend?.lastImpressions !== undefined ? (
+                  <WowDelta
+                    last={page.weekTrend.lastImpressions}
+                    prev={page.weekTrend.prevImpressions}
+                    kind="impressions"
+                  />
+                ) : undefined
+              }
             />
             <MetricTile
               label="点击率"
               latin="PROPORTIO"
               value={hasData ? `${(page.ctr * 100).toFixed(1)}%` : "—"}
+              subline={
+                hasData && page.weekTrend && "lastCtr" in page.weekTrend ? (
+                  <WowDelta last={page.weekTrend.lastCtr} prev={page.weekTrend.prevCtr} kind="ctr" />
+                ) : undefined
+              }
             />
             <MetricTile
               label="平均排名"
               latin="POSITIO"
               value={hasData && page.position > 0 ? page.position.toFixed(1) : "—"}
               subline={
-                hasData && page.position > 0
-                  ? page.position <= 3 ? "1-3 首位"
-                    : page.position <= 10 ? "4-10 首页"
-                    : page.position <= 20 ? "11-20 第二页"
-                    : "21+ 深页"
-                  : indexStateLabel(page.indexState)
+                <>
+                  {hasData && page.position > 0
+                    ? page.position <= 3 ? "1-3 首位"
+                      : page.position <= 10 ? "4-10 首页"
+                      : page.position <= 20 ? "11-20 第二页"
+                      : "21+ 深页"
+                    : indexStateLabel(page.indexState)}
+                  {hasData && page.weekTrend && "lastPosition" in page.weekTrend && (
+                    <>
+                      <br />
+                      <WowDelta
+                        last={page.weekTrend.lastPosition}
+                        prev={page.weekTrend.prevPosition}
+                        kind="position"
+                      />
+                    </>
+                  )}
+                </>
               }
             />
           </div>
@@ -1154,6 +1229,7 @@ export function DetailDrawer({
               data={trend.data}
               loading={trend.loading}
               error={trend.error}
+              showCtr
             />
           </Section>
         )}

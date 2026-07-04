@@ -585,10 +585,17 @@ export async function loadCoveragePages(windowDays = 90): Promise<
     const coverageLabel = coverageLabelFromText(status?.coverageText);
 
     // ── 状态灯：本周/上周总点击（own + bridged）→ declining → 七档 ──
-    const lastClicks =
-      (weekLastDaily?.get(normKey)?.clicks ?? 0) + (bridgeLast.get(normKey)?.clicks ?? 0);
-    const prevClicks =
-      (weekPrevDaily?.get(normKey)?.clicks ?? 0) + (bridgePrev.get(normKey)?.clicks ?? 0);
+    // 2026-07-04 扩展：同窗口顺带算曝光/CTR/加权排名的周环比（抽屉性能指标环比显示用）。
+    const wlOwn = weekLastDaily?.get(normKey);
+    const wlBr = bridgeLast.get(normKey);
+    const wpOwn = weekPrevDaily?.get(normKey);
+    const wpBr = bridgePrev.get(normKey);
+    const lastClicks = (wlOwn?.clicks ?? 0) + (wlBr?.clicks ?? 0);
+    const prevClicks = (wpOwn?.clicks ?? 0) + (wpBr?.clicks ?? 0);
+    const lastImpr = (wlOwn?.impressions ?? 0) + (wlBr?.impressions ?? 0);
+    const prevImpr = (wpOwn?.impressions ?? 0) + (wpBr?.impressions ?? 0);
+    const lastPosSum = (wlOwn?.sumPos ?? 0) + (wlBr?.posSum ?? 0);
+    const prevPosSum = (wpOwn?.sumPos ?? 0) + (wpBr?.posSum ?? 0);
     const declineComparable = prevClicks >= DECLINE_MIN_PREV_CLICKS;
     const declining = declineComparable && lastClicks < prevClicks;
     const pageStatus = classifyPageStatus({
@@ -615,7 +622,16 @@ export async function loadCoveragePages(windowDays = 90): Promise<
       coverageLabel,
       trafficSplit,
       pageStatus,
-      weekTrend: { last: lastClicks, prev: prevClicks },
+      weekTrend: {
+        last: lastClicks,
+        prev: prevClicks,
+        lastImpressions: lastImpr,
+        prevImpressions: prevImpr,
+        lastCtr: lastImpr > 0 ? lastClicks / lastImpr : null,
+        prevCtr: prevImpr > 0 ? prevClicks / prevImpr : null,
+        lastPosition: lastImpr > 0 ? lastPosSum / lastImpr : null,
+        prevPosition: prevImpr > 0 ? prevPosSum / prevImpr : null,
+      },
       trend12m: emptyTrend(),
       queries,
       indexRequestCount: indexRequestMap.get(normKey)?.count,

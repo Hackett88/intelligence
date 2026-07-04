@@ -38,8 +38,19 @@ export type PageRow = {
   // 七档统一状态灯（收录态 + 周环比趋势）。真实 sitemap 页由 coverage-loader 写入；
   // 合成目录节点 / mock 节点不带（前端不显示状态灯）。判定见 classify.ts classifyPageStatus。
   pageStatus?: PageStatus;
-  // 周环比点击（状态灯 declining 判据的明细，给前端 tooltip）：last=本周、prev=上周（各 7 个已结算日）。
-  weekTrend?: { last: number; prev: number };
+  // 周环比（状态灯 declining 判据 + 抽屉性能指标环比）：last/prev=本周/上周点击（各 7 个已结算日，
+  // lag 2/9 避开 GSC 未结算数据）。2026-07-04 扩展全指标：曝光、CTR、加权排名的本周/上周值,
+  // CTR/position 为 null = 该周无曝光不可比。coverage-loader 写入；mock/合成节点缺省。
+  weekTrend?: {
+    last: number;
+    prev: number;
+    lastImpressions?: number;
+    prevImpressions?: number;
+    lastCtr?: number | null;
+    prevCtr?: number | null;
+    lastPosition?: number | null;
+    prevPosition?: number | null;
+  };
   trend12m: number[];   // 12 月 clicks 趋势
   lastSync: string;     // ISO 8601 — 客户端 new Date() 解析
   parentId?: string;    // 显式所属：spoke → pillar / 子枢纽 → 上级枢纽
