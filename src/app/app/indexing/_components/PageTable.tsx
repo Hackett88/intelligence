@@ -26,6 +26,37 @@ import {
 interface PageTableProps {
   data: PageRow[];
   onRowClick: (page: PageRow) => void;
+  // ─── 行勾选（批量修改页面类型用，2026-07-04）。三个都传才渲染勾选列 ───
+  selectedUrls?: ReadonlySet<string>;                        // 已勾选集合，key = fullUrl（跨排序/分页稳定）
+  onToggleRow?: (fullUrl: string, checked: boolean) => void; // 单行勾/取消
+  onTogglePage?: (fullUrls: string[], checked: boolean) => void; // 表头勾选 = 全选/清空当前页
+}
+
+// ─── 表头"全选当前页"勾选框：全选=checked，部分=indeterminate ───
+function HeaderCheckbox({
+  all,
+  some,
+  onChange,
+}: {
+  all: boolean;
+  some: boolean;
+  onChange: (checked: boolean) => void;
+}) {
+  const ref = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (ref.current) ref.current.indeterminate = !all && some;
+  }, [all, some]);
+  return (
+    <input
+      ref={ref}
+      type="checkbox"
+      checked={all}
+      onChange={(e) => onChange(e.target.checked)}
+      onClick={(e) => e.stopPropagation()}
+      title="全选 / 清空当前页"
+      style={{ accentColor: "#C9A961", width: 13, height: 13, cursor: "pointer" }}
+    />
+  );
 }
 
 // ─── 状态图例弹层（portal 到 body，避免被 th overflow-hidden 裁切） ───
@@ -97,15 +128,55 @@ function StatusLegendPopover() {
   );
 }
 
-export function PageTable({ data, onRowClick }: PageTableProps) {
+export function PageTable({ data, onRowClick, selectedUrls, onToggleRow, onTogglePage }: PageTableProps) {
   const [sorting, setSorting] = useState<SortingState>([
     { id: "clicks", desc: true },
   ]);
+
+  // 勾选列（三个 props 齐才渲染；单行点击仍开抽屉，勾选框 stopPropagation 隔离）
+  const withSelection = !!(selectedUrls && onToggleRow && onTogglePage);
+  const selectionCols: ColumnDef<PageRow>[] = withSelection
+    ? [
+        {
+          id: "select",
+          size: 40,
+          enableSorting: false,
+          enableResizing: false,
+          header: () => {
+            const all = data.length > 0 && data.every((p) => selectedUrls!.has(p.fullUrl));
+            const some = data.some((p) => selectedUrls!.has(p.fullUrl));
+            return (
+              <span className="flex items-center justify-center">
+                <HeaderCheckbox
+                  all={all}
+                  some={some}
+                  onChange={(checked) => onTogglePage!(data.map((p) => p.fullUrl), checked)}
+                />
+              </span>
+            );
+          },
+          cell: ({ row }) => (
+            <span
+              className="flex items-center justify-center"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <input
+                type="checkbox"
+                checked={selectedUrls!.has(row.original.fullUrl)}
+                onChange={(e) => onToggleRow!(row.original.fullUrl, e.target.checked)}
+                style={{ accentColor: "#C9A961", width: 13, height: 13, cursor: "pointer" }}
+              />
+            </span>
+          ),
+        },
+      ]
+    : [];
 
   // R109 列宽改为可拖拽（Excel 体验）：表头右边 6px 热区拖动；行高固定，内容超出 truncate。
   // R110 默认宽度按"标题 + 排序图标 + 单元格最常见内容 + 左右 24px padding"重估，
   // 总和 1336 ≤ 默认视口 1447（抽屉关），默认不出横向滚动条。
   const columns: ColumnDef<PageRow>[] = [
+    ...selectionCols,
     {
       accessorKey: "indexState",
       header: () => (

@@ -13,7 +13,7 @@
 
 import { promises as fs } from "node:fs";
 import path from "node:path";
-import { eq } from "drizzle-orm";
+import { eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/db/client";
 import { gscPageTypeOverrides } from "@/db/schema";
 import { normalizeForMatch } from "./url-normalize";
@@ -107,4 +107,59 @@ export async function savePageTypeOverride(fullUrl: string, pageType: string): P
   } catch (err) {
     console.warn("[gsc/overrides] mirror after save failed (non-fatal):", err);
   }
+}
+
+/**
+ * 批量修正：一条多行 UPSERT（或一条 inArray DELETE）+ 镜像写 JSON 一次。
+ * pageType 传空串 = 批量清除这些 url 的修正（恢复自动推断）。
+ * 语义与单条 savePageTypeOverride 一致；PG 写失败直接抛（路由转 500）。
+ * 先按 url_norm 去重 —— 不同 fullUrl 可能塌缩到同一 norm（www/协议/尾斜杠变体），
+ * 同一条 INSERT 内重复主键会撞 ON CONFLICT（"cannot affect row a second time"）。
+ * 返回去重后的实际写入/删除条数。
+ */
+export async function savePageTypeOverridesBatch(
+  fullUrls: string[],
+  pageType: string
+): Promise<number> {
+  const now = new Date();
+  const byNorm = new Map<string, string>(); // urlNorm -> fullUrl（同 norm 取首个）
+  for (const u of fullUrls) {
+    const s = u.trim();
+    if (!s) continue;
+    const n = normalizeForMatch(s);
+    if (!byNorm.has(n)) byNorm.set(n, s);
+  }
+  if (byNorm.size === 0) return 0;
+
+  if (pageType) {
+    await db
+      .insert(gscPageTypeOverrides)
+      .values(
+        [...byNorm.entries()].map(([urlNorm, fullUrl]) => ({
+          urlNorm,
+          fullUrl,
+          pageType,
+          updatedAt: now,
+        }))
+      )
+      .onConflictDoUpdate({
+        target: gscPageTypeOverrides.urlNorm,
+        set: {
+          fullUrl: sql`excluded.full_url`,
+          pageType: sql`excluded.page_type`,
+          updatedAt: now,
+        },
+      });
+  } else {
+    await db
+      .delete(gscPageTypeOverrides)
+      .where(inArray(gscPageTypeOverrides.urlNorm, [...byNorm.keys()]));
+  }
+
+  try {
+    await _mirrorJson(await _loadPg());
+  } catch (err) {
+    console.warn("[gsc/overrides] mirror after batch save failed (non-fatal):", err);
+  }
+  return byNorm.size;
 }

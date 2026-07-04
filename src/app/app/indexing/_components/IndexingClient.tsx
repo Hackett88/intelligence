@@ -22,7 +22,7 @@ import {
   type PageDetail,
   getMockPageDetail,
 } from "./_mock";
-import { LANG_SITE_LABELS, positionBucket, comparePageType } from "./_utils";
+import { LANG_SITE_LABELS, positionBucket, comparePageType, PAGE_TYPE_ORDER } from "./_utils";
 import type { LastSyncMeta, SyncModeStatus } from "./IndexingWrapper";
 import { type PageStatus } from "@/lib/gsc/classify";
 
@@ -341,6 +341,11 @@ export function IndexingClient({
   }, []);
   const [pageSize, setPageSize] = useState(20);
   const [currentPage, setCurrentPage] = useState(1);
+  // ─── 批量修改页面类型（列表视图勾选，2026-07-04）───
+  // key = fullUrl（跨排序/分页稳定）；操作后清空并 router.refresh()。
+  const [selectedUrls, setSelectedUrls] = useState<Set<string>>(new Set());
+  const [batchTypeValue, setBatchTypeValue] = useState("");   // 操作条下拉当前选的类型，"" = 未选
+  const [batchTypeBusy, setBatchTypeBusy] = useState(false);
   // 抽屉里的时间窗与 FilterBar 的时间窗解耦：FilterBar 控的是整张表格的全局
   // 口径，抽屉里控的是单个 URL 的性能切片，两者语义不同、用户预期独立。
   const [drawerTimeWindow, setDrawerTimeWindow] = useState<TimeWindow>("90d");
@@ -377,6 +382,7 @@ export function IndexingClient({
       setCurrentPage(1);
       setFlashNodeId(null);
       setTreeExpanded(false);
+      setSelectedUrls(new Set());
       prevFingerprint.current = stats.lastSync;
     }
   }, [stats.lastSync]);
@@ -453,6 +459,69 @@ export function IndexingClient({
     () => scopedReal.filter((p) => p.indexState !== "indexed"),
     [scopedReal]
   );
+
+  // ─── 批量修改页面类型：勾选行 → 操作条选类型确定 / 恢复自动推断（2026-07-04）───
+  const toggleSelectRow = (fullUrl: string, checked: boolean) => {
+    setSelectedUrls((prev) => {
+      const next = new Set(prev);
+      if (checked) next.add(fullUrl);
+      else next.delete(fullUrl);
+      return next;
+    });
+  };
+  const toggleSelectPage = (fullUrls: string[], checked: boolean) => {
+    setSelectedUrls((prev) => {
+      const next = new Set(prev);
+      for (const u of fullUrls) {
+        if (checked) next.add(u);
+        else next.delete(u);
+      }
+      return next;
+    });
+  };
+  // pageType 非空 = 批量设为该类型；空串 = 批量恢复自动推断（与单条 API 同语义）。
+  const handleBatchPageType = async (pageType: string) => {
+    if (batchTypeBusy || selectedUrls.size === 0) return;
+    const urls = [...selectedUrls];
+    setBatchTypeBusy(true);
+    const toastId = toast.loading(
+      pageType ? `批量设置页面类型 → ${pageType}` : "批量恢复自动推断…",
+      { description: `共 ${urls.length} 页` }
+    );
+    try {
+      const res = await fetch("/api/indexing/page-type", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ urls, pageType }),
+      });
+      const body = (await res.json()) as { ok?: boolean; count?: number; message?: string };
+      if (!res.ok || !body.ok) {
+        toast.error("批量修改失败", {
+          id: toastId,
+          description: body.message || `HTTP ${res.status}`,
+          duration: 8000,
+        });
+        return;
+      }
+      toast.success(
+        pageType
+          ? `已把 ${body.count ?? urls.length} 页设为「${pageType}」`
+          : `已恢复 ${body.count ?? urls.length} 页为自动推断`,
+        { id: toastId, duration: 5000 }
+      );
+      setSelectedUrls(new Set());
+      setBatchTypeValue("");
+      router.refresh();
+    } catch (err) {
+      toast.error("批量修改请求失败", {
+        id: toastId,
+        description: err instanceof Error ? err.message : "网络错误",
+        duration: 8000,
+      });
+    } finally {
+      setBatchTypeBusy(false);
+    }
+  };
 
   // 批量「请求编入索引」：对 notIndexedInScope 逐个串行代驾 GSC（复用单页 /request-index 接口）。
   // 设计吸取实测教训：① 串行 + 每次间隔，绝不并发；② 撞配额/验证码立即停；③ 连续 2 次失败
@@ -950,9 +1019,83 @@ export function IndexingClient({
           {viewMode === "list" && (
             <ScopeBreadcrumb scope={scope} onChange={setScope} byId={allById} />
           )}
+          {/* 批量修改页面类型操作条 —— 勾选数 > 0 时浮出（仅列表视图） */}
+          {viewMode === "list" && selectedUrls.size > 0 && (
+            <div
+              className="px-4 py-2 border-b border-manor-brass/25 shrink-0 flex items-center gap-2.5 text-xs"
+              style={{
+                background:
+                  "linear-gradient(180deg, rgba(28,56,38,.92) 0%, rgba(14,32,22,.96) 100%)",
+                boxShadow: "inset 0 1px 0 rgba(224,197,122,.18)",
+              }}
+            >
+              <span
+                className="font-sc tracking-[0.22em] text-manor-brassHi/85 leading-none"
+                style={{ fontFamily: "var(--font-sc), 'Cormorant SC', serif", fontSize: 9 }}
+              >
+                SELECTIO
+              </span>
+              <span className="text-manor-brassHi tabnum">已选 {selectedUrls.size} 页</span>
+              <button
+                type="button"
+                onClick={() => setSelectedUrls(new Set(scopedReal.map((p) => p.fullUrl)))}
+                disabled={batchTypeBusy}
+                className="h-6 px-2 border border-manor-brass/40 rounded text-xs text-manor-inkDim hover:text-manor-brassHi hover:border-manor-brassHi disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                全选筛选结果 ({scopedReal.length})
+              </button>
+
+              <span className="flex-1" />
+
+              <span className="text-manor-inkDim">设为</span>
+              <select
+                value={batchTypeValue}
+                onChange={(e) => setBatchTypeValue(e.target.value)}
+                disabled={batchTypeBusy}
+                className="h-6 border border-manor-brass/40 rounded px-1.5 text-xs text-manor-brassHi bg-manor-bg2 focus:outline-none focus:border-manor-brassHi cursor-pointer hover:border-manor-brassHi transition-colors disabled:opacity-40"
+              >
+                <option value="">选择类型…</option>
+                {PAGE_TYPE_ORDER.map((t) => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
+              <button
+                type="button"
+                onClick={() => handleBatchPageType(batchTypeValue)}
+                disabled={!batchTypeValue || batchTypeBusy}
+                className="h-6 px-2.5 border border-manor-brassHi/60 rounded text-xs text-manor-brassHi bg-manor-brassDim/15 hover:bg-manor-brassDim/25 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                {batchTypeBusy ? "写入中…" : "确定"}
+              </button>
+              <button
+                type="button"
+                onClick={() => handleBatchPageType("")}
+                disabled={batchTypeBusy}
+                title="清除这些页的人工修正，恢复按 URL 规则自动推断"
+                className="h-6 px-2 border border-manor-brass/40 rounded text-xs text-manor-inkDim hover:text-manor-brassHi hover:border-manor-brassHi disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                恢复自动推断
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedUrls(new Set())}
+                disabled={batchTypeBusy}
+                title="取消选择"
+                className="h-6 w-6 inline-flex items-center justify-center border border-manor-brass/40 rounded text-manor-inkDim hover:text-manor-brassHi hover:border-manor-brassHi disabled:opacity-40 transition-colors"
+              >
+                <X size={11} />
+              </button>
+            </div>
+          )}
           <div className="flex-1 min-h-0">
             {viewMode === "list" ? (
-              <PageTable data={paginated} onRowClick={handleRowClick} />
+              <PageTable
+                data={paginated}
+                onRowClick={handleRowClick}
+                selectedUrls={selectedUrls}
+                onToggleRow={toggleSelectRow}
+                onTogglePage={toggleSelectPage}
+              />
             ) : (
               <PageTreeView
                 data={filtered}
