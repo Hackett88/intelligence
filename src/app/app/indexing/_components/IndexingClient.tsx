@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
@@ -1442,8 +1443,9 @@ export function IndexingClient({
         onOpenChange={setSchedulerOpen}
       />
 
-      {/* 请求索引清单弹窗 —— 勾选确认后才逐个提交（每行显示历史请求次数/上次时间，防重复烧配额） */}
-      {requestDlgOpen && (
+      {/* 请求索引清单弹窗 —— 勾选确认后才逐个提交（每行显示历史请求次数/上次时间，防重复烧配额）。
+          portal 到 body：主区容器带 overflow-hidden/层叠上下文，fixed 遮罩若留在树内会被上下裁剪。 */}
+      {requestDlgOpen && createPortal(
         <div
           className="fixed inset-0 z-[120] flex items-center justify-center"
           style={{ background: "rgba(0,0,0,.62)" }}
@@ -1600,11 +1602,13 @@ export function IndexingClient({
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
-      {/* 批量增量趋势弹窗 —— 已选页合并的每日曝光/点击增量曲线（与抽屉同款图，Esc/点遮罩关闭） */}
-      {trendOpen && (
+      {/* 批量增量趋势弹窗 —— 已选页合并的每日曝光/点击增量曲线（与抽屉同款图，Esc/点遮罩关闭）。
+          portal 到 body：同请求索引弹窗，防被主区容器上下裁剪。 */}
+      {trendOpen && createPortal(
         <div
           className="fixed inset-0 z-[120] flex items-center justify-center"
           style={{ background: "rgba(0,0,0,.62)" }}
@@ -1671,7 +1675,8 @@ export function IndexingClient({
               </p>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
