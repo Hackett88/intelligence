@@ -1501,13 +1501,15 @@ export function IndexingClient({
                 error={batchTrend.error}
                 large
                 chartWidth={trendChartW}
+                showCtr
               />
             </div>
             {/* 口径说明 */}
             <div className="px-6 pb-4">
               <p className="text-[11px] text-manor-inkFaint leading-relaxed">
-                口径：每日增量 = 所选页（含旧址 308 归并来源）当日曝光 / 点击之和；与单页抽屉
-                「流量趋势」同源同口径。GSC 数据固有约 2 天延迟。
+                口径：每日增量 = 所选页（含旧址 308 归并来源）当日曝光 / 点击之和；CTR 虚线 =
+                当日点击 ÷ 当日曝光（独立比例，精确值悬停查看）；与单页抽屉「流量趋势」同源同口径。
+                GSC 数据固有约 2 天延迟。
               </p>
             </div>
           </div>

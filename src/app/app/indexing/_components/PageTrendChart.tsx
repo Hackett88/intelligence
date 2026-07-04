@@ -141,6 +141,10 @@ const COLORS = {
   clickLineShadow: "rgba(240,222,160,.35)",
   clickFill: "rgba(201,167,105,.18)",
 
+  // CTR: 铜橙（虚线 · 独立比例 · 不占轴），批量增量趋势弹窗用
+  ctrLine: "#D89B6E",
+  ctrLineShadow: "rgba(216,155,110,.35)",
+
   axis: "rgba(201,169,97,.25)",
   axisLabel: "rgba(201,169,97,.55)",
   gridLine: "rgba(201,169,97,.08)",
@@ -191,11 +195,13 @@ function UnifiedTrendChart({
   width = CHART_W,
   height = CHART_H,
   fontScale = 1,
+  showCtr = false,
 }: {
   data: CumulativeDay[];
   width?: number;   // 尺寸可配（默认与抽屉一致）；「批量增量趋势」弹窗传大图尺寸
   height?: number;
   fontScale?: number; // 轴字号/线宽随图放大的系数
+  showCtr?: boolean;  // 第三条 CTR 虚线（当日 clicks/impressions，独立比例不占轴）
 }) {
   const innerW = width - PAD.left - PAD.right;
   const innerH = height - PAD.top - PAD.bottom;
@@ -208,6 +214,11 @@ function UnifiedTrendChart({
   // 双轴各自的 nice 上限
   const imprCeil = calcNiceMax(Math.max(...data.map((d) => d.impressions), 1));
   const clickCeil = calcNiceMax(Math.max(...data.map((d) => d.clicks), 1));
+
+  // CTR（仅 showCtr）：当日 clicks/impressions，独立 nice 比例（无轴，精确值看 hover 卡）
+  const ctrOf = (d: CumulativeDay) => (d.impressions > 0 ? d.clicks / d.impressions : 0);
+  const ctrCeil = showCtr ? calcNiceMax(Math.max(...data.map(ctrOf), 0.001)) : 1;
+  const yCtr = (v: number) => PAD.top + innerH - (v / ctrCeil) * innerH;
 
   // 坐标映射
   const xPos = (i: number) =>
@@ -239,6 +250,14 @@ function UnifiedTrendChart({
       .join(" ");
     imprAreaPath = `${imprLinePath} L${xPos(n - 1).toFixed(1)},${baseline} L${xPos(0).toFixed(1)},${baseline} Z`;
     clickAreaPath = `${clickLinePath} L${xPos(n - 1).toFixed(1)},${baseline} L${xPos(0).toFixed(1)},${baseline} Z`;
+  }
+
+  // CTR 虚线 path（仅 showCtr 且 n>=2）
+  let ctrLinePath = "";
+  if (showCtr && n >= 2) {
+    ctrLinePath = data
+      .map((d, i) => `${i === 0 ? "M" : "L"}${xPos(i).toFixed(1)},${yCtr(ctrOf(d)).toFixed(1)}`)
+      .join(" ");
   }
 
   const xLabels = pickXLabels(n);
@@ -367,6 +386,19 @@ function UnifiedTrendChart({
               strokeLinecap="round"
               opacity={0.9}
             />
+            {/* CTR — 虚线（独立比例，无轴；精确值看 hover 卡） */}
+            {showCtr && ctrLinePath && (
+              <path
+                d={ctrLinePath}
+                fill="none"
+                stroke={COLORS.ctrLine}
+                strokeWidth={1.2 * fontScale}
+                strokeDasharray={`${4 * fontScale},${3 * fontScale}`}
+                strokeLinejoin="round"
+                strokeLinecap="round"
+                opacity={0.85}
+              />
+            )}
           </>
         ) : (
           <>
@@ -385,6 +417,15 @@ function UnifiedTrendChart({
               fill={COLORS.clickLine}
               opacity={0.9}
             />
+            {showCtr && (
+              <circle
+                cx={xPos(0)}
+                cy={yCtr(ctrOf(data[0]))}
+                r={3.5}
+                fill={COLORS.ctrLine}
+                opacity={0.85}
+              />
+            )}
           </>
         )}
 
@@ -417,6 +458,16 @@ function UnifiedTrendChart({
               stroke={COLORS.tooltipBg}
               strokeWidth={1.5}
             />
+            {showCtr && (
+              <circle
+                cx={xPos(hoverIdx)}
+                cy={yCtr(ctrOf(data[hoverIdx]))}
+                r={3}
+                fill={COLORS.ctrLine}
+                stroke={COLORS.tooltipBg}
+                strokeWidth={1.5}
+              />
+            )}
           </>
         )}
 
@@ -442,7 +493,7 @@ function UnifiedTrendChart({
         hoverIdx !== null &&
         (() => {
           const CARD_W = 176;
-          const CARD_H = 66;
+          const CARD_H = showCtr ? 88 : 66; // 带 CTR 行时卡片更高
           const GAP = 26; // 卡片底边距数据点（顶点）的间隙——留出明显距离，不贴着峰值
           // 两条线在该 x 处更高（y 更小）的那个标记点 → 卡片贴它上方
           const markerTopY = Math.min(
@@ -492,6 +543,23 @@ function UnifiedTrendChart({
                   累计 {formatLargeNumber(hoveredDay.cumClicks)}
                 </span>
               </div>
+              {showCtr && (
+                <div className="flex items-baseline justify-between tabular-nums mt-0.5">
+                  <span className="text-[11px]" style={{ color: COLORS.ctrLine }}>
+                    CTR{" "}
+                    <span className="font-semibold text-[13px]">
+                      {(ctrOf(hoveredDay) * 100).toFixed(1)}%
+                    </span>
+                  </span>
+                  <span className="text-manor-inkDim text-[10px]">
+                    累计{" "}
+                    {hoveredDay.cumImpressions > 0
+                      ? ((hoveredDay.cumClicks / hoveredDay.cumImpressions) * 100).toFixed(1)
+                      : "0.0"}
+                    %
+                  </span>
+                </div>
+              )}
             </div>
           );
         })()}
@@ -509,6 +577,7 @@ export function PageTrendSection({
   error,
   large = false,
   chartWidth,
+  showCtr = false,
 }: {
   data: TrendData | null;
   loading: boolean;
@@ -517,6 +586,8 @@ export function PageTrendSection({
   large?: boolean;
   /** 图表宽度（px）；不传用默认 370（抽屉尺寸） */
   chartWidth?: number;
+  /** 显示 CTR：第三条虚线（独立比例）+ SUMMA 平均 CTR + hover 卡 CTR 行 */
+  showCtr?: boolean;
 }) {
   // loading 态
   if (loading) {
@@ -622,6 +693,17 @@ export function PageTrendSection({
           </span>{" "}
           点击
         </span>
+        {showCtr && (
+          <>
+            <span className="text-manor-inkGhost">-</span>
+            <span className={large ? "text-manor-ink tabular-nums text-sm" : "text-manor-ink tabular-nums"}>
+              平均 CTR{" "}
+              <span className="font-medium" style={{ color: COLORS.ctrLine }}>
+                {totalImpr > 0 ? ((totalClicks / totalImpr) * 100).toFixed(1) : "0.0"}%
+              </span>
+            </span>
+          </>
+        )}
       </div>
 
       {/* 图例 + 标题行 */}
@@ -676,6 +758,21 @@ export function PageTrendSection({
             />
             点击 &middot; 右轴
           </span>
+          {showCtr && (
+            <span className="inline-flex items-center gap-1">
+              <span
+                style={{
+                  display: "inline-block",
+                  width: 12,
+                  height: 2,
+                  borderRadius: 1,
+                  background: `repeating-linear-gradient(90deg, ${COLORS.ctrLine} 0 3px, transparent 3px 5px)`,
+                  opacity: 0.9,
+                }}
+              />
+              CTR &middot; 虚线（独立比例）
+            </span>
+          )}
         </span>
       </div>
 
@@ -685,6 +782,7 @@ export function PageTrendSection({
         width={chartWidth}
         height={large ? 340 : undefined}
         fontScale={large ? 1.5 : 1}
+        showCtr={showCtr}
       />
     </div>
   );
