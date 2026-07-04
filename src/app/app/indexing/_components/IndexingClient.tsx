@@ -14,6 +14,7 @@ import {
 import { PageTable } from "./PageTable";
 import { PageTreeView, type Scope, scopeMatches } from "./PageTreeView";
 import { DetailDrawer } from "./DetailDrawer";
+import { PageTrendSection, type TrendData } from "./PageTrendChart";
 import { Clock, Globe, List, Maximize2, Minimize2, Network, RefreshCw, Send, Wrench, X } from "lucide-react";
 import { SchedulerSettingsDialog } from "./SchedulerSettingsDialog";
 import {
@@ -354,6 +355,14 @@ export function IndexingClient({
   const funcMenuRef = useRef<HTMLDivElement>(null);
   // 全屏：隐藏标题栏 + 统计卡，纵向空间全部让给表格；同一位置按钮变「返回」，Esc 亦可退出。
   const [fullscreen, setFullscreen] = useState(false);
+  // ─── 批量增量趋势（2026-07-04 R3）：勾选一批页 → 弹窗看合并每日曝光/点击增量曲线 ───
+  const [trendOpen, setTrendOpen] = useState(false);
+  const [batchTrend, setBatchTrend] = useState<{
+    data: TrendData | null;
+    loading: boolean;
+    error: string | null;
+    pages: number;
+  }>({ data: null, loading: false, error: null, pages: 0 });
   // 抽屉里的时间窗与 FilterBar 的时间窗解耦：FilterBar 控的是整张表格的全局
   // 口径，抽屉里控的是单个 URL 的性能切片，两者语义不同、用户预期独立。
   const [drawerTimeWindow, setDrawerTimeWindow] = useState<TimeWindow>("90d");
@@ -415,6 +424,16 @@ export function IndexingClient({
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [fullscreen]);
+
+  // 增量趋势弹窗按 Esc 关闭
+  useEffect(() => {
+    if (!trendOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setTrendOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [trendOpen]);
 
   // 当前选中的真实页行（synthetic / 找不到 → null）
   const selectedRow = useMemo(
@@ -549,6 +568,44 @@ export function IndexingClient({
       });
     } finally {
       setBatchTypeBusy(false);
+    }
+  };
+
+  // ─── 批量增量趋势：把当前已选页发给 /pages-trend，弹窗展示合并每日增量曲线 ───
+  const openBatchTrend = async () => {
+    if (selectedUrls.size === 0) return;
+    const urls = [...selectedUrls];
+    setTrendOpen(true);
+    setBatchTrend({ data: null, loading: true, error: null, pages: urls.length });
+    try {
+      const res = await fetch("/api/indexing/pages-trend", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ urls }),
+      });
+      const body = (await res.json()) as {
+        ok?: boolean;
+        startDate?: string | null;
+        pages?: number;
+        series?: { date: string; clicks: number; impressions: number }[];
+        message?: string;
+      };
+      if (!res.ok || !body.ok) {
+        throw new Error(body.message || `HTTP ${res.status}`);
+      }
+      setBatchTrend({
+        data: { ok: true, startDate: body.startDate ?? null, series: body.series ?? [] },
+        loading: false,
+        error: null,
+        pages: body.pages ?? urls.length,
+      });
+    } catch (err) {
+      setBatchTrend({
+        data: null,
+        loading: false,
+        error: err instanceof Error ? err.message : "加载失败",
+        pages: urls.length,
+      });
     }
   };
 
@@ -1095,6 +1152,39 @@ export function IndexingClient({
                     <span>批量页面修改</span>
                     {batchMode && <span className="ml-auto text-manor-brassHi text-[10px]">已开启</span>}
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFuncMenuOpen(false);
+                      if (selectedUrls.size > 0) {
+                        // 已有勾选 → 直接看这批页的增量趋势
+                        void openBatchTrend();
+                      } else {
+                        // 还没勾选 → 先开启勾选模式，提示去勾页
+                        setBatchMode(true);
+                        toast.info("已开启勾选", {
+                          description: "勾选页面后，点操作条里的「增量趋势」查看这批页的合并走势",
+                          duration: 5000,
+                        });
+                      }
+                    }}
+                    className="w-full px-3 py-1.5 flex items-center gap-2 text-xs text-left text-manor-ink/90 hover:bg-manor-brassDim/15 transition-colors"
+                  >
+                    <span
+                      aria-hidden="true"
+                      style={{
+                        width: 5,
+                        height: 5,
+                        borderRadius: 9999,
+                        background: "transparent",
+                        border: "1px solid rgba(201,169,97,.6)",
+                      }}
+                    />
+                    <span>批量增量趋势</span>
+                    {selectedUrls.size > 0 && (
+                      <span className="ml-auto text-manor-brassHi text-[10px]">看已选 {selectedUrls.size} 页</span>
+                    )}
+                  </button>
                 </div>
               )}
             </div>
@@ -1147,6 +1237,15 @@ export function IndexingClient({
                 className="h-6 px-2 border border-manor-brass/40 rounded text-xs text-manor-inkDim hover:text-manor-brassHi hover:border-manor-brassHi disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 全选筛选结果 ({scopedReal.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => void openBatchTrend()}
+                disabled={batchTypeBusy}
+                title="查看已选页面的合并每日曝光/点击增量走势"
+                className="h-6 px-2 border border-manor-brass/40 rounded text-xs text-manor-inkDim hover:text-manor-brassHi hover:border-manor-brassHi disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                增量趋势
               </button>
 
               <span className="flex-1" />
@@ -1341,6 +1440,72 @@ export function IndexingClient({
         open={schedulerOpen}
         onOpenChange={setSchedulerOpen}
       />
+
+      {/* 批量增量趋势弹窗 —— 已选页合并的每日曝光/点击增量曲线（与抽屉同款图，Esc/点遮罩关闭） */}
+      {trendOpen && (
+        <div
+          className="fixed inset-0 z-[120] flex items-center justify-center"
+          style={{ background: "rgba(0,0,0,.62)" }}
+          onClick={() => setTrendOpen(false)}
+        >
+          <div
+            className="rounded border border-manor-brass/40 w-[480px] max-w-[92vw] max-h-[86vh] overflow-y-auto"
+            style={{
+              background:
+                "linear-gradient(180deg, rgba(18,38,26,.99) 0%, rgba(8,20,13,1) 100%)",
+              boxShadow:
+                "0 12px 40px rgba(0,0,0,.6), inset 0 1px 0 rgba(224,197,122,.18)",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* 标题行 */}
+            <div className="px-4 py-2.5 border-b border-manor-brass/25 flex items-center gap-2">
+              <span
+                aria-hidden="true"
+                style={{
+                  width: 4,
+                  height: 4,
+                  transform: "rotate(45deg)",
+                  background: "linear-gradient(135deg, #EFD89A 0%, #A08850 100%)",
+                  boxShadow: "0 0 5px rgba(239,216,154,.6)",
+                }}
+              />
+              <span
+                className="text-manor-brassHi/85 tracking-[0.22em]"
+                style={{ fontFamily: "var(--font-sc), 'Cormorant SC', serif", fontSize: 9.5 }}
+              >
+                INCREMENTUM
+              </span>
+              <span className="text-manor-ink/90 text-sm">
+                增量趋势 · {batchTrend.pages} 页合并
+              </span>
+              <button
+                type="button"
+                onClick={() => setTrendOpen(false)}
+                title="关闭（Esc）"
+                className="ml-auto h-6 w-6 inline-flex items-center justify-center border border-manor-brass/40 rounded text-manor-inkDim hover:text-manor-brassHi hover:border-manor-brassHi transition-colors"
+              >
+                <X size={11} />
+              </button>
+            </div>
+            {/* 图区 —— 复用抽屉同款 PageTrendSection（每日增量双轴 + 累计 SUMMA + hover 明细） */}
+            <div className="px-4 py-3">
+              <PageTrendSection
+                data={batchTrend.data}
+                loading={batchTrend.loading}
+                error={batchTrend.error}
+              />
+            </div>
+            {/* 口径说明 */}
+            <div className="px-4 pb-3">
+              <p className="text-[10px] text-manor-inkFaint leading-relaxed">
+                口径：每日增量 = 所选页（含旧址 308 归并来源）当日曝光 / 点击之和；与单页抽屉
+                「流量趋势」同源同口径。GSC 数据固有约 2 天延迟。
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

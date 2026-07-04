@@ -196,6 +196,63 @@ export async function loadPageDailyTrend(fullUrl: string): Promise<{
 }
 
 /**
+ * 一批新页的【合并每日增量趋势】—— 每天一行 = 所选各页（own + bridged 来源）当日
+ * clicks / impressions 之和。口径与 loadPageDailyTrend 单页版完全一致，只是把多页的
+ * 来源集合并进一条 IN 查询一次求和（勾 76 页也只打一条 SQL）。
+ * 用于「功能 → 批量增量趋势」：先勾选一批页，看这批页整体的每日增量曲线。
+ */
+export async function loadPagesDailyTrend(fullUrls: string[]): Promise<{
+  startDate: string | null;
+  pages: number;
+  series: { date: string; clicks: number; impressions: number }[];
+}> {
+  // ── own：每页自身 norm 永远算 ──
+  const sourceNorms = new Set<string>();
+  const newNorms = new Set<string>();
+  for (const u of fullUrls) {
+    const s = u?.trim();
+    if (!s) continue;
+    const n = normalizeForMatch(s);
+    sourceNorms.add(n);
+    newNorms.add(n);
+  }
+  if (sourceNorms.size === 0) return { startDate: null, pages: 0, series: [] };
+
+  // ── bridged：一次遍历重定向图，凡目标命中所选页集合的旧址都并入
+  //（与单页版同口径：跳过自映射 / 资产系统页；全新板块不继承）──
+  const targetSet = new Set([...newNorms].filter((n) => !isBridgeExcluded(n)));
+  if (targetSet.size > 0) {
+    const redirectFile = await loadRedirectMap();
+    for (const [oldNorm, target] of Object.entries(redirectFile.byOldUrl)) {
+      if (!target || !targetSet.has(target)) continue;
+      if (oldNorm === target) continue; // 自映射 = own，已在集合里
+      if (isHardNonContent({ url: oldNorm })) continue;
+      sourceNorms.add(oldNorm);
+    }
+  }
+
+  // ── 一条 SQL：来源集合按 date 求和，升序 ──
+  const rows = await db
+    .select({
+      date: gscPageDaily.date,
+      clicks: sql<string>`SUM(${gscPageDaily.clicks})`,
+      impressions: sql<string>`SUM(${gscPageDaily.impressions})`,
+    })
+    .from(gscPageDaily)
+    .where(inArray(gscPageDaily.urlNorm, [...sourceNorms]))
+    .groupBy(gscPageDaily.date)
+    .orderBy(gscPageDaily.date);
+
+  const series = rows.map((r) => ({
+    date: String(r.date).slice(0, 10),
+    clicks: Number(r.clicks) || 0,
+    impressions: Number(r.impressions) || 0,
+  }));
+
+  return { startDate: series[0]?.date ?? null, pages: newNorms.size, series };
+}
+
+/**
  * 合并两组关键词：同词流量相加、曝光加权还原 ctr/position，clicks 降序取 Top 50。
  * own/bridged 各自已是 Top 50，合并后再截一次 —— 与流量 total=own+bridged 同构。
  */
