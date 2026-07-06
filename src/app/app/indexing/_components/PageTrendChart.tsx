@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { formatLargeNumber } from "./_utils";
+import type { PageOptimizationEvent } from "./_mock";
 
 // ───────────────────────────────────────────────────────────────────────────
 // API 类型
@@ -578,6 +579,7 @@ export function PageTrendSection({
   large = false,
   chartWidth,
   showCtr = false,
+  optimizations,
 }: {
   data: TrendData | null;
   loading: boolean;
@@ -588,7 +590,20 @@ export function PageTrendSection({
   chartWidth?: number;
   /** 显示 CTR：第三条虚线（独立比例）+ SUMMA 平均 CTR + hover 卡 CTR 行 */
   showCtr?: boolean;
+  /** 内容优化版本历史（仅单页抽屉传）：SUMMA 下多一行「优化后累计」+ 版本切换。缺省不渲染。 */
+  optimizations?: PageOptimizationEvent[];
 }) {
+  // 优化版本切换状态 —— hooks 必须无条件在早退之前调用（下面有 loading/error/empty 早退）。
+  const events = optimizations ?? [];
+  // 默认停在最新版本（打开即看最近一轮优化的效果）；后续版本数变化再由下方调整。
+  const [vIdx, setVIdx] = React.useState(Math.max(0, events.length - 1));
+  // 版本数变化（新增 / 撤销 / 切换页面）→ 跳到最新版本。用 React 官方「渲染期比对上次值并调整 state」
+  // 模式（Storing information from previous renders），而非 effect 里 setState（会触发级联渲染）。
+  const [prevLen, setPrevLen] = React.useState(events.length);
+  if (prevLen !== events.length) {
+    setPrevLen(events.length);
+    setVIdx(Math.max(0, events.length - 1));
+  }
   // loading 态
   if (loading) {
     return (
@@ -655,56 +670,168 @@ export function PageTrendSection({
 
   return (
     <div className="flex flex-col gap-3">
-      {/* 累计总览行 */}
-      <div
-        className="px-3 py-2 rounded text-[11px] leading-relaxed flex items-center gap-2 flex-wrap"
-        style={{
-          background:
-            "linear-gradient(180deg, rgba(20,42,28,.6) 0%, rgba(10,24,16,.7) 100%)",
-          border: "1px solid rgba(201,169,97,.2)",
-        }}
-      >
-        <span
-          className="text-manor-brassHi/80 tracking-[0.18em] shrink-0"
-          style={{
-            fontFamily: "var(--font-sc), 'Cormorant SC', serif",
-            fontSize: large ? 11 : 9,
-          }}
-        >
-          SUMMA
-        </span>
-        {data.startDate && (
-          <span className={large ? "text-manor-inkFaint text-xs" : "text-manor-inkFaint text-[10px]"}>
-            起 {data.startDate}
-          </span>
-        )}
-        <span className="text-manor-inkGhost mx-0.5">|</span>
-        <span className={large ? "text-manor-ink tabular-nums text-sm" : "text-manor-ink tabular-nums"}>
-          累计{" "}
-          <span className="text-manor-brassHi font-medium">
-            {formatLargeNumber(totalImpr)}
-          </span>{" "}
-          曝光
-        </span>
-        <span className="text-manor-inkGhost">-</span>
-        <span className={large ? "text-manor-ink tabular-nums text-sm" : "text-manor-ink tabular-nums"}>
-          <span className="text-manor-brassHi font-medium">
-            {formatLargeNumber(totalClicks)}
-          </span>{" "}
-          点击
-        </span>
-        {showCtr && (
-          <>
-            <span className="text-manor-inkGhost">-</span>
-            <span className={large ? "text-manor-ink tabular-nums text-sm" : "text-manor-ink tabular-nums"}>
-              平均 CTR{" "}
-              <span className="font-medium" style={{ color: COLORS.ctrLine }}>
-                {totalImpr > 0 ? ((totalClicks / totalImpr) * 100).toFixed(1) : "0.0"}%
+      {/* 累计总览 —— 上下对齐网格：总计行 +（若有）优化后行。列 [标签][起算日][曝光][点击][CTR]。
+          总计始终不变；优化后行按所选版本起算日展示自该日至今的累计，与总计同列对齐比对。 */}
+      {(() => {
+        const fz = large
+          ? { head: 10, label: 11, date: 11, num: 14 }
+          : { head: 8.5, label: 9, date: 10, num: 12 };
+        // 自某优化起算日至今的累计（series 与优化日期同为 YYYY-MM-DD，字符串比较即可判"之后"）
+        const sinceSum = (fromDate: string) => {
+          let c = 0;
+          let im = 0;
+          for (const d of data.series)
+            if (d.date >= fromDate) {
+              c += d.clicks;
+              im += d.impressions;
+            }
+          return { clicks: c, impressions: im };
+        };
+        const ctrPct = (clk: number, imp: number) =>
+          imp > 0 ? ((clk / imp) * 100).toFixed(1) : "0.0";
+        const fmtDay = (d: string) => (d.length >= 10 ? d.slice(5) : d); // YYYY-MM-DD → MM-DD
+
+        const activeIdx = Math.min(vIdx, Math.max(0, events.length - 1));
+        const ev = events.length > 0 ? events[activeIdx] : null;
+        const since = ev ? sinceSum(ev.at) : null;
+        const sinceHasData = !!since && (since.impressions > 0 || since.clicks > 0);
+
+        return (
+          <div
+            className="px-3 py-2.5 rounded"
+            style={{
+              background:
+                "linear-gradient(180deg, rgba(20,42,28,.6) 0%, rgba(10,24,16,.7) 100%)",
+              border: "1px solid rgba(201,169,97,.2)",
+            }}
+          >
+            <div
+              className="tabular-nums"
+              style={{
+                display: "grid",
+                gridTemplateColumns: "auto auto 1fr 1fr 1fr",
+                columnGap: large ? 16 : 10,
+                rowGap: large ? 8 : 6,
+                alignItems: "center",
+              }}
+            >
+              {/* 表头 */}
+              <span />
+              <span />
+              {["曝光", "点击", "CTR"].map((h) => (
+                <span
+                  key={h}
+                  className="text-right text-manor-brassHi/70 tracking-[0.12em]"
+                  style={{ fontFamily: "var(--font-sc), 'Cormorant SC', serif", fontSize: fz.head }}
+                >
+                  {h}
+                </span>
+              ))}
+
+              {/* 总计行（始终不变） */}
+              <span
+                className="whitespace-nowrap text-manor-brassHi/85 tracking-[0.14em]"
+                style={{ fontFamily: "var(--font-sc), 'Cormorant SC', serif", fontSize: fz.label }}
+              >
+                SUMMA · 总计
               </span>
-            </span>
-          </>
-        )}
-      </div>
+              <span className="whitespace-nowrap text-manor-inkFaint" style={{ fontSize: fz.date }}>
+                {data.startDate ? `起 ${fmtDay(data.startDate)}` : "—"}
+              </span>
+              <span className="text-right text-manor-brassHi font-medium" style={{ fontSize: fz.num }}>
+                {formatLargeNumber(totalImpr)}
+              </span>
+              <span className="text-right text-manor-brassHi font-medium" style={{ fontSize: fz.num }}>
+                {totalClicks.toLocaleString()}
+              </span>
+              <span className="text-right font-medium" style={{ fontSize: fz.num, color: COLORS.ctrLine }}>
+                {ctrPct(totalClicks, totalImpr)}%
+              </span>
+
+              {/* 优化后行（仅有优化标记时） */}
+              {ev && (
+                <>
+                  <span className="flex items-center gap-1 whitespace-nowrap">
+                    <button
+                      type="button"
+                      aria-label="上一个优化版本"
+                      title="上一个优化版本"
+                      disabled={activeIdx <= 0}
+                      onClick={() => setVIdx((i) => Math.max(0, i - 1))}
+                      className="text-manor-brassDim hover:text-manor-brassHi disabled:opacity-30 disabled:cursor-not-allowed transition-colors leading-none"
+                      style={{ fontSize: fz.label }}
+                    >
+                      ◄
+                    </button>
+                    <span
+                      className="text-manor-brassHi"
+                      title={ev.note ? `v${ev.v} · ${ev.at} · ${ev.note}` : `v${ev.v} · ${ev.at}`}
+                      style={{
+                        fontFamily: "var(--font-sc), 'Cormorant SC', serif",
+                        fontSize: fz.label,
+                        letterSpacing: "0.06em",
+                      }}
+                    >
+                      优化后 · v{ev.v}
+                    </span>
+                    <button
+                      type="button"
+                      aria-label="下一个优化版本"
+                      title="下一个优化版本"
+                      disabled={activeIdx >= events.length - 1}
+                      onClick={() => setVIdx((i) => Math.min(events.length - 1, i + 1))}
+                      className="text-manor-brassDim hover:text-manor-brassHi disabled:opacity-30 disabled:cursor-not-allowed transition-colors leading-none"
+                      style={{ fontSize: fz.label }}
+                    >
+                      ►
+                    </button>
+                  </span>
+                  <span className="whitespace-nowrap text-manor-inkFaint" style={{ fontSize: fz.date }}>
+                    起 {fmtDay(ev.at)}
+                  </span>
+                  {sinceHasData ? (
+                    <>
+                      <span className="text-right text-manor-ink" style={{ fontSize: fz.num }}>
+                        {formatLargeNumber(since!.impressions)}
+                      </span>
+                      <span className="text-right text-manor-ink" style={{ fontSize: fz.num }}>
+                        {since!.clicks.toLocaleString()}
+                      </span>
+                      <span className="text-right" style={{ fontSize: fz.num, color: COLORS.ctrLine }}>
+                        {ctrPct(since!.clicks, since!.impressions)}%
+                      </span>
+                    </>
+                  ) : (
+                    <span
+                      className="text-manor-inkFaint text-right"
+                      style={{ gridColumn: "3 / 6", fontSize: fz.date }}
+                    >
+                      暂无数据 · GSC 约 2 天延迟，逐日累积
+                    </span>
+                  )}
+                </>
+              )}
+            </div>
+
+            {/* 当前版本备注（有则显示） */}
+            {ev?.note && (
+              <div
+                className="mt-1.5 pt-1.5 border-t border-manor-brass/15 text-manor-inkDim leading-snug break-all"
+                style={{ fontSize: fz.date }}
+              >
+                <span className="text-manor-brassHi/70">v{ev.v} 备注：</span>
+                {ev.note}
+              </div>
+            )}
+            {/* 多版本提示 */}
+            {events.length > 1 && (
+              <div className="mt-1 text-manor-inkFaint" style={{ fontSize: large ? 10 : 9 }}>
+                共 {events.length} 轮优化 · ◄ ► 切换查看各版本自优化日起的累计
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {/* 图例 + 标题行 */}
       <div className="flex items-center gap-1.5">

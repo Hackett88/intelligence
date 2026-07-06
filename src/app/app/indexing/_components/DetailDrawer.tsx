@@ -2,10 +2,10 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { X, ExternalLink, AlertTriangle, Info, Pencil, Check, ChevronDown, Send, RefreshCw } from "lucide-react";
+import { X, ExternalLink, AlertTriangle, Info, Pencil, Check, ChevronDown, Send, RefreshCw, Sparkles, Undo2 } from "lucide-react";
 import { toast } from "sonner";
 import { usePageTrend, PageTrendSection } from "./PageTrendChart";
-import type { PageDetail, QueryRow, Ga4Metrics, Ga4Country } from "./_mock";
+import type { PageDetail, QueryRow, Ga4Metrics, Ga4Country, PageOptimizationEvent } from "./_mock";
 import { GA4_COUNTRY_BY_LANG, ga4CountryPoolKey } from "./_mock";
 import type { TimeWindow } from "./FilterBar";
 import { isAssetUrl } from "@/lib/gsc/classify";
@@ -224,6 +224,155 @@ function RequestIndexButton({ fullUrl }: { fullUrl: string }) {
       )}
       {loading ? "请求中…" : "请求 Google 索引"}
     </button>
+  );
+}
+
+// 内容优化标记 —— 基本信息卡里追踪"这页优化过没、优化了几轮、每轮改了什么"。
+// 未标记：一个「标记优化」按钮；点击展开内联备注输入 → 确定 POST add（备注可留空）。
+// 已标记：显示「已优化 · v{n}」+ 最新备注/日期（hover 看全），可「再标一轮」或「撤销上一次」。
+// 存 → router.refresh() → RSC 重读 snapshot → 新 optimizations 流回本组件（与页面类型修正同款刷新）。
+function OptimizeMarker({
+  fullUrl,
+  optimizations,
+}: {
+  fullUrl: string;
+  optimizations?: PageOptimizationEvent[];
+}) {
+  const router = useRouter();
+  const events = optimizations ?? [];
+  const latest = events[events.length - 1];
+  const [editing, setEditing] = React.useState(false);
+  const [note, setNote] = React.useState("");
+  const [busy, setBusy] = React.useState<null | "add" | "undo">(null);
+
+  const post = async (action: "add" | "undo", noteArg?: string) => {
+    if (busy) return;
+    setBusy(action);
+    try {
+      const res = await fetch("/api/indexing/page-optimize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: fullUrl, action, note: noteArg ?? "" }),
+      });
+      const data = (await res.json()) as {
+        ok?: boolean;
+        message?: string;
+        events?: PageOptimizationEvent[];
+      };
+      if (!res.ok || !data.ok) throw new Error(data?.message ?? "操作失败");
+      if (action === "add") {
+        toast.success(`已记录优化 · v${data.events?.length ?? "?"}`, { duration: 3000 });
+      } else {
+        toast.success("已撤销上一次优化", { duration: 3000 });
+      }
+      setEditing(false);
+      setNote("");
+      router.refresh(); // RSC 重读（已挂新 optimizations）→ 抽屉原地刷新，不关闭
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "操作失败", { duration: 5000 });
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  return (
+    <div className="flex flex-col gap-1">
+      <span className="text-[10px] text-manor-inkDim uppercase tracking-wider leading-none">
+        内容优化
+      </span>
+
+      {/* 已标记：版本徽标 + 最新日期 / 备注 */}
+      {events.length > 0 && (
+        <div className="flex items-center gap-2 flex-wrap">
+          <span
+            title={
+              latest?.note
+                ? `v${latest.v} · ${latest.at} · ${latest.note}`
+                : `v${latest?.v} · ${latest?.at}`
+            }
+            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] border border-manor-brassHi/45 text-manor-brassHi bg-manor-brassDim/12"
+          >
+            <Sparkles size={11} />
+            已优化 · v{latest?.v}
+          </span>
+          <span className="text-[10px] text-manor-inkFaint tabnum">{latest?.at}</span>
+        </div>
+      )}
+      {events.length > 0 && latest?.note && (
+        <span
+          className="text-[11px] text-manor-inkDim leading-snug break-all"
+          title={latest.note}
+        >
+          {latest.note}
+        </span>
+      )}
+
+      {/* 输入区（标记新一轮时展开）或操作按钮行 */}
+      {editing ? (
+        <div className="flex flex-col gap-1.5 mt-0.5">
+          <textarea
+            value={note}
+            disabled={busy !== null}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder="本轮优化改了什么？（可留空，如：改标题+补FAQ）"
+            rows={2}
+            maxLength={200}
+            className="w-full bg-manor-bg3 border border-manor-brass/40 rounded text-manor-ink text-xs px-1.5 py-1 outline-none focus:border-manor-brassHi/70 disabled:opacity-60 resize-none"
+            style={{ fontFamily: "var(--font-serif), 'EB Garamond', serif" }}
+          />
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => post("add", note)}
+              disabled={busy !== null}
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] border border-manor-brassHi/55 text-manor-brassHi bg-manor-brassDim/15 hover:bg-manor-brassDim/25 transition-colors disabled:opacity-60"
+            >
+              <Check size={11} />
+              {busy === "add" ? "记录中…" : "确定"}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setEditing(false);
+                setNote("");
+              }}
+              disabled={busy !== null}
+              className="px-2 py-0.5 rounded text-[11px] border border-manor-brass/25 text-manor-inkDim hover:text-manor-ink transition-colors disabled:opacity-60"
+            >
+              取消
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="flex items-center gap-2 mt-0.5">
+          <button
+            type="button"
+            onClick={() => {
+              setNote("");
+              setEditing(true);
+            }}
+            disabled={busy !== null}
+            className="inline-flex items-center gap-1.5 px-2 py-1 rounded text-[11px] border border-manor-brassHi/45 text-manor-brassHi bg-manor-brassDim/10 hover:bg-manor-brassDim/20 hover:border-manor-brassHi/65 transition-all disabled:opacity-50"
+            style={{ fontFamily: "var(--font-sc), 'Cormorant SC', serif", letterSpacing: "0.08em" }}
+          >
+            <Sparkles size={11} />
+            {events.length > 0 ? "再标一轮" : "标记优化"}
+          </button>
+          {events.length > 0 && (
+            <button
+              type="button"
+              onClick={() => post("undo")}
+              disabled={busy !== null}
+              title="撤销最新一次优化标记（版本号回退，不改历史版本）"
+              className="inline-flex items-center gap-1 px-2 py-1 rounded text-[11px] border border-manor-brass/25 text-manor-inkDim hover:text-manor-oxbloodHi hover:border-manor-oxbloodHi/45 transition-colors disabled:opacity-50"
+            >
+              <Undo2 size={11} />
+              {busy === "undo" ? "撤销中…" : "撤销上一次"}
+            </button>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -1037,6 +1186,10 @@ export function DetailDrawer({
               </span>
             }
           />
+          {/* 内容优化标记 —— 曝光高点击低的页优化内容后点一下记版本，追踪优化后流量 */}
+          <div className="col-span-2">
+            <OptimizeMarker fullUrl={page.fullUrl} optimizations={page.optimizations} />
+          </div>
           <div className="col-span-2">
             <Field
               label="URL"
@@ -1230,6 +1383,7 @@ export function DetailDrawer({
               loading={trend.loading}
               error={trend.error}
               showCtr
+              optimizations={page.optimizations}
             />
           </Section>
         )}

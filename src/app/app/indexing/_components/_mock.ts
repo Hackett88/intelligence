@@ -73,6 +73,9 @@ export type PageRow = {
   // GA4 单 URL 指标（进站后行为/转化）。同步时按 landing_page 口径写入；
   // 近 28 天无 GA4 着陆流量的页为 undefined，抽屉走"无数据"诚实空态。
   ga4?: Ga4Metrics;
+  // 内容优化追踪（2026-07-06）：曝光高点击低的页优化内容后点「标记优化」记的版本历史。
+  // coverage-loader 按 url_norm 挂到真实页；无优化记录 / 合成节点为 undefined。
+  optimizations?: PageOptimizationEvent[];
   // 树视图聚合用的合成节点（如 /products /collections）：GSC 没返回过它，
   // 但 UI 需要它做 sub-page 的目录入口。这类节点 clicks/impressions 都是 0，
   // 列表视图、SummaryBar、Stats 都应过滤掉。
@@ -86,6 +89,11 @@ export type QueryRow = {
   ctr: number;
   position: number;
 };
+
+// 内容优化追踪的一次「标记」——曝光高点击低的页优化内容后记的一个版本。
+// v=版本号(从 1 递增)、at=洛杉矶日历日 YYYY-MM-DD(与 GSC 报告/趋势 series 同口径)、note=备注。
+// 结构与服务端 @/db/schema 的 PageOptimizationEvent 一致；此处独立定义避免把 DB 层带进客户端包。
+export type PageOptimizationEvent = { v: number; at: string; note: string };
 
 // ───────────────────────────────────────────────────────────────────────────
 // GA4 — 单 URL 的"进站后"指标。经多视角评审（SEO 决策 / GA4 口径 / 信息架构 /

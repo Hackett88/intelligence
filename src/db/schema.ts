@@ -314,6 +314,27 @@ export type GscPageTypeOverride    = typeof gscPageTypeOverrides.$inferSelect;
 export type NewGscPageTypeOverride = typeof gscPageTypeOverrides.$inferInsert;
 
 // ────────────────────────────────────────────────────────────────────────────
+// 页面「内容优化」追踪（2026-07-06）
+// 曝光高点击低的页做内容优化后，在抽屉里点「标记优化」记一个版本（版本号 + 洛杉矶日历日
+// + 备注）。流量趋势按各版本起算日展示「优化后累计」，与总计对比，看优化是否见效——总数据不变。
+// PG 为唯一权威源（跨部署持久），JSON 降级镜像兜底，与 gsc_page_type_overrides 同款方案。
+// 单行一 URL，events 存版本历史数组（jsonb），与本表 queries/markets/aux_keywords 同构。
+// 手写幂等 DDL 见 scripts/ddl-page-optimizations.ts，此定义仅供 ORM 查询，禁 drizzle-kit。
+// ────────────────────────────────────────────────────────────────────────────
+
+export type PageOptimizationEvent = { v: number; at: string; note: string };
+
+export const gscPageOptimizations = pgTable("gsc_page_optimizations", {
+  urlNorm:   text("url_norm").primaryKey(),   // normalizeForMatch(fullUrl)
+  fullUrl:   text("full_url").notNull(),
+  events:    jsonb("events").$type<PageOptimizationEvent[]>().notNull().default([]), // [{ v, at:YYYY-MM-DD(LA), note }]
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export type GscPageOptimization    = typeof gscPageOptimizations.$inferSelect;
+export type NewGscPageOptimization = typeof gscPageOptimizations.$inferInsert;
+
+// ────────────────────────────────────────────────────────────────────────────
 // 「请求编入索引」历史计数（2026-07-04）
 // 每 URL 一行：成功提交次数 + 上次提交时刻。请求索引清单弹窗按此显示历史，防重复烧配额。
 // 手写幂等 DDL 见 scripts/ddl-index-requests.ts，此定义仅供 ORM 查询，禁 drizzle-kit。

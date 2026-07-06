@@ -6,7 +6,7 @@
 // 对应新页 —— 取旧真实页（loadLatestSnapshot）+ 重定向映射（loadRedirectMap），按曝光加权
 // 还原 ctr/position（数据量守恒）。命不中重定向、或旧快照缺失时该页保持 0（诚实空态）。
 
-import type { PageRow, IndexingStats, IndexState, QueryRow } from "@/app/app/indexing/_components/_mock";
+import type { PageRow, IndexingStats, IndexState, QueryRow, PageOptimizationEvent } from "@/app/app/indexing/_components/_mock";
 import { fetchSitemapPages } from "./sitemap";
 import { loadIndexStatus } from "./index-status-store";
 import { normalizeForMatch } from "./url-normalize";
@@ -22,6 +22,7 @@ import { loadIndexRequestMap } from "./index-request-store";
 import { loadInspectTuning, inspectDueAtMs } from "./inspect-freshness";
 import { loadLatestSnapshot, type LoadedSnapshot } from "./loader";
 import { loadPageTypeOverrides } from "./overrides";
+import { loadPageOptimizations } from "./optimizations";
 import { loadRedirectMap } from "./redirect-map";
 import { isHardNonContent, classifyPageStatus } from "./classify";
 import { loadSnapshot } from "./store";
@@ -439,6 +440,13 @@ export async function loadCoveragePages(windowDays = 90): Promise<
     if (t) overrideByNorm.set(normalizeForMatch(u), t);
   }
 
+  // 内容优化标记：按 normalizeForMatch(fullUrl) 挂到每页（独立于 GSC 同步，与页面类型修正同机制）。
+  // 无记录 / 空历史的页不进 map → 该页 optimizations 为 undefined（前端据此不渲染优化行）。
+  const optByNorm = new Map<string, PageOptimizationEvent[]>();
+  for (const [u, evs] of Object.entries(await loadPageOptimizations())) {
+    if (evs && evs.length > 0) optByNorm.set(normalizeForMatch(u), evs);
+  }
+
   // 「请求编入索引」历史计数（url_norm → {count, lastAt}），请求索引清单弹窗按行显示。
   const indexRequestMap = await loadIndexRequestMap();
 
@@ -634,6 +642,7 @@ export async function loadCoveragePages(windowDays = 90): Promise<
       },
       trend12m: emptyTrend(),
       queries,
+      optimizations: optByNorm.get(normKey),
       indexRequestCount: indexRequestMap.get(normKey)?.count,
       indexRequestLastAt: indexRequestMap.get(normKey)?.lastAt ?? undefined,
       // 收录检查退避信息（清单弹窗用）：dueMs=0 表示从未查过/上次失败 → 立即到期
